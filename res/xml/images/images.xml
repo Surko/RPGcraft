@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	
+	<!-- Tileset XML to edit tiles on map -->
+	
+	<Images>
+		<ui-image>
+		  <id>intro</id>
+		  <globalw>363</globalw>
+		  <globalh>82</globalh>  
+			<back-texture>panel\introIMG.png</back-texture>		
+			<x>0</x>
+			<y>0</y>					
+		</ui-image>	
+    	
+    <ui-image>
+		  <id>main</id>
+		  <globalw>1024</globalw>
+		  <globalh>1024</globalh>  
+			<back-texture>panel\MainMenuIMG.jpg</back-texture>		
+			<x>0</x>
+			<y>0</y>					
+		</ui-image>
+    	
+    <ui-image>
+		  <id>about</id>
+		  <globalw>373</globalw>
+		  <globalh>82</globalh>  
+			<back-texture>panel\introIMG.png</back-texture>		
+			<x>0</x>
+			<y>0</y>					
+		</ui-image>
+    	
+    <ui-image>
+		  <id>mainButtonTexture</id>
+		  <globalw>626</globalw>
+		  <globalh>417</globalh>  
+			<back-texture>panel\ButtonTexture.jpg</back-texture>		
+			<x>0</x>
+			<y>0</y>					
+	  </ui-image>			
+		
+		<ui-image>
+		  <id>player-stat</id>
+		  <globalw>382</globalw>
+		  <globalh>132</globalh>  
+			<back-texture>uiblank.png</back-texture>
+      <trans-x></trans-x>
+      <trans-y></trans-y>		
+			<x>0</x>
+			<y>0</y>					
+		</ui-image>		
+	</Images>

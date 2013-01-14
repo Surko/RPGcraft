@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	
+	<!-- Tileset XML to edit tiles on map -->
+	
+<Entities>
+<item>
+   <id>healing1</id>
+   <sheet>characters2.png</sheet>
+   <globalw>24</globalw>
+   <globalh>24</globalh>
+   <move>
+   <type>ITEM</type>
+      <anim>
+      <duration>2</duration>
+      <x>10</x>
+      <y>0</y>
+      </anim>      
+   </move>	
+	
+   <effects>
+    <effect>HEAL</effect>
+   </effects>	
+</item>
+</Entities>

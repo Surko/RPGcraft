@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	
+	<!-- Tileset XML to edit tiles on map -->
+	
+	<tileset>
+		<tile>
+		  <id>1</id>
+		  <name>grass</name>
+		  <globalw>32</globalw>
+		  <globalh>32</globalh>
+		  <passable>True</passable>
+      <anim>		  
+			 <sheet>1.png</sheet>			
+			 <x>0</x>
+			 <y>0</y>					
+			</anim>
+		</tile>			
+    <tile>
+		  <id>2</id>
+		  <name>stone</name>
+		  <globalw>32</globalw>
+		  <globalh>32</globalh>
+		  <passable>True</passable>
+      <anim>		  
+			 <sheet>tileset.png</sheet>			
+			 <x>0</x>
+			 <y>0</y>					
+			</anim>
+		</tile>				
+	</tileset>

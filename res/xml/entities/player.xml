@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	
+	<!-- Tileset XML to edit tiles on map -->
+	
+<mob>
+   <id>_player</id>
+   <name>Player</name>
+   <sheet>characters.png</sheet>
+   <globalw>32</globalw>
+   <globalh>32</globalh>
+   <move>
+   <type>UP</type>
+      <anim>
+      <duration>10</duration>
+      <x>0</x>
+      <y>0</y>
+      </anim>
+      <anim>
+      <duration>10</duration>
+      <x>1</x>
+      <y>0</y>
+      </anim>
+      <anim>
+      <duration>10</duration>
+      <x>2</x>
+      <y>0</y>
+      </anim>
+   </move>	
+		
+   <move>
+   <type>LEFT</type>
+     <anim>
+     <duration>10</duration>
+      <x>0</x>
+      <y>3</y>
+     </anim>
+     <anim>
+     <duration>10</duration>
+      <x>1</x>
+      <y>3</y>
+     </anim>
+     <anim>
+     <duration>10</duration>
+      <x>2</x>
+      <y>3</y>
+     </anim>     
+   </move>	
+		
+   <move>
+   <type>RIGHT</type>
+     <anim>
+     <duration>10</duration>
+      <x>0</x>
+      <y>1</y>
+     </anim>
+     <anim>
+     <duration>10</duration>
+      <x>1</x>
+      <y>1</y>
+     </anim>
+     <anim>
+     <duration>10</duration>
+      <x>2</x>
+      <y>1</y>
+     </anim>
+   </move>
+        
+   <move>
+   <type>DOWN</type>
+     <anim>
+     <duration>10</duration>
+      <x>0</x>
+      <y>2</y>
+     </anim>
+     <anim>
+     <duration>10</duration>
+      <x>1</x>
+      <y>2</y>
+     </anim>
+     <anim>
+     <duration>10</duration>
+      <x>2</x>
+      <y>2</y>
+     </anim>
+   </move>
+   <stats>
+    <basehealth>5-20</basehealth>
+    <basestamina>50-100</basestamina>
+    <staminareg>0.05</staminareg>
+    
+    <basestrength>5-20</basestrength>
+    <baseagility>5-20</baseagility>
+    <basespeed>5-20</basespeed>
+    
+    <attackrater>300</attackrater>
+    <defenserater>300</defenserater>
+    <speedrater>300</speedrater>
+    
+    <attackradius>32</attackradius>
+    <speedfactor>0.208</speedfactor>
+    <interchance>0.5</interchance>
+    
+    <attratbonus>5</attratbonus>
+    <defratbonus>5</defratbonus>
+   </stats>	
+</mob>

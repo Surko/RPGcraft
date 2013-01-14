@@ -4,15 +4,9 @@
  */
 package rpgcraft.panels;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -20,12 +14,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import rpgcraft.GamePane;
-import rpgcraft.MainGameFrame;
 import rpgcraft.errors.MissingFile;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.Menu;
@@ -40,13 +30,10 @@ import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.ImageResource;
-import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
-import rpgcraft.resource.UiResource.UiType;
 import rpgcraft.utils.Framer;
 import rpgcraft.utils.ImageUtils;
 import rpgcraft.utils.MathUtils;
-import rpgcraft.utils.TextUtils;
 
 /**
  * Abstraktna trieda MenuOrig ma za ulohu vytvorit spolocny interface pre vsetky

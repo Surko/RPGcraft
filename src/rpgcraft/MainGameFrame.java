@@ -8,14 +8,11 @@ import java.awt.GridBagLayout;
 import java.util.logging.Logger;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.io.File;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import javax.swing.JFrame;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.resource.StringResource;
-import rpgcraft.resource.ImageResource;
 /**
  * 20.7 1st revision
  * 1.8 2nd revision

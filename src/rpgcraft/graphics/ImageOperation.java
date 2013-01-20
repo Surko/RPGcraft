@@ -11,18 +11,23 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.awt.image.RescaleOp;
 import javax.swing.JComponent;
+import rpgcraft.utils.MathUtils;
 
 /**
  *
  * @author Kirrie
  */
-public class ImageOperation {    
+public class ImageOperation { 
+    // Vseobecne : hocijaky obrazok ktory dedi od Image
     private Image origImage; 
     
+    // destImage : Prekonvertovany obrazok origImage
+    // showImage : Vysledky obrazok po operaciach
     private BufferedImage destImage,showImage; 
     private static ImageOperation io;
     
@@ -86,11 +91,32 @@ public class ImageOperation {
     }
     
     /**
+     * Metoda nextOp pripravi objekt na dalsiu operaciu, takze je urcite vhodne volat
+     * po kazdej vykonanej operacii. V podstate iba priradi do destImage (obrazok
+     * na zmenu) obrazok showImage (obrazok po zmene ktory budeme zobrazovat).
+     */
+    public void nextOp() {
+        destImage = showImage;        
+    }
+    
+    /**
      * Metoda ktora nastavi originalny obrazok, ktory menime, na ten zadany parametrom. 
      * @param img Obrazok, ktory menime
      */
     public void setOrigImage(Image img) {
         this.origImage = img;
+    }
+    
+    /**
+     * Metoda ktora vykona transformaciu podla parametru xForm, co je 
+     * objekt AffineTransform. Tento objekt je blizsie popisany v triede AffineTransform.
+     * @param xForm Transformacna matica
+     * @see AffineTransform
+     */
+    public void transformImage(AffineTransform xForm) {
+         AffineTransformOp op = new AffineTransformOp(xForm, AffineTransformOp.TYPE_BILINEAR);
+
+         showImage = op.filter(destImage, null);
     }
     
     /**
@@ -110,8 +136,8 @@ public class ImageOperation {
      * Metoda ktora zrotuje obrazok o parameter theta, ktory je zadany v radianoch!.   
      * @param theta Ako moc sa otoci obrazok
     */
-    
-    public void rotate(double theta) {
+    @Deprecated
+    public void rotatetest1(double theta) {
         double angle = theta / 360;
         showImage = new BufferedImage((int)(Math.cos(angle) * destImage.getWidth()), destImage.getHeight(), destImage.getType());        
         Graphics2D g = (Graphics2D)showImage.getGraphics();
@@ -126,15 +152,78 @@ public class ImageOperation {
      * @param origX Kde na x osi sa bude otacat
      * @param origY Kde na y osi sa bude otacat
      */
-    public void rotate(double theta, double origX, double origY) {
+    @Deprecated
+    public void rotatetest2(double theta, double origX, double origY) {
         showImage = new BufferedImage(destImage.getWidth(), destImage.getHeight(), destImage.getType());
         Graphics2D g = showImage.createGraphics();
         AffineTransform xForm = AffineTransform.getRotateInstance(theta, origX, origY);
         g.drawImage(destImage, xForm, null);
     }
     
+    public void rotate(double theta) {
+       rotate(theta, (int)(destImage.getWidth()/2), (int)(destImage.getHeight()/2));
+    }
+    
+    public void rotate(double theta, int origX, int origY) {
+      AffineTransform xForm = new AffineTransform();
+      
+      double relX = origX / destImage.getWidth();
+      double relY = origY / destImage.getHeight();
+      
+      if (destImage.getWidth() > destImage.getHeight())
+      {
+        xForm.setToTranslation(relX * destImage.getWidth(), relY * destImage.getWidth());
+        xForm.rotate(theta);
+
+        int diff = destImage.getWidth() - destImage.getHeight();
+
+        switch ((int)MathUtils.radToAngle(theta))
+        {
+        case 90:
+          xForm.translate(relX * destImage.getWidth(), relY * destImage.getWidth() + diff);
+          break;
+        case 180:
+          xForm.translate(relX * destImage.getWidth(), relY * destImage.getWidth() + diff);
+          break;
+        default:
+          xForm.translate(relX * destImage.getWidth(), relY * destImage.getWidth());
+          break;
+        }
+      }
+      else if (destImage.getHeight() > destImage.getWidth())
+      {
+        xForm.setToTranslation(relX * destImage.getHeight(), relY * destImage.getHeight());
+        xForm.rotate(theta);
+
+        int diff = destImage.getHeight() - destImage.getWidth();
+
+        switch ((int)MathUtils.radToAngle(theta))
+        {
+        case 180:
+          xForm.translate(-relX * destImage.getHeight() + diff, -relY * destImage.getHeight());
+          break;
+        case 270:
+          xForm.translate(-relX * destImage.getHeight() + diff, -relY * destImage.getHeight());
+          break;
+        default:
+          xForm.translate(-0.5 * destImage.getHeight(), -0.5 * destImage.getHeight());
+          break;
+        }
+      }
+      else
+      {
+        xForm.setToTranslation(relX * destImage.getWidth(), relY * destImage.getHeight());
+        xForm.rotate(theta);
+        xForm.translate(-relX * destImage.getHeight(), -relY * destImage.getWidth());
+      }
+
+      AffineTransformOp op = new AffineTransformOp(xForm, AffineTransformOp.TYPE_BILINEAR);
+
+      showImage = op.filter(destImage, null);
+    }
+    
     /**
-     * Metoda nam vrati originalny obrazok s ktorym pracujeme.
+     * Metoda nam vrati originalny obrazok s ktorym pracujeme. Len pre debug vyuzitie
      * @return Original
      */
     public BufferedImage getDestImg() {
@@ -212,12 +301,10 @@ public class ImageOperation {
      */
         
     public void resizeImage(int width, int height, int type){
-	BufferedImage resizedImage = new BufferedImage(width, height, type);
-	Graphics2D g = resizedImage.createGraphics();
+	showImage = new BufferedImage(width, height, type);
+	Graphics2D g = showImage.createGraphics();
 	g.drawImage(destImage, 0, 0, width, height, null);
 	g.dispose();        
-        showImage = resizedImage;
-
     }
     
     /**
@@ -234,8 +321,8 @@ public class ImageOperation {
      * @see BufferedImage
      */
     public void betterresizeImage(int width, int height, int type) {
-	BufferedImage resizedImage = new BufferedImage(width, height, type);
-	Graphics2D g = resizedImage.createGraphics();		        	
+	showImage = new BufferedImage(width, height, type);
+	Graphics2D g = showImage.createGraphics();		        	
         
         // happen to be better in resizing
         
@@ -249,8 +336,6 @@ public class ImageOperation {
         g.drawImage(destImage, 0, 0, width, height, null);
         
         g.dispose();
-                
-        showImage = resizedImage;
 
     }	   
     

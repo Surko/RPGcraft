@@ -134,4 +134,8 @@ public class MathUtils {
     }
     
     
+    public static double radToAngle(double rad) {
+        return (rad / Math.PI)*180;
+    }
+    
 }

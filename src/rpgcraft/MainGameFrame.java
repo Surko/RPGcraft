@@ -13,6 +13,7 @@ import javax.swing.JFrame;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.resource.StringResource;
+import rpgcraft.utils.Framer;
 /**
  * 20.7 1st revision
  * 1.8 2nd revision
@@ -47,13 +48,14 @@ public class MainGameFrame {
 
         PathManager.getInstance(args);
         loadStringResource();
-                        
+        
         mFrame.setBounds(0, 0, Fwidth, Fheight);
         mFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mFrame.addComponentListener(new UpdateGameWidthandHeight());
                 
         game = new GamePane();  
-        game.setLayout(new GridBagLayout());
+        game.setLayout(null);
+        game.add(Framer.frameLabel);
 
         mFrame.add(game);
         mFrame.addKeyListener(input);

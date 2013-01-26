@@ -21,6 +21,7 @@ import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.panels.*;   
 import rpgcraft.panels.components.swing.SwingComponent;
+import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.TileResource;
@@ -37,31 +38,26 @@ import rpgcraft.xml.XmlReader;
  * @author Kirrie
  */
 
-public class GamePane extends SwingComponent implements Runnable {
+public class GamePane extends SwingImagePanel implements Runnable {
     // Thread v ktorom bezi hlavna hra, dalsi Thread sa stara o UI prvky atd.
     private Thread t; 
     // JFrame alias hlavny frame s panelom v ktorom je hra
-    private JFrame mFrame;
+    private JFrame mFrame;    
     // Logger na odlogovanie hry
     private Logger logger = Logger.getLogger(getClass().getName());
     //Bool hodnota ci bolo initializovane GUI s loggerom 
     private boolean initialized = false;
     // Bool hodnota ci boli initializovane xml subory s entitami a dlazdicami
-    private boolean xmlInitialized = false;
-    // Game kontajner v ktorom sa nachadza tento panel
-    private rpgcraft.panels.components.Container gameContainer; 
-    
+    private boolean xmlInitialized = false;        
     // Premenne urcujuce stav hry
     private volatile static boolean running = false;    
     public volatile static boolean gameOver = false;    
     //
     //
-    // Kontainer pre ostatne menu (vid. vyssie)
-    private volatile AbstractMenu menu;
     // Sirka a Vyska Panelu s hrou
     private int pWidth;
     private int pHeight;                      
-        
+        Component c;
     private Graphics dbg;    
     private volatile Image dbImage = null;
     public InputHandle input;
@@ -101,7 +97,8 @@ public class GamePane extends SwingComponent implements Runnable {
     public GamePane() {
         // Inicializacia prazdneho menu
         menu = new BlankMenu();   
-        menu.initialize(gameContainer, input);
+        
+        menu.initialize(null, input);
     }
     
     private void init() {
@@ -194,20 +191,21 @@ public class GamePane extends SwingComponent implements Runnable {
             logger.log(Level.INFO, "Xml files were already initialized ---> ABORT");
             }  
             
-            gameContainer = new rpgcraft.panels.components.Container(null, this.getWidth(), 
+            componentContainer = new rpgcraft.panels.components.Container(null, this.getWidth(), 
                 this.getHeight(), 0, 0, null);
-            gameContainer.setComponent(this);
+            componentContainer.setComponent(this);
+            componentContainer.setTop(true);
             
             IntroPanel intro = new IntroPanel(UiResource.getResource("introMenu"));
-            intro.initialize(gameContainer, input);
+            intro.initialize(componentContainer, input);
             logger.log(Level.INFO, "Intro panel set");
             MainMenu main = new MainMenu(UiResource.getResource("mainMenu"));
-            main.initialize(gameContainer, input);
+            main.initialize(componentContainer, input);
             logger.log(Level.INFO, "Main panel set");
             AboutPanel about = new AboutPanel(UiResource.getResource("aboutMenu"));
-            about.initialize(gameContainer, input);
+            about.initialize(componentContainer, input);
             GameMenu game = new GameMenu(UiResource.getResource("gameMenu"));
-            game.initialize(gameContainer, input);
+            game.initialize(componentContainer, input);
             logger.log(Level.INFO, "About panel set");            
 
             
@@ -320,8 +318,8 @@ public class GamePane extends SwingComponent implements Runnable {
             //long sleepTime = period - timeTaken;                        
             
             update();            
-            //Render();              
-            repaint(); 
+            //Render();
+            repaint();
              
             try {
                 Thread.sleep(Framer.fpsProhibitor);
@@ -348,8 +346,8 @@ public class GamePane extends SwingComponent implements Runnable {
         this.pWidth = x;
         this.pHeight = y;
         
-        if (gameContainer != null)
-            gameContainer.set(x, y, 0, 0);
+        if (componentContainer != null)
+            componentContainer.set(x, y, 0, 0);
         
         dbImage = null;        
         setImageProperties();        
@@ -364,6 +362,13 @@ public class GamePane extends SwingComponent implements Runnable {
     public int getHeight() {
         return pHeight;
     }
+
+    @Override
+    public void removeAll() {
+        super.removeAll(); 
+    }
+    
+     
     
     /**
      * Nastavi menu v ktorom pracujeme. Nasledne ho inicializuje s ovladanim hry 
@@ -377,7 +382,7 @@ public class GamePane extends SwingComponent implements Runnable {
     public void setMenu(AbstractMenu menu) {             
         this.menu = menu;
         if (menu != null) {
-            this.removeAll();
+            removeAll();
             menu.grChange(true);                   
             menu.recalculate();
             menu.update();                 
@@ -393,6 +398,7 @@ public class GamePane extends SwingComponent implements Runnable {
       * do nich.
       */
      
+    @Override
     public void update() {
         if (mFrame.hasFocus()&&!gameOver) {
             if (menu!=null) {
@@ -423,11 +429,7 @@ public class GamePane extends SwingComponent implements Runnable {
     }
     
     @Override
-    public void paintComponent(Graphics g) {
-        if (Framer.SHOWFPS) {
-            Framer.framing++;
-        } 
-        
+    protected void paintImage(Graphics g, Image dbImage) {               
         // DEBUG!! -- Kontrola Threadu
         //System.out.println(Thread.currentThread().getName());
         
@@ -436,23 +438,19 @@ public class GamePane extends SwingComponent implements Runnable {
                 return;
             }
             //super.paintComponent(dbImage.getGraphics()); 
-            menu.paintMenu(dbImage.getGraphics()); 
-            
-            if (Framer.SHOWFPS) {
-                if (System.currentTimeMillis() - Framer.fpsTimer > 1000) {
-                    Framer.fpsTimer += 1000;                    
-                    Framer.fShow = Framer.framing;
-                    Framer.framing = 0;                       
-                }                    
-            }
-            
-            menu.paintFPS(dbImage.getGraphics());
+            menu.paintMenu(dbImage.getGraphics());                         
             
             if (dbImage != null) {
                 g.drawImage(dbImage, 0, 0, null);                
             }
             
         }
+    }
+    
+    @Override
+    public void paintComponent(Graphics g) {        
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, pWidth, pHeight);
     }
 
 }

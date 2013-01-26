@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package rpgcraft.panels.components.ingame;
+package rpgcraft.panels.components.template;
 
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -14,8 +14,10 @@ import java.awt.geom.AffineTransform;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.Images;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.UiResource;
+import rpgcraft.resource.types.TextType;
 import rpgcraft.utils.MathUtils;
 import rpgcraft.utils.TextUtils;
 
@@ -23,15 +25,19 @@ import rpgcraft.utils.TextUtils;
  *
  * @author kirrie
  */
-public class InGameText extends InGameComponent {
+public class TemplateText extends TemplateComponent {
     
     private String title;
     private int[] rpos;
+    protected TextType txType;
     
-    public InGameText(UiResource resource, Container cont, AbstractMenu menu) {
+    protected TemplateText() {}
+    
+    public TemplateText(UiResource resource, Container cont, AbstractMenu menu) {
         super(resource, cont, menu);
-        if (resource.getText() != null) {
-            this.title = TextUtils.getResourceText(resource.getText());
+        txType = (TextType)resource.getType();
+        if (txType.getText() != null) {
+            this.title = TextUtils.getResourceText(txType.getText());
         }
         paint(cont.getImage().getGraphics());
     }
@@ -40,6 +46,11 @@ public class InGameText extends InGameComponent {
     public void mouseClicked(MouseEvent e) {
     }
 
+    @Override
+    protected void reconstructComponent() {
+        // Rovnaky kod ako v konstruktore
+    }
+    
     @Override
     public void paint(Graphics g) {
         g.setColor(Colors.getColor(resource.getBackgroundColorId()));
@@ -77,5 +88,11 @@ public class InGameText extends InGameComponent {
 
     @Override
     public void update() {
+    }
+    
+    @Override
+    public Component copy(Container cont, AbstractMenu menu) {
+        TemplateText result = new TemplateText();
+        return result;
     }
 }

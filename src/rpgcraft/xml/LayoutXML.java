@@ -44,4 +44,10 @@ public interface LayoutXML {
     public static final String TEMPLATE = "template";
     public static final String PAINTMODE = "paint-mode";
     public static final String VISIBLE = "visible";
+    public static final String ROWLAYOUT = "rows-layout";
+    public static final String ROWSMAX = "rows-max";
+    public static final String COLSMAX = "cols-max";
+    // ATRIBUTES
+    public static final String FONT = "font";
+    
 }

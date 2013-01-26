@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.UiResource;
+import rpgcraft.resource.types.ButtonType;
 import rpgcraft.utils.TextUtils;
 
 /**
@@ -25,14 +26,26 @@ public abstract class SwingCustomButton extends SwingComponent {
     String title;         
     boolean hit = false; 
     ArrayList _listeners;
+    ButtonType btnType;
    
+    protected SwingCustomButton() {
+        super();
+    } 
+    
     public SwingCustomButton (Container container, AbstractMenu menu) {  
         super(container,menu);  
-        this.title = TextUtils.getResourceText(container.getResource().getText());   
+        btnType = (ButtonType)container.getResource().getType();
+        this.title = TextUtils.getResourceText(btnType.getText());   
         _listeners = new ArrayList();        
         addMouseListener(this); 
     }
     
+    @Override
+    protected void reconstructComponent() {
+        this.title = TextUtils.getResourceText(btnType.getText());   
+        _listeners = new ArrayList();        
+        addMouseListener(this);
+    }
     
     @Override
     public Dimension getPreferredSize(){
@@ -89,6 +102,6 @@ public abstract class SwingCustomButton extends SwingComponent {
     @Override
     public void removeActionListener(ActionListener listener){  
         _listeners.remove(listener);  
-    }  
+    }          
     
 } 

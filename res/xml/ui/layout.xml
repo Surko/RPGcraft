@@ -40,8 +40,8 @@
     <elements>
       <element>
         <id>text_about</id>
-        <text>@textabout</text>
         <type>TEXT</type>
+        <text>@textabout</text>        
         <layout>
           <scrolling>
             <speedx>10</speedx>
@@ -65,7 +65,7 @@
       <weighty>1</weighty>
     </layout>
     <background>
-      <background-color>Black</background-color>
+      <background-color>transColor</background-color>
       <background-image>intro</background-image>
       <orientation>20</orientation>
       <image-width>FILL</image-width>
@@ -114,8 +114,8 @@
     <elements>
       <element>
         <id>btn_newgame</id>
-        <text>@newgame</text>
         <template>abstract_swing_button</template>
+        <text>@newgame</text>        
         <action>SETMENU@intro</action>
         <layout>
           <x>0</x>      
@@ -124,16 +124,19 @@
       </element>
       <element>
         <id>ListView01</id>
-        <type>LIST</type>
+        <type>LIST</type>        
         <layout>
           <layout-type>GRIDBAGSWING</layout-type>    
           <insets>5,5,5,5</insets>    
           <weightx>0</weightx> 
           <weighty>0</weighty>
-          <width>100</width>
-          <height>100</height>
+          <width>400</width>
+          <height>400</height>
           <x>1</x>
           <y>0</y> 
+          <rows-layout>DIAGONALROWS</rows-layout>
+          <rows-max>2</rows-max>
+          <cols-max>3</cols-max>
         </layout>
         <background>
           <background-color>healthColor</background-color>   
@@ -149,7 +152,7 @@
               <height>20</height>
             </layout>
             <background>
-              <background-color>fpsColor</background-color>
+              <background-color>transColor</background-color>
             </background>
             <position>CENTER</position>                          
           </list-element>

@@ -37,7 +37,6 @@ public class MainMenu extends AbstractMenu{
     }
 
     
-    
     @Override
     public void update() {
        super.update();  

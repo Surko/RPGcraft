@@ -10,6 +10,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -47,12 +50,13 @@ import rpgcraft.resource.UiResource;
  */   
 public class Container {
     
-        // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+        // <editor-fold defaultstate="collapsed" desc=" Premenne ">        
         private int x,y,w,h,mw,mh;
         private BufferedImage resImage;
         private UiResource resource;
         private Component c;
         private Container parent;
+        private boolean top;
         private ArrayList<Container> childContainers;
         private boolean changed;
         private boolean visible;
@@ -85,6 +89,7 @@ public class Container {
             this.mh = mh;
             this.parent = parent;
             this.changed = true;
+            this.top = false;
             this.visible = resource == null ? true : resource.isVisible();
         }
         
@@ -96,8 +101,8 @@ public class Container {
             this.h = srcCont.h;
             this.mw = srcCont.mw;
             this.mh = srcCont.mh;
-            this.parent = srcCont.parent;
-            this.c = srcCont.getComponent();
+            this.top = srcCont.top;
+            this.parent = srcCont.parent;            
             if (srcCont.childContainers != null) {
                 this.childContainers = new ArrayList(srcCont.childContainers.size());
                 for (Container cont : srcCont.childContainers) {
@@ -107,6 +112,7 @@ public class Container {
             this.changed = srcCont.changed;
             this.resImage = srcCont.resImage;
             this.visible = srcCont.visible;
+            setComponent(srcCont.c.copy(this, srcCont.c.getOriginMenu()));
             
             
         }
@@ -139,7 +145,7 @@ public class Container {
             }
             childContainers.add(cont);            
         }
-        
+
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Gettery ">
@@ -198,6 +204,14 @@ public class Container {
             return visible;
         }
         
+        public boolean isTopContainer() {
+            return top;
+        }
+                     
+        public boolean isTopLevelComponent(Container cont) {
+            return cont.c.isShowing();
+        }
+        
         public BufferedImage getImage() {
             return resImage;
         }
@@ -234,6 +248,10 @@ public class Container {
         
         public void hasChanged() {
             this.changed = true;
+        }
+        
+        public void setTop(boolean top) {
+            this.top = top;
         }
         
         public void setChanged(boolean changed) {
@@ -280,13 +298,16 @@ public class Container {
             case FLOWSWING : {
                 panel.setLayout(new FlowLayout(resource.getAlign(), resource.getHGap(), resource.getVGap()));
             } break;
-            case INGAME : {                
+            case INGAME : {      
+                panel.setLayout(null);
                 panel.setBackground(Color.BLACK);
             } break;
         }              
 
     }
     // </editor-fold>
+
+    
         
 }
 

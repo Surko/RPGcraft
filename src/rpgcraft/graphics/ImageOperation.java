@@ -30,9 +30,7 @@ public class ImageOperation {
     // showImage : Vysledky obrazok po operaciach
     private BufferedImage destImage,showImage; 
     private static ImageOperation io;
-    
-    private float scaleFactor = 1f; // future re-use
-    private float offset = 0f;
+        
     private RescaleOp rescale; 
             
     /**
@@ -123,12 +121,27 @@ public class ImageOperation {
      * Metoda ktora skaluje obrazok podla pomocnej funkcie filter
      * z RescaleOp. Tymto sposobom sa da lahko nastavit tmavost obrazku 
      * ako aj jeho velkost. Nevyhoda je ta ze stratime transparentnost.
-     * Vacsinou tuto metodu volame po metodach ktore menia velkosti
-     * alebo svetelnost.
+     * @param scaleFactor Skalovaci parameter, blizsie funkcie popisane v triede RescaleOp
+     * @param contrast Offset/Kontrast, blizsie funkcie popisane v triede RescaleOp
      * @see RescaleOp
      */
-    public void rescale() {
-        rescale = new RescaleOp(scaleFactor, offset, null);
+    public void rescale(float scaleFactor, float contrast) {
+        rescale = new RescaleOp(scaleFactor, contrast, null);
+        rescale.filter(destImage, showImage);
+    }
+    
+    /**
+     * Metoda ktora skaluje obrazok podla pomocnej funkcie filter
+     * z RescaleOp. Tymto sposobom sa da lahko nastavit tmavost obrazku 
+     * ako aj jeho velkost. Metoda je blizka rescale s tym rozdielom ze 
+     * tato metoda skaluje a vyrovnava kontrasty podla viacerych hodnot.
+     * Nevyhoda je ta ze stratime transparentnost.
+     * @param scaleFactors Skalovacie parametre, blizsie funkcie popisane v triede RescaleOp
+     * @param contrasts Offsety/Kontrasyt, blizsie funkcie popisane v triede RescaleOp
+     * @see RescaleOp
+     */
+    public void arrayRescale(float[] scaleFactors, float[] contrasts) {
+        rescale = new RescaleOp(scaleFactors, contrasts, null);
         rescale.filter(destImage, showImage);
     }
     
@@ -239,28 +252,11 @@ public class ImageOperation {
     }
     
     /**
-     * Metoda ktora nastavi kontrast nasho originalneho obrazku pomocou premennej offset.
-     * Tato premenna 
-     * @param f Zmena premennej offset na <b>f<b>
-     */
-    public void changeContrast(float f) {
-        offset=f;        
-    }
-    
-    /**
-     * Metoda ktora zmeni contrast obrazku podla parametru f. 
-     * @param f Zmena premmennej offset o <b>f</b>
-     */
-    public void changeContrastbyConstant(float f) {
-        offset+=f;
-    }
-    
-    /**
      * Metoda ktora nam vrati nami nastaveny kontrast pre obrazok
      * @return Premenna offset
      */
-    public float getContrast() {
-        return offset;
+    public float[] getContrasts() {
+        return rescale.getOffsets(null);
     }
     
     /**
@@ -269,8 +265,8 @@ public class ImageOperation {
      * 
      * @return Premennu scaleFactor
      */
-    public float getScale() {
-        return scaleFactor;
+    public float[] getScale() {
+        return rescale.getScaleFactors(null);
     }
     
     /**

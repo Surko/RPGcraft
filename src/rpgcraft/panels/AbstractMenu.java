@@ -21,8 +21,8 @@ import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.components.ingame.InGameButton;
-import rpgcraft.panels.components.ingame.InGameText;
+import rpgcraft.panels.components.template.TemplateButton;
+import rpgcraft.panels.components.template.TemplateText;
 import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
@@ -95,30 +95,29 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
          * Do pola sa zhromazdia dlzky kontaineru 
          */
         int[] lengths = MathUtils.getLengths(res, gameContainer);
-                  
+        
+        
         // Pridame poziciu resource z ktoreho vytvarame menu (aj ked je tento resource
         // nejaky z java layout. V takom pripade sa skrolovanie neberie v uvahu.
         Container cont = new Container(res, lengths[0], lengths[2],
-                lengths[1], lengths[3], gameContainer);
+                lengths[1], lengths[3], gameContainer); 
+        
         uiContainers.put(res.getId(), cont);                
         
         cont.setChildContainers(getUI(res));
                                 
         initializeImage();        
     }        
-    
-    
-    
-    
+                
     /**
      * Metoda getUI ziskava informacie o resource a jeho potomkoch a uklada si ich
      * do HashMapy pre lahsi pristup.
      * @param resource 
      */
     private ArrayList<Container> getUI(UiResource resource) {
-        if (resource.getElements() != null) {            
+        if (resource.getType().getElements() != null) {            
             ArrayList<Container> containers = new ArrayList<>();
-            for (UiResource _res : resource.getElements()) {
+            for (UiResource _res : resource.getType().getElements()) {
                 int[] lengths = MathUtils.getLengths(_res, uiContainers.get(resource.getId()));
                 
                 if (_res.isScrolling()) {
@@ -153,11 +152,34 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         
         Container cont = uiContainers.get(resource.getId());
         cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
-        if (resource.getElements() != null) {
-            for (UiResource _res : resource.getElements()) {
+        if (resource.getType().getElements() != null) {
+            for (UiResource _res : resource.getType().getElements()) {
                     recalculate(_res);                    
                 }
         }
+    }    
+    
+    protected void initializeUI() {        
+        recalculate(res);
+        changedUi = false;
+    }
+    
+    private Graphics getContentGraphics() {
+        if (contImage == null) {
+            return null;
+        }
+        Graphics g = contImage.getGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());        
+        return g;
+    }
+    
+    protected void initializeGraphics() {                
+        gamePane.add(Framer.frameLabel);
+        paintElement(getContentGraphics(), res, gamePane);          
+        gamePane.updateUI();
+        changedGr = false;   
+        
     }
     
     /**
@@ -170,39 +192,14 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      */
     protected void initializeImage() {
         if (changedUi) {
-            contImage = new BufferedImage(gamePane.getWidth(), gamePane.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-            recalculate(res);
+            initializeUI();            
         }
         if (changedGr) {
-            Graphics g = contImage.getGraphics();
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());
-            paintElement(g, res, gamePane);  
-            gamePane.updateUI();
-            changedGr = false;
+            initializeGraphics();            
         }
-    }                                             
+    }                                           
     
-    protected void modePainting(Graphics g, UiResource res, Container cont, int[] pos) {
-        Image img = cont.getImage();
-        switch (res.getPaintMode()) {
-            case NORMAL : {
-                if (img != null) {
-                    g.drawImage(img, pos[0] + cont.getX(), pos[1] + cont.getY(), null);
-                } else {
-                    ImageUtils.paintBackgroundImage(res, cont);    
-                    g.drawImage(cont.getImage(), pos[0] + cont.getX(), pos[1] + cont.getY(), null);                    
-                }
-            } break;
-            case OVERLAP : {
-                ImageUtils.overpaintBackgroundImage(g, res, cont, pos);                
-            } break;
-            default : {
-                return;
-            }            
-            
-        }
-    }
+    
     
     /**
      * Ked sa zmenil kontainer alebo ked je potreba preinitializovat tak prekresluje nanovo vsetky
@@ -213,24 +210,21 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     protected void paintElement(Graphics g, UiResource resource, JPanel comp) {        
                    
         Container cont = uiContainers.get(resource.getId());
-        // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru
-        int[] _rpos = MathUtils.getStartPositions(resource.getPosition(),cont.getParentWidth(), cont.getParentHeight(), cont.getWidth(), cont.getHeight());
         
         // Vykreslit prvok iba ked sa zmenil
-        if ((!cont.isChanged())) {
-            modePainting(g, resource, cont, _rpos);
-        } else {  
-            cont.setImage(null);
+        if ((cont.isChanged())) { 
+            // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru
+            int[] _rpos = MathUtils.getStartPositions(resource.getPosition(),cont.getParentWidth(), cont.getParentHeight(), cont.getWidth(), cont.getHeight());
+        
             cont.setChanged(false);
-            switch (resource.getType()) {
+            switch (resource.getUiType()) {
                 case BUTTON : {                      
                      switch (resource.getLayoutType()) {
                         case INGAME : {
                             // Vytvorenie tlacidla z resource nachadzajuci sa v kontajnery cont a v tomto menu.
-                            InGameButton butt = new InGameButton(resource, cont, this);
+                            TemplateButton butt = new TemplateButton(resource, cont, this);
                             butt.addActionListener(ListenerFactory.getListener(resource.getAction()));
-                            cont.setComponent(butt);
-                            modePainting(g, resource, cont, _rpos); 
+                            cont.setComponent(butt); 
                         } break;
                         default : {                            
                             if (cont.getComponent() != null) {
@@ -246,14 +240,13 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 }
                 case PANEL : {
                     switch (resource.getLayoutType()) {
-                        case INGAME : {                              
-                            modePainting(g, resource, cont, _rpos);     
+                        case INGAME : {                                   
                         } break;                    
                         default : {
                             if (cont.getComponent() != null) {
                                 comp.remove((SwingImagePanel)cont.getComponent());
                             }                            
-                            SwingImagePanel component = new SwingImagePanel(cont, this);  
+                            SwingImagePanel component = new SwingImagePanel(cont, this);                              
                             cont.setComponent(component);                             
                             comp.add(component,resource.getConstraints());                            
                         } break;
@@ -263,8 +256,9 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                     
                         switch (resource.getLayoutType()) {
                             case INGAME : {                            
-                                InGameText text = new InGameText(resource, cont, this); 
-                                cont.setComponent(text);                                
+                                TemplateText component = new TemplateText(resource, cont, this); 
+                                cont.setComponent(component);
+                                comp.add(component);
                             } break;
                             default : {
                                 if (cont.getComponent() != null) {
@@ -308,8 +302,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
          * kazdy resource ako kontainer pre podelementy.
          */
             
-            if (resource.getElements() != null) {
-                for (UiResource _resource : resource.getElements()) {
+            if (resource.getType().getElements() != null) {
+                for (UiResource _resource : resource.getType().getElements()) {
                     if (cont.getComponent() instanceof JPanel) {
                         paintElement(g, _resource, (JPanel)cont.getComponent());
                         cont.getComponent().update();
@@ -409,11 +403,6 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     public void newMapInstance() {}
     
-    public void paintFPS(Graphics g) {        
-        g.setColor(Colors.getColor(Colors.fpsColor));
-        g.drawString(Framer.fShow+ " FPS", 0, 10);
-    }
-    
     @Override
     public void paintMenu(Graphics g) {        
         g.setColor(Color.BLACK);
@@ -429,7 +418,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
             }
             changedGr = true;
         }
-       initializeImage();
+       this.initializeImage();
     }
 
     

@@ -4,15 +4,21 @@
  */
 package rpgcraft.utils;
 
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.resource.StringResource;
+import rpgcraft.resource.types.ListType;
+import sun.font.FontDesignMetrics;
 
 /**
  *
  * @author Surko
  */
-public class TextUtils {
+public class TextUtils { 
+    
+    public static final Font DEFAULT_FONT = Font.decode("Dialog-plain-12");
     
     // <editor-fold defaultstate="collapsed" desc="Staticke metody nad textom">
     /**
@@ -36,7 +42,34 @@ public class TextUtils {
             }
         }
     }
-
+    
+    public static int getTextHeight(Font font) {
+        FontMetrics fm = FontDesignMetrics.getMetrics(font);
+        return (fm.getAscent() - fm.getDescent());
+    }
+    
+    public static int getRowCount(String rows) {
+        if ((rows != null)) {
+            try {
+            switch (ListType.RowType.valueOf(rows)) {
+                case AUTO : {
+                    return ListType.AUTOTYPE;
+                }   
+                default : return ListType.DEFAULTTYPE;
+            }
+            } catch (Exception e) {
+                try {
+                    return Integer.parseInt(rows);
+                } catch (Exception ex) {
+                    Logger.getLogger(TextUtils.class.getName()).log(Level.WARNING, StringResource.getResource("_istring"));
+                    return ListType.DEFAULTTYPE;
+                }
+            }
+        } else {
+           return ListType.DEFAULTTYPE; 
+        }        
+    }
+    
     // </editor-fold>
     
     

@@ -4,6 +4,7 @@
  */
 package rpgcraft.utils;
 
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -18,6 +19,9 @@ import rpgcraft.resource.UiResource;
  * @author Surko
  */
 public class ImageUtils {
+    
+    
+    
     /**
      * Metoda ktora vykresluje sposobom "kazdy resource v stvoci", vykresli obrazok na pozadi definovany v resource zadanom parametrom resource.
      * Parameter cont (Container) je prislusny container pre tento resource z vlastnostami o 
@@ -96,6 +100,26 @@ public class ImageUtils {
         return Images.newImage(name,io.getShowImg());  
         
     }   
+    
+    public void modePainting(Graphics g, UiResource res, Container cont, int[] pos) {
+        Image img = cont.getImage();
+        switch (res.getPaintMode()) {
+            case NORMAL : {
+                if (img != null) {
+                    g.drawImage(img, pos[0] + cont.getX(), pos[1] + cont.getY(), null);
+                } else {
+                    paintBackgroundImage(res, cont);    
+                    g.drawImage(cont.getImage(), pos[0] + cont.getX(), pos[1] + cont.getY(), null);                    
+                }
+            } break;
+            case OVERLAP : {
+                overpaintBackgroundImage(g, res, cont, pos);                
+            } break;
+            default : {
+                return;
+            }                        
+        }
+    }
     
     public static BufferedImage operateImage(Image img, int o, int[] resize) {
         if (img != null) {

@@ -9,13 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import rpgcraft.graphics.inmenu.Menu;
+import rpgcraft.panels.AbstractMenu;
 
 /**
  *
  * @author Surko
  */
-public interface Component<U> extends MouseListener {
+public interface Component extends MouseListener, Cloneable {
     
     public void fireEvent(ActionEvent event);
     
@@ -40,11 +40,13 @@ public interface Component<U> extends MouseListener {
     
     public void removeActionListener(ActionListener listener);
     
-    public U getOriginMenu();    
+    public AbstractMenu getOriginMenu();    
  
     public void setVisible(boolean aFlag);
     
     public void update();
     
-    public Component copy();
+    public Component copy(Container cont, AbstractMenu menu);
+    
+    public boolean isShowing();
 }

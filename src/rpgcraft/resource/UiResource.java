@@ -6,6 +6,7 @@ package rpgcraft.resource;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.lang.reflect.Field;
@@ -18,6 +19,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rpgcraft.errors.ErrorWrn;
 import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.resource.types.AbstractType;
+import rpgcraft.resource.types.ButtonType;
+import rpgcraft.resource.types.ImageType;
+import rpgcraft.resource.types.ListType;
+import rpgcraft.resource.types.PanelType;
+import rpgcraft.resource.types.TextType;
+import rpgcraft.utils.TextUtils;
 import rpgcraft.utils.XmlUtils;
 import rpgcraft.xml.LayoutXML;
 
@@ -26,7 +34,7 @@ import rpgcraft.xml.LayoutXML;
  * @author Surko
  */
 public class UiResource extends AbstractResource<UiResource> {           
-    
+            
     public interface UiSize {
         public static final String FILL_PARENT = "FILL_PARENT";
         public static final String WRAP_CONTENT = "WRAP_CONTENT";
@@ -75,8 +83,8 @@ public class UiResource extends AbstractResource<UiResource> {
     private static final Logger LOG = Logger.getLogger(UiResource.class.getName());
     private static HashMap<String, UiResource> uiResources = new HashMap<>();
     
-    private String id;
-    private String text;
+    private String id;    
+    private String font;
     private String bImageId;
     private String bImagew;
     private String bImageh;
@@ -84,23 +92,19 @@ public class UiResource extends AbstractResource<UiResource> {
     private String w,h,mw,mh;
     private int hGap;
     private int vGap;
-    private int align;
-    private UiType type;    
-    private LayoutType layoutType;
+    private int align;   
     private boolean scrolling;
     private int scrollX;
     private int scrollY;
-    private int x;
-    private int y;
-    private Object gc;
     private int iOrientation;
-    private ArrayList<UiResource> elements;
+    
     private String parent;
     private String action;
     private boolean visible;
     private UiPosition position;
     private UiPosition imagePosition;
     private UiPaintMode mode;
+    private AbstractType type;
     
     public static UiResource getResource(String name) {
         return uiResources.get(name);
@@ -143,16 +147,21 @@ public class UiResource extends AbstractResource<UiResource> {
             new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndtype"),
                     param).renderSpecific("Missing TYPE");
         }
-        if (type == UiType.LIST) {
+        if (type.getUiType() == UiType.LIST) {
             String[] param = new String[] {id};
-            switch (elements.size()) {
-                // Ziadny element, list bude prazdny
-                case 0 : LOG.log(Level.INFO, StringResource.getResource("_blist", param));
-                    break;
-                // spravna vetva
-                case 1 : break;
-                // Prilis vela elementov v liste, bude pouzity iba jeden
-                default : LOG.log(Level.INFO, StringResource.getResource("_mlist"));                        
+            ListType lt = (ListType) type;
+            if (lt.getElements() != null) {
+                switch (lt.getElements().size()) {
+                    // Ziadny element, list bude prazdny
+                    case 0 : LOG.log(Level.INFO, StringResource.getResource("_blist", param));
+                        break;
+                    // spravna vetva
+                    case 1 : break;
+                    // Prilis vela elementov v liste, bude pouzity iba jeden
+                    default : LOG.log(Level.INFO, StringResource.getResource("_mlist"));                        
+                }
+            } else {
+                LOG.log(Level.INFO, StringResource.getResource("_blist", param));
             } 
         }
         
@@ -173,7 +182,7 @@ public class UiResource extends AbstractResource<UiResource> {
                     parse((Element)eNode);                    
                 }   break;
                 case LayoutXML.BACKGROUND : {
-                    parse((Element)eNode);
+                    parse((Element)eNode);         
                 }   break;
                 case LayoutXML.BACKGROUNDCOLOR : {
                     bColorId = eNode.getTextContent();
@@ -200,22 +209,37 @@ public class UiResource extends AbstractResource<UiResource> {
                     mh = eNode.getTextContent();
                 }   break;    
                 case LayoutXML.ID : {
-                    id = eNode.getTextContent();                    
+                    id = eNode.getTextContent();                      
                 } break;
                 case LayoutXML.TEXT : {
-                    text = eNode.getTextContent();                    
+                    switch (type.getUiType()) {
+                    case BUTTON : {                        
+                        ButtonType bType = (ButtonType)type;
+                        bType.setText(eNode.getTextContent()); 
+                        bType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));
+                    } break;
+                    case TEXT : {                        
+                        TextType txType = (TextType)type;
+                        txType.setText(eNode.getTextContent()); 
+                        txType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));
+                    } break;    
+                    default : {
+                        String[] param = new String[] {LayoutXML.TEXT, id};
+                        LOG.log(Level.WARNING, StringResource.getResource("_uparam", param));
+                    }
+                }
                 } break;
                 case LayoutXML.VISIBLE : {
                     visible = Boolean.valueOf(eNode.getTextContent());
                 } break;
                 case LayoutXML.FILL : {
-                    switch (layoutType) {
+                    switch (type.getLayoutType()) {
                         case GRIDBAGSWING : {
                             /* Reflection pristup */
                              try {                            
                                 Field f = FillType.class.getField(eNode.getTextContent());
                                 try {
-                                    ((GridBagConstraints)gc).fill = f.getInt(null);
+                                    ((GridBagConstraints)type.getConstraints()).fill = f.getInt(null);
                                 } catch (IllegalArgumentException ex) {
                                     LOG.log(Level.INFO, null, ex);
                                 } catch (IllegalAccessException ex) {
@@ -244,7 +268,24 @@ public class UiResource extends AbstractResource<UiResource> {
                      */
                 case LayoutXML.TYPE : {           
                     if (type == null) {
-                        type = UiType.valueOf(eNode.getTextContent());
+                        UiType uitype = UiType.valueOf(eNode.getTextContent());
+                        switch (uitype) {
+                            case BUTTON : {
+                                type = new ButtonType(uitype);
+                            } break;
+                            case LIST : {
+                                type = new ListType(uitype);                                
+                            } break;                            
+                            case PANEL : {
+                                type = new PanelType(uitype);
+                            } break;
+                            case TEXT : {
+                                type = new TextType(uitype);
+                            } break;
+                            case IMAGE : {
+                                type = new ImageType(uitype);                                
+                            } break;                               
+                        }
                     } else {
                         LOG.log(Level.INFO, StringResource.getResource("_ui_error"), id + ":type");
                     }
@@ -262,23 +303,20 @@ public class UiResource extends AbstractResource<UiResource> {
                     }
                 } break;    
                 case LayoutXML.LAYOUTTYPE : {   
-                    if (layoutType == null) {
-                        layoutType = LayoutType.valueOf(eNode.getTextContent());                   
-                        switch (layoutType) {
-                            case GRIDBAGSWING : {
-                                gc = new GridBagConstraints();
-                            }   break;                        
-                        }
+                    if (type.getLayoutType() == null) {
+                        type.setLayoutType(LayoutType.valueOf(eNode.getTextContent()));
+                        // Zatial pre vsetky typy pridavam GridBagContstraints
+                        type.setConstraints(new GridBagConstraints());
                     } else {
                         LOG.log(Level.INFO, StringResource.getResource("_ui_layoutype_error"), "layout-type");                 
                     }
                 } break;
                 case LayoutXML.INSETS : {            
-                    switch (layoutType) {
+                    switch (type.getLayoutType()) {
                         case GRIDBAGSWING : {
                             String[] _insets = eNode.getTextContent().split(",");
                             try {
-                                ((GridBagConstraints)gc).insets = new Insets(Integer.parseInt(_insets[0]),
+                                ((GridBagConstraints)type.getConstraints()).insets = new Insets(Integer.parseInt(_insets[0]),
                                         Integer.parseInt(_insets[1]),
                                         Integer.parseInt(_insets[2]),
                                         Integer.parseInt(_insets[3]));
@@ -294,48 +332,26 @@ public class UiResource extends AbstractResource<UiResource> {
                     }
                 } break;
                 case LayoutXML.X : {
-                    switch (layoutType) {
-                        case GRIDBAGSWING : {
-                            try {
-                            ((GridBagConstraints)gc).gridx = Integer.parseInt(eNode.getTextContent());
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING,
-                                        StringResource.getResource("_iparam"), "gridx");
-                            }
-                        }   break;
-                        case GRIDSWING : {
-                            LOG.log(Level.WARNING,
-                                        StringResource.getResource("_uparam"), "gridx");
-                        } break; 
-                        default : {
-                            x = Integer.parseInt(eNode.getTextContent());
-                        };   
-                    }
+                    try {
+                    ((GridBagConstraints)type.getConstraints()).gridx = Integer.parseInt(eNode.getTextContent());
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING,
+                                StringResource.getResource("_iparam"), "gridx");
+                    }                          
                 }   break;
                 case LayoutXML.Y : {
-                    switch (layoutType) {
-                        case GRIDBAGSWING : {
-                            try {
-                            ((GridBagConstraints)gc).gridy = Integer.parseInt(eNode.getTextContent());
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING,
-                                        StringResource.getResource("_iparam"), "gridy");
-                            }
-                        }   break;
-                        case GRIDSWING : {
-                            LOG.log(Level.WARNING,
-                                        StringResource.getResource("_uparam"), "gridy");
-                        } break; 
-                        default : {
-                            y = Integer.parseInt(eNode.getTextContent());
-                        }; 
-                    }
-                } break;
+                    try {
+                    ((GridBagConstraints)type.getConstraints()).gridy = Integer.parseInt(eNode.getTextContent());
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING,
+                                StringResource.getResource("_iparam"), "gridy");
+                    }                          
+                }   break;
                 case LayoutXML.WEIGHTX : {
-                    switch (layoutType) {
+                    switch (type.getLayoutType()) {
                         case GRIDBAGSWING : {
                             try {
-                            ((GridBagConstraints)gc).weightx = Integer.parseInt(eNode.getTextContent());
+                            ((GridBagConstraints)type.getConstraints()).weightx = Integer.parseInt(eNode.getTextContent());
                             } catch (Exception e) {
                                 LOG.log(Level.WARNING,
                                         StringResource.getResource("_iparam"), "weightx");
@@ -348,10 +364,10 @@ public class UiResource extends AbstractResource<UiResource> {
                     }
                 } break;
                 case LayoutXML.WEIGHTY : {
-                    switch (layoutType) {
+                    switch (type.getLayoutType()) {
                         case GRIDBAGSWING : {
                             try {
-                            ((GridBagConstraints)gc).weighty = Integer.parseInt(eNode.getTextContent());
+                            ((GridBagConstraints)type.getConstraints()).weighty = Integer.parseInt(eNode.getTextContent());
                             } catch (Exception e) {
                                 LOG.log(Level.WARNING,
                                         StringResource.getResource("_iparam"), "weighty");
@@ -383,37 +399,56 @@ public class UiResource extends AbstractResource<UiResource> {
                     position = UiPosition.valueOf(eNode.getTextContent());                
                 } break;     
                 case LayoutXML.LISTDATA : {
-                    if(type == UiType.LIST) {
-                        if (elements == null) {
-                            elements = new ArrayList<>();
-                            for (Element _elem : XmlUtils.parseRootElements(eNode, LayoutXML.LISTELEMENT)) {
-                                elements.add(new UiResource(_elem,id));                        
-                            }
-                        } else {
-                            for (Element _elem : XmlUtils.parseRootElements(eNode, LayoutXML.LISTELEMENT)) {
-                                elements.add(new UiResource(_elem,id));                        
-                            }
+                    if(type.getUiType() == UiType.LIST) {
+                        ListType lt = (ListType)type;                        
+                        for (Element _elem : XmlUtils.parseRootElements(eNode, LayoutXML.LISTELEMENT)) {
+                            lt.addElement(new UiResource(_elem,id));                        
                         }
                     } else {
                         LOG.log(Level.WARNING,StringResource.getResource("_felement", new String[] {id}));
                     }                    
                 } break;
                 case LayoutXML.ELEMENTS : {
-                    if (type == UiType.PANEL) {
-                        if (elements == null) {
-                            elements = new ArrayList<>();                                                    
+                    if (type.getUiType() == UiType.PANEL) {
+                         PanelType pt = (PanelType)type;                                                  
                             for (Element _elem : XmlUtils.parseRootElements(eNode, LayoutXML.ELEMENT)) {
-                                elements.add(new UiResource(_elem,id));                        
+                                pt.addElement(new UiResource(_elem,id)); 
                             }
-                        } else {
-                            for (Element _elem : XmlUtils.parseRootElements(eNode, LayoutXML.ELEMENT)) {
-                                elements.add(new UiResource(_elem,id));                        
-                            }
-                        }
                     } else {
                         LOG.log(Level.WARNING,StringResource.getResource("_felement", new String[] {id}));
                     }
-                }
+                } break;
+                case LayoutXML.ROWLAYOUT : {
+                    if (type.getUiType() == UiType.LIST) { 
+                        try {
+                            Field f = ListType.RowLayout.class.getField(eNode.getTextContent());
+                            ((ListType)type).setLayout(f.getInt(null));
+                        } catch (Exception e) {  
+                            ((ListType)type).setLayout(ListType.RowLayout.VERTICALROWS);
+                            String[] param = new String[] {LayoutXML.ROWLAYOUT, id};
+                            LOG.log(Level.WARNING, StringResource.getResource("_rparam", param));
+                        }
+                    } else {
+                        String[] param = new String[] {LayoutXML.ROWLAYOUT, id};
+                        LOG.log(Level.INFO, StringResource.getResource("_uparam",param));
+                    }
+                } break;
+                case LayoutXML.ROWSMAX : {
+                    if (type.getUiType() == UiType.LIST) {                          
+                        ((ListType)type).setRowsMax(eNode.getTextContent());
+                    } else {
+                        String[] param = new String[] {LayoutXML.ROWSMAX, id};
+                        LOG.log(Level.INFO, StringResource.getResource("_uparam",param));
+                    }
+                } break;  
+                case LayoutXML.COLSMAX : {
+                    if (type.getUiType() == UiType.LIST) {                          
+                        ((ListType)type).setColsMax(eNode.getTextContent());
+                    } else {
+                        String[] param = new String[] {LayoutXML.COLSMAX, id};
+                        LOG.log(Level.INFO, StringResource.getResource("_uparam",param));
+                    }
+                } break;     
                 default : break;
             }
         }
@@ -430,8 +465,7 @@ public class UiResource extends AbstractResource<UiResource> {
      */
     @Override
     protected void copy(UiResource res) throws Exception {
-        this.type = res.type;   
-        this.layoutType = res.layoutType;
+        this.type = (AbstractType)res.type.clone();   
         this.mode = res.mode;
         this.bImageId = res.bImageId;
         this.bImagew = res.bImagew;
@@ -439,22 +473,7 @@ public class UiResource extends AbstractResource<UiResource> {
         this.bColorId = res.bColorId;
         this.w = res.w;
         this.h = res.h;
-        
-        switch (layoutType) {
-            case GRIDBAGSWING : {
-                this.gc = ((GridBagConstraints)res.gc).clone();
-            } break; 
-            case BORDERSWING : {
-                this.gc = res.gc;
-            } break;
-            case FLOWSWING : {
-                this.gc = res.gc;
-            } break;
-            
-        }
-        
-        this.iOrientation = res.iOrientation;
-        this.elements = res.elements != null ? (ArrayList<UiResource>) res.elements.clone() : null ;
+        this.iOrientation = res.iOrientation;        
     }
     
     public String getId() {
@@ -471,30 +490,26 @@ public class UiResource extends AbstractResource<UiResource> {
     
     public String getBackgroundColorId() {
         return bColorId;
-    }
+    }    
     
-    public ArrayList<UiResource> getElements() {
-        return elements;
-    }
-    
-    public String getText() {        
-        return text;
-    }
-    
-    public UiType getType() {
+    public AbstractType getType() {
         return type;
     }
     
-    public LayoutType getLayoutType() {
-        return layoutType;
+    public UiType getUiType() {
+        return type.getUiType();
     }
     
+    public LayoutType getLayoutType() {
+        return type.getLayoutType();
+    }        
+    
     public int getX() {
-        return x;        
+        return type.getConstraints() == null ? 0 : ((GridBagConstraints)type.getConstraints()).gridx;        
     }
     
     public int getY() {
-        return y;
+        return type.getConstraints() == null ? 0 : ((GridBagConstraints)type.getConstraints()).gridy;
     }
     
     public boolean isScrolling() {
@@ -574,7 +589,7 @@ public class UiResource extends AbstractResource<UiResource> {
     }
     
     public Object getConstraints() {
-        return gc;
+        return type.getConstraints();
     }
     
     public String getAction() {

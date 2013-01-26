@@ -4,16 +4,14 @@
  */
 package rpgcraft.panels.components.swing;
 
-import java.awt.Dimension;
-import java.awt.event.MouseListener;
-import java.util.ArrayList;
+import java.awt.Graphics;
+import java.awt.Image;
 import javax.swing.JPanel;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
-import rpgcraft.resource.AbstractResource;
-import rpgcraft.resource.UiResource;
+import rpgcraft.resource.types.AbstractType;
 
 /**
  *
@@ -23,17 +21,20 @@ public abstract class SwingComponent extends JPanel implements Component {
     protected Container componentContainer;
     protected AbstractMenu menu;
     protected boolean changed;
+    protected AbstractType type;    
     
-    public SwingComponent() {
-        super();
+    protected SwingComponent() {        
     }
     
     public SwingComponent(Container container,AbstractMenu menu) {
         this.componentContainer = container;
         this.menu = menu;
+        if (componentContainer != null) {
+            this.type = componentContainer.getResource().getType();
+        }
         changed = true;
     }
-    
+            
     public void setChanged(boolean changed) {
         this.changed = changed;
     }
@@ -45,14 +46,11 @@ public abstract class SwingComponent extends JPanel implements Component {
     
     @Override
     public void setVisible(boolean aFlag) {
-        super.setVisible(aFlag);
+        super.setVisible(aFlag);        
     }
     
-    @Override
-    public SwingComponent copy() {    
-        return null;
-    }
-                                
+    
+    
     public void addOwnMouseListener() {
         addMouseListener(this);
     }
@@ -60,5 +58,15 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public void update() {};
     
+    protected void paintImage(Graphics g, Image dbImage) {}
+        
+    
+    /**
+     * Metoda clone ktora skopiruje obsah Componenty a vrati novu instanciu tohoto objektu.
+     * @return Nova instancia objektu SwingComponent
+     */
+    @Override
+    public abstract Component copy(Container cont, AbstractMenu menu);    
+    protected abstract void reconstructComponent();
     
 }

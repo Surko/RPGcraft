@@ -14,17 +14,29 @@ import rpgcraft.panels.components.Container;
    
 public class SwingImageButton extends SwingCustomButton {  
     private Image img;   
-    
+    private float contrast;
     ImageOperation io;
     
-    public SwingImageButton(Container container, AbstractMenu menu){                                        
-        super(container,menu);
-        this.img = ImageResource.getResource(container.getResource().getBackgroundTextureId()).getBackImage();
+    protected SwingImageButton() {        
+    }
+    
+    public SwingImageButton(Container container, AbstractMenu menu){        
+        super(container, menu);
+        this.img = ImageResource.getResource(componentContainer.getResource().getBackgroundTextureId()).getBackImage();
         io = new ImageOperation(img);
         io.createBufferedImages(BufferedImage.TYPE_INT_RGB);        
         io.cropBufferedImage(4,244,300,20);
     }  
    
+    @Override
+    protected void reconstructComponent() {
+        super.reconstructComponent();
+        this.img = ImageResource.getResource(componentContainer.getResource().getBackgroundTextureId()).getBackImage();
+        io = new ImageOperation(img);
+        io.createBufferedImages(BufferedImage.TYPE_INT_RGB);        
+        io.cropBufferedImage(4,244,300,20);
+    }
+    
     @Override
     public Dimension getPreferredSize(){  
         if (img!=null){  
@@ -33,19 +45,19 @@ public class SwingImageButton extends SwingCustomButton {
             return new Dimension(300,20);  
         }  
     }  
-   
+    
     
     @Override
     public void paintComponent(Graphics g) {    
         Graphics2D g2D = (Graphics2D) g;
         
         if (hit==true) {            
-            io.changeContrast(-50f);
-            io.rescale();
+            contrast = -50f;
+            io.rescale(1f, contrast);
             g2D.setColor(Color.darkGray);
         } else {
-            io.changeContrast(20f);
-            io.rescale(); 
+            contrast = 20f;
+            io.rescale(1f, contrast); 
             g2D.setColor(Color.lightGray);
         }
         
@@ -57,7 +69,16 @@ public class SwingImageButton extends SwingCustomButton {
         g.drawString(title, 100, 15);
     }
 
-    
+    @Override
+    public rpgcraft.panels.components.Component copy(Container cont, AbstractMenu menu) {
+        SwingImageButton result = new SwingImageButton();     
+        result.componentContainer = cont;
+        result.menu = menu;
+        
+        result.reconstructComponent();
+        
+        return result;
+    }
     
    
 }

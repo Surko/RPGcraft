@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package rpgcraft.panels.components.ingame;
+package rpgcraft.panels.components.template;
 
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -11,24 +11,34 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import rpgcraft.panels.AboutPanel;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.UiResource;
+import rpgcraft.resource.types.ButtonType;
 
 /**
  *
  * @author Surko
  */
-public class InGameButton extends InGameComponent {
-    ArrayList<InGameButton> buttons;
+public class TemplateButton extends TemplateComponent {
+    ArrayList<TemplateButton> buttons;
     ArrayList<ActionListener> _listeners;
     boolean hit = false;
     String title;
+    ButtonType btnType;
     Container cont;
     UiResource res;
     
+    protected TemplateButton() {}
     
-    public InGameButton(UiResource button, Container cont, AbstractMenu menu) {
+    public TemplateButton(UiResource button, Container cont, AbstractMenu menu) {
         super(button, cont, menu);
+        btnType = (ButtonType)resource.getType();
+    }
+    
+    @Override
+    protected void reconstructComponent() {
+        // Doplnit Rovnaky kod ako v konstruktore
     }
     
     @Override
@@ -90,6 +100,12 @@ public class InGameButton extends InGameComponent {
 
     @Override
     public void update() {       
+    }
+
+    @Override
+    public Component copy(Container cont, AbstractMenu menu) {
+        TemplateButton result = new TemplateButton();
+        return result;
     }
 
     

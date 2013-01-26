@@ -4,6 +4,7 @@
  */
 package rpgcraft.panels;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,9 +43,7 @@ public class GameMenu extends AbstractMenu {
     public void initialize(Container gameContainer, InputHandle input) {
         super.initialize(gameContainer, input);
         menuMap.put("gamemenu",this);
-    }
-    
-    
+    }        
     
     @Override
     public void inputHandling() {
@@ -52,11 +51,30 @@ public class GameMenu extends AbstractMenu {
     }
 
     @Override
-    protected void paintElement(Graphics g, UiResource resource, JPanel panel) {
+    public  void initializeGraphics() {        
+        Graphics g = contImage.getGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());
+        
         if (map != null) {
             map.paint(g);
         }
+        paintElement(g, res, gamePane);  
+        gamePane.updateUI();
+        changedGr = false;
     }
+    
+    @Override
+    protected void initializeImage() {
+        if (changedUi) {
+            initializeUI();
+        }
+        if (changedGr) {
+            initializeGraphics();
+        }
+    }
+
+    
     
     public Map getMap() {
         return map;
@@ -74,11 +92,15 @@ public class GameMenu extends AbstractMenu {
                         Framer.tick = 0;
                     }          
                     //input.keyUpdates();
-                    map.update();
+                    //if (map.update()) {
+                    //    changedGr = true;
+                    //}
                 }
+        super.update();
     }
     
        
+    @Override
     public void newMapInstance() {
         gamePane.setSize(MainGameFrame.Fwidth, MainGameFrame.Fheight);
         

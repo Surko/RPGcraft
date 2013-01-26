@@ -85,5 +85,5 @@ public class AboutPanel extends AbstractMenu {
     public void setWidthHeight(int w, int h) {
         this.x = w;
         this.y = y;
-    }
+    }   
 }

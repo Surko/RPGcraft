@@ -7,7 +7,7 @@ package rpgcraft.panels.components.swing;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
+
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -18,6 +18,9 @@ import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.Cursor;
 import rpgcraft.panels.components.ListModel;
+import rpgcraft.panels.listeners.ActionEvent;
+import rpgcraft.panels.listeners.Listener;
+import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.ListType;
@@ -65,7 +68,8 @@ public class SwingImageList extends SwingImagePanel {
         super(container, menu);
         lType = (ListType)container.getResource().getType();
         ArrayList<String> columns = new ArrayList<>();
-        getColumns(container.getResource(), columns);        
+        getColumns(container.getResource(), columns);       
+        columns.add(0, "_id");
         setModel(data, columns.toArray(new String[0]));
         changedList = true;
         addMouseListener(this);
@@ -104,16 +108,25 @@ public class SwingImageList extends SwingImagePanel {
     
     // <editor-fold defaultstate="collapsed" desc=" Privatne metody ">
     
-    private void getColumns(UiResource res, ArrayList<String> columns) {
+    /**
+     * Metoda getColumns vracia do listu columns stlpce zodpovedajuce id-ckam resource
+     * ktore vytvaraju jeden podelement. Id-cka su radene do tohoto listu prefixovo. Takze
+     * vkladanie dat do elementov musi takisto zodpovedat prefixovemu vkladaniu.
+     * @param res Resource z ktoreho ziskame stlpce/id resourcov pod nim.
+     * @param columns Stlpce do ktorych sa vkladali id resourcov.
+     * @return ArrayList so stlpcami ktore zodpovedaju id-ckam resource.
+     */
+    private ArrayList<String> getColumns(UiResource res, ArrayList<String> columns) {
         if (res.getType().getElements() != null) {
             for (UiResource _res : res.getType().getElements()) {                
                 if (columns != null) {
                     columns.add(_res.getId());
                 }                
                 getColumns(_res, columns);
-            }            
-            
+            }
+            return columns;            
         }
+        return null;
     }
     
     /**
@@ -174,7 +187,7 @@ public class SwingImageList extends SwingImagePanel {
         for (Container cont : containers) {
             if (c.hasNext()) {
                 c.next();         
-                fillContainer(cont, c, 0);
+                fillContainer(cont, c, 1);
             }
             
         }        
@@ -261,7 +274,10 @@ public class SwingImageList extends SwingImagePanel {
         java.awt.Component c = getComponentAt(x, y);
         for (int i = 0; i < containers.length; i++) {
             if (containers[i].getSwingComponent() == c) {
+                containers[selected].getComponent().unselect();
                 selected = i;
+                containers[i].getComponent().select();
+                changedList = true;
                 return true;
             }
         }
@@ -277,6 +293,7 @@ public class SwingImageList extends SwingImagePanel {
     private boolean selectItem(Point p) {
         return selectItem(p.x, p.y);
     }
+        
     
     /**
      * Metoda oreze pocet riadkov o pocet dat ulozenych v modeli =>
@@ -298,6 +315,30 @@ public class SwingImageList extends SwingImagePanel {
             return model.getCursor().getCount();
         }
         return rows;
+    }
+    
+    /**
+     * Metoda ma za ulohu vratit podla typu riadkov a stlpcov 
+     * prislusne hodnoty (Pocty riadkov a stlpcov) <br>
+     * <b>Autotype</b> - cely mozny priestor <br>
+     * <b>Defaultype</b> - jeden riadok / stlpec <br>
+     * <b>Integer hodnoty</b> - priame cislo
+     * 
+     * @param rc Parameter podla ktoreho urcuje kolko riadkov/stlpcov pre prislusny typ
+     * @return Pocet riadkov prisluchajuci pre prislusny typ.
+     */
+    private int getRCValues(int rc) {
+        switch (rc) {
+            case ListType.AUTOTYPE : {
+               return Integer.MAX_VALUE;
+            }
+            case ListType.DEFAULTTYPE : {
+                return 1;
+            }
+            default : {
+                return rc;
+            }
+        }
     }
         
     // </editor-fold>
@@ -330,8 +371,8 @@ public class SwingImageList extends SwingImagePanel {
     // <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (changedList) {                                                        
+        super.paintComponent(g);        
+        if (changedList) {                 
             changedList = false;
         }
         
@@ -339,30 +380,7 @@ public class SwingImageList extends SwingImagePanel {
         
     // </editor-fold>
     
-    /**
-     * Metoda ma za ulohu vratit podla typu riadkov a stlpcov 
-     * prislusne hodnoty (Pocty riadkov a stlpcov) <br>
-     * <b>Autotype</b> - cely mozny priestor <br>
-     * <b>Defaultype</b> - jeden riadok / stlpec <br>
-     * <b>Integer hodnoty</b> - priame cislo
-     * 
-     * @param rc Parameter podla ktoreho urcuje kolko riadkov/stlpcov pre prislusny typ
-     * @return Pocet riadkov prisluchajuci pre prislusny typ.
-     */
-    private int getRCValues(int rc) {
-        switch (rc) {
-            case ListType.AUTOTYPE : {
-               return Integer.MAX_VALUE;
-            }
-            case ListType.DEFAULTTYPE : {
-                return 1;
-            }
-            default : {
-                return rc;
-            }
-        }
-    }
-    
+       
     // <editor-fold defaultstate="collapsed" desc=" Update metody ">
                 
     /**
@@ -557,15 +575,37 @@ public class SwingImageList extends SwingImagePanel {
     }
     // </editor-fold>
     
-    // <editor-fold defaultstate="collapsed" desc=" Eventy ">
+    // <editor-fold defaultstate="collapsed" desc=" Eventy ">   
+    
     @Override
-    public void fireEvent(ActionEvent event) {
+    protected void isActionSatisfied(UiResource.Action action, ActionEvent event) {
+        if (event.getClicks() >= action.getClicks()) {
+            switch (action.getClickType()) {   
+                case onListElement : {
+                    if (event.getParam() instanceof Cursor) {
+                        Cursor c = (Cursor)event.getParam();
+                        c.moveToPosition(selected);
+                        Listener list = ListenerFactory.getListener(action.getType());
+                        list.actionPerformed(event);
+                    }
+                } break;
+                default : {
+                    Listener list = ListenerFactory.getListener(action.getType());
+                    list.actionPerformed(event);
+                }
+            }                    
+        }
     }
-
+    
+    
     @Override
     public void mouseClicked(MouseEvent e) { 
-        System.out.println(selected);
-        selectItem(e.getX(), e.getY());
+        if (selectItem(e.getX(), e.getY())) {              
+            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor()));
+        }
+        else {
+            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, null));
+        }
     }
 
     @Override
@@ -577,20 +617,13 @@ public class SwingImageList extends SwingImagePanel {
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
+    public void mouseEntered(MouseEvent e) {        
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
     }
 
-    @Override
-    public void addActionListener(ActionListener listener) {
-    }
-
-    @Override
-    public void removeActionListener(ActionListener listener) {
-    }
     // </editor-fold>
     
     // </editor-fold>

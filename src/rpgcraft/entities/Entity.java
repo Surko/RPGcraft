@@ -18,7 +18,8 @@ import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.particles.BarParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
-import rpgcraft.map.Map;
+import rpgcraft.graphics.spriteoperation.Sprite.Type;
+import rpgcraft.map.SaveState;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource.EffectEvent;
@@ -31,6 +32,8 @@ import rpgcraft.resource.StatResource.Stat;
  * @author Kirrie
  */
 public abstract class Entity implements Externalizable {    
+    private static final long serialVersionUID = 912804676578087866L;
+    
     // Premenna pre vypocty atributov entit.    
     protected Random random = new Random();    
     // Premenne zahrnajuce inventar
@@ -62,7 +65,7 @@ public abstract class Entity implements Externalizable {
     // Bool ci je entita posunutelna
     protected boolean pushable;
     // Mapa prisluchajuca k entite
-    protected Map map;
+    protected SaveState map;
     // Level na ktorej sa nachadza entita s x-ovou a y-ovou poziciou vo svete.
     protected int level,xPix, yPix;
     // Aktivny predmet entity ktory drzi akurat v rukach.
@@ -144,7 +147,6 @@ public abstract class Entity implements Externalizable {
     //
     
     public Entity() {
-        
     }
     /**
      * Metoda ktora nastavi entite meno
@@ -175,7 +177,7 @@ public abstract class Entity implements Externalizable {
      * @param map Map pre aktualnu entity
      * @see Map
      */
-    public void setMap(Map map) {
+    public void setMap(SaveState map) {
         this.map = map;        
     }
     
@@ -288,6 +290,10 @@ public abstract class Entity implements Externalizable {
         this.levelType = levelType;
     }
     
+    public void setChunk(Chunk chunk) {
+        this.actualChunk = chunk;
+    }
+    
     public double getHealth() {
         return health;
     }
@@ -360,6 +366,7 @@ public abstract class Entity implements Externalizable {
         // ziskanie regionalnej pozicie x a y(chunk v smere pohybe) 
         int regX = x0 >> 9;
         int regY = y0 >> 9;
+        if (actualChunk == null) return false;
         if ((actualChunk.getX() != regX)||(actualChunk.getY() != regY)) {  
             reload = true;
             Chunk chunk = map.chunkPixExist(regX, regY);
@@ -370,8 +377,7 @@ public abstract class Entity implements Externalizable {
             }
         }
         
-        if (actualChunk == null) return false;
-               
+                       
         Tile tile = map.tiles.get(actualChunk.getTile(level, x0 >> 5, y0 >> 5));
         
         //debugCoordinateswithTiles(x0, y0, tile);        
@@ -493,12 +499,16 @@ public abstract class Entity implements Externalizable {
     public void writeExternal(ObjectOutput out) throws IOException {                        
         out.writeUTF(name);
         out.writeBoolean(active);
-        out.writeUTF(res.getName());
+        out.writeUTF(res.getId());        
         out.writeInt(xPix);
         out.writeInt(yPix);
-        out.writeDouble(health);
+        if (activeItem == this) {
+            out.writeInt(-1);
+        }
+        out.writeDouble(health);        
         out.writeObject(intStats);
         out.writeObject(doubleStats);
+        out.writeUTF(spriteType.name());        
         out.writeObject(impassableTiles);
         out.writeObject(activeEffects);
         out.writeObject(inventory);
@@ -512,12 +522,22 @@ public abstract class Entity implements Externalizable {
         this.res = EntityResource.getResource(in.readUTF());
         this.xPix = in.readInt();
         this.yPix = in.readInt();
+        
+        int activeitem = in.readInt();
+        if (activeitem == -1) {
+            this.activeItem = this;                     
+        } else {
+            this.activeItem = inventory.get(activeitem);
+        }
+        
         this.health = in.readDouble();
         this.intStats = (HashMap<Stat, Integer>) in.readObject();
         this.doubleStats = (HashMap<Stat, Double>) in.readObject();
+        this.spriteType = Type.valueOf( in.readUTF() );
         this.impassableTiles = (ArrayList<Integer>)in.readObject();
         this.activeEffects = (HashMap<EffectEvent, ArrayList<Effect>>) in.readObject();
         this.inventory = (ArrayList<Item>)in.readObject();
+        
     }
     
     

@@ -5,6 +5,9 @@
 package rpgcraft.entities;
 
 import java.awt.Image;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,7 +20,7 @@ import rpgcraft.graphics.particles.TextParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.map.Map;
+import rpgcraft.map.SaveState;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource;
@@ -41,7 +44,6 @@ public class MovingEntity extends Entity {
     protected int originX, originY;
     protected int xGo, yGo;        
     
-    protected Type spriteType;
     protected InputHandle input;    
     public boolean disabled = false;
     public boolean damageDisabled = false;
@@ -66,6 +68,11 @@ public class MovingEntity extends Entity {
         
     private HashMap<Sprite.Type, ArrayList<Sprite>> movingEntitySprites;       
     
+    /**
+     * Prazdny konstruktor pre vytvorenie instancie Externalizaciou.
+     */
+    public MovingEntity() {}
+    
     protected MovingEntity(Element elem) {
          
         this.aggresivity = 50;
@@ -76,7 +83,7 @@ public class MovingEntity extends Entity {
                          
     }
     
-    public MovingEntity(String name, Map map, EntityResource res) {
+    public MovingEntity(String name, SaveState map, EntityResource res) {
         this.map = map;        
         this.res = res;        
         this.name = res.getName() != null ? res.getName() : name;                
@@ -108,8 +115,8 @@ public class MovingEntity extends Entity {
         
         try {
             // Hlavne Staty
-            doubleStats.put(Stat.HEALTH, rollRandom(res.getMinHealth(), res.getMaxHealth()));
-            doubleStats.put(Stat.STAMINA, rollRandom(res.getMinStamina(), res.getMaxStamina()));
+            doubleStats.put(Stat.HEALTHMAX, rollRandom(res.getMinHealth(), res.getMaxHealth()));
+            doubleStats.put(Stat.STAMINAMAX, rollRandom(res.getMinStamina(), res.getMaxStamina()));
             intStats.put(Stat.STRENGTH, rollRandom(res.getMinStr(), res.getMaxStr()));
             intStats.put(Stat.AGILITY, rollRandom(res.getMinAgi(), res.getMaxAgi()));
             intStats.put(Stat.SPEED, rollRandom(res.getMinSpd(), res.getMaxSpd()));
@@ -150,14 +157,25 @@ public class MovingEntity extends Entity {
          */
         this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));
         this.spriteType = Type.DOWN;
-        this.maxStamina = doubleStats.get(Stat.STAMINA);
-        this.maxHealth = doubleStats.get(Stat.HEALTH);
+        this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
+        this.stamina = maxStamina;
+        this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
         this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
         this.staminaDischarger = maxStamina;
         this.attackRadius = intStats.get(Stat.ATKRADIUS);
         this.concentration = 0d;
         this.health = maxHealth;
         this.group = 1;        
+    }
+    
+    private void reinitialize() {
+        movingEntitySprites = res.getEntitySprites();
+        this.id = res.getId();
+        this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
+        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
+        this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
+        this.maxPower = new Double(24);
+        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));
     }
     
     /**
@@ -260,6 +278,10 @@ public class MovingEntity extends Entity {
         return lightRadius;
     }
     
+    @Override
+    public void setChunk(Chunk chunk) {
+        super.setChunk(chunk);
+    }
     
     public void trySpawn() {
         this.actualChunk = map.chunkXYExist(xPix >> 9, yPix >> 9);
@@ -625,6 +647,19 @@ public class MovingEntity extends Entity {
         if (map.tiles.containsKey(tile)) {
             impassableTiles.add(tile);
         }
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.
+        out.writeDouble(stamina);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in); //To change body of generated methods, choose Tools | Templates.        
+        this.stamina = in.readDouble();
+        reinitialize();
     }
     
     

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import rpgcraft.GamePane;
 import rpgcraft.entities.Entity;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.map.Map;
+import rpgcraft.map.SaveState;
 
 /**
  *
@@ -30,7 +30,7 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
     protected int xPos;
     protected int yPos;    
     
-    protected Map map;
+    protected SaveState map;
     
     public AbstractInMenu(Entity entity, InputHandle input) {
         this.entity = entity;

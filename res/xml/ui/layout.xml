@@ -41,13 +41,16 @@
       <element>
         <id>text_about</id>
         <type>TEXT</type>
-        <text>@textabout</text>        
+        <text textcolor="fpsColor">@textabout</text>        
         <layout>
-          <scrolling>
-            <speedx>10</speedx>
-            <speedy>10</speedy>
-          </scrolling>
+          <width>300</width>
+          <height>20</height>
+          <scrolling speedy="2"/>          
         </layout>
+        <background>
+              <background-color>transColor</background-color>
+        </background>
+        <position>CENTER</position>
       </element>
     </elements>    
   </element>
@@ -65,9 +68,9 @@
       <weighty>1</weighty>
     </layout>
     <background>
-      <background-color>transColor</background-color>
+      <background-color>Black</background-color>
       <background-image>intro</background-image>
-      <orientation>20</orientation>
+      <orientation>0</orientation>
       <image-width>FILL</image-width>
       <image-height>FILL</image-height>
       <image-position>CENTER</image-position>
@@ -116,10 +119,20 @@
         <id>btn_newgame</id>
         <template>abstract_swing_button</template>
         <text>@newgame</text>        
-        <action>SETMENU@intro</action>
+        <action>SETMENU@gameMenu</action>
         <layout>
           <x>0</x>      
           <y>0</y>
+        </layout>
+      </element>
+      <element>
+        <id>btn_about</id>
+        <template>abstract_swing_button</template>
+        <text>@about</text>        
+        <action>SETMENU@about</action>
+        <layout>
+          <x>0</x>      
+          <y>1</y>
         </layout>
       </element>
       <element>
@@ -132,6 +145,9 @@
           <weighty>0</weighty>
           <width>400</width>
           <height>400</height>
+          <actions>
+            <action click="2" clicktype="onListElement">LOAD@LIST#_id</action>
+          </actions>
           <x>1</x>
           <y>0</y> 
           <rows-layout>DIAGONALROWS</rows-layout>

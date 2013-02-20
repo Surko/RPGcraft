@@ -22,39 +22,38 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import org.w3c.dom.Element;
 import rpgcraft.GamePane;
 import rpgcraft.MainGameFrame;
 import rpgcraft.entities.*;
-import rpgcraft.errors.CorruptedFile;
+import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.*;
 import rpgcraft.graphics.inmenu.AbstractInMenu;
 import rpgcraft.graphics.particles.Particle;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
-import rpgcraft.map.Map;
+import rpgcraft.map.SaveState;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.chunks.ChunkContent;
 import rpgcraft.map.tiles.*;
 import rpgcraft.panels.AbstractMenu;
-import rpgcraft.resource.TileResource;
+import rpgcraft.resource.StringResource;
 /**
  *
  * @author Kirrie
  */
 
-public class Map  {
-    
-    
+public class SaveState  {    
     /* 
      * Pre zistenie kam ma zaradit mapu budem pouzivat bitove operacie posunu doprava o 4,
      * 0x0 - 15x15 budu v rovnakom priestore na disku pod menom region0x0
      */
+       
+    private final Logger LOG = Logger.getLogger(getClass().getName());
     
+    private String stateName;
     
     public HashMap<Integer,Tile> tiles = new HashMap<>();
     
@@ -132,7 +131,7 @@ public class Map  {
     private static final int delayThread = 2;
     private static int jammedMenu = 0;
     
-    public Map(GamePane game, InputHandle input) {
+    public SaveState(GamePane game, InputHandle input) {
         this.game = game; 
         this.input = input;     
         this.width = game.getWidth();
@@ -148,7 +147,7 @@ public class Map  {
         // nacita zakladne dlazdice potrebne k fungovaniu hry      
         tiles = DefaultTiles.getInstance().createDefaultTiles();
         tiles.putAll(LoadedTiles.getInstance().createLoadedTiles(tiles));
-        debuggingTiles(tiles.values());
+        //debuggingTiles(tiles.values());
     }    
         
     
@@ -184,7 +183,7 @@ public class Map  {
                 paintStrings(g);
             }
             } catch (Exception ex) {
-                Logger.getLogger(Map.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }        
     }
     
@@ -433,7 +432,9 @@ public class Map  {
     public boolean addEntity(Entity e) {
         if (e instanceof Player) {
             this.player = (Player) e;                 
-            return entities.add(e);            
+            this.player.setHandling(input);
+            entities.add(e);
+            return true;            
         }
         
         return entities.add(e);
@@ -470,7 +471,7 @@ public class Map  {
         for (int k=0;k<Chunk.getDepth();k++) {
             for (int i=0;i<Chunk.getSize();i++) {
                 for (int j=0;j<Chunk.getSize();j++) {
-                    if ((i == 0) && (j == 0) ){
+                    if (j % 2 == 0){
                         sk[k][i][j] = 2;
                     } else {
                         sk[k][i][j] = 1;
@@ -487,7 +488,9 @@ public class Map  {
         if (menu != null) {
             menu.inputHandling();
         } else {
-            player.inputHandling();
+            if (player != null) {
+                player.inputHandling();
+            }
         }
         
         if (input.stat.click) {
@@ -495,8 +498,11 @@ public class Map  {
             input.stat.click = false;
         }
         if (input.escape.click) {
+            for (Chunk chunk : chunkQueue) {
+                saveMap(chunk);
+            }
             entities.clear();
-            game.setMenu(AbstractMenu.getMenuByName("mainmenu"));
+            game.setMenu(AbstractMenu.getMenuByName("mainMenu"));
             input.escape.click = false;
         }
         
@@ -528,6 +534,13 @@ public class Map  {
                         
         dayLight.init(gameTime);                
         
+        while (player == null) {
+            try {
+                Thread.sleep(10L);
+            } catch (Exception e) {
+                
+            }
+        }
         int radius = player.getLightRadius() + dayLight.getRadiusBuff();
         
         rg = new RadialGradientPaint(width /2, height /2, radius, dayLight.getFractions(), dayLight.getColors() );               
@@ -546,24 +559,34 @@ public class Map  {
      * @param y 
      */
     public void loadMap(int x, int y) {
-        if (shiftChunk(chunkXYExist(x, y))) return;
+        if (shiftChunk(chunkXYExist(x, y))) {
+            return;
+        }
         try {
             inputStream = new ObjectInputStream(new FileInputStream(PathManager.getInstance().getWorldPath() + 
-                ("region["+ x +"."+ y +"].m")));
-            saveOld((Chunk)inputStream.readObject());
-            
+                "/region["+ x +"."+ y +"].m"));
             try {
-                // Z mapy nacita List s ulozenymi entitami a prida ich k terajsim entitam.
-                ArrayList<Entity> entLoad = (ArrayList<Entity>)inputStream.readObject();
-                for (Entity e : entLoad) {
-                    e.setSaved(false);
-                    entities.add(e);
+                Save save = (Save) inputStream.readObject();
+
+                saveOld(save.getChunk());
+                ArrayList<Entity> entLoad = save.getEntities();
+                if (entLoad != null) {
+                    for (Entity e : entLoad) {                    
+                        e.setSaved(false);
+                        e.setMap(this);                    
+                        e.setChunk(save.getChunk());
+                        addEntity(e);
+                    }
                 }
             } catch (Exception e) {
-                
+                LOG.log(Level.SEVERE, StringResource.getResource("_bsaveformat"));
+                new MultiTypeWrn(null, Color.BLACK, StringResource.getResource("_bsaveformat"),null).renderSpecific(
+                        StringResource.getResource("_label_badsave"));
             }
+
         } catch(Exception e) { 
-            saveOld(new Chunk(new ChunkContent(test()), x, y));            
+            saveOld(new Chunk(new ChunkContent(test()), x, y));  
+            
         }
     }
     
@@ -582,12 +605,9 @@ public class Map  {
         try {
             outputStream = new ObjectOutputStream(new FileOutputStream(
                         PathManager.getInstance().getWorldPath() +
-                        "region["+ x + "." + y + "].m"));
+                        "/region["+ x + "." + y + "].m"));
             for (Chunk chunk : chunkQueue) {
-                if ((chunk.getX() == x)&&(chunk.getY() == y)) {
-                    outputStream.writeObject(chunk);
-                    //outputStream.writeObject(chunk);
-                    
+                if ((chunk.getX() == x)&&(chunk.getY() == y)) {                                        
                     // Objekt s entitami, ktory ulozime k Chunku.
                     ArrayList<Entity> entSave = new ArrayList<>();
                     for (Entity e : entities) {
@@ -596,12 +616,13 @@ public class Map  {
                             e.setSaved(true);
                         }
                     }
-                    outputStream.writeObject(entSave);
+                    Save save = new Save(entSave, chunk);
+                    outputStream.writeObject(save);
                     outputStream.close();
                 }
             }
         } catch(Exception ex) {
-            Logger.getLogger(Map.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
     
@@ -609,10 +630,10 @@ public class Map  {
         try {
             int chunkX = chunkToSave.getX();
             int chunkY = chunkToSave.getY();
+            
             outputStream = new ObjectOutputStream(new FileOutputStream(
                     PathManager.getInstance().getWorldPath() +
-                    "region["+ chunkX + "." + chunkY + "].m"));
-            outputStream.writeObject(chunkToSave);
+                    "/region["+ chunkX + "." + chunkY + "].m"));
             //outputStream.writeObject(chunkToSave);
             
             // Objekt s entitami, ktory ulozime k Chunku.
@@ -623,11 +644,14 @@ public class Map  {
                     e.setSaved(true);                    
                 }
             }
-            outputStream.writeObject(entSave);
+            
+            Save save = new Save(entSave, chunkToSave);
+            outputStream.writeObject(save);
             outputStream.close();
             
         } catch (Exception ex) {
-            Logger.getLogger(Map.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(chunkToSave.getX() + " " + chunkToSave.getY());
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
     
@@ -650,7 +674,7 @@ public class Map  {
             try {
                 ImageIO.write((BufferedImage)tile.getImage(), "jpg", new File("./"+tile.getName()+".jpg"));
             } catch (IOException ex) {
-                Logger.getLogger(Map.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
     }

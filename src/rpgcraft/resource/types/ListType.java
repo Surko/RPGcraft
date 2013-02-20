@@ -38,12 +38,17 @@ public class ListType extends PanelType{
     protected int rowsMax;
     protected int colsMax;
     protected int rowLayout = -3;
+    protected String data;
     protected ArrayList<UiResource> elements;
     
     public ListType(UiType uiType) {
         super(uiType);
     }    
 
+    public void setData(String data) {
+        this.data = data;
+    }
+    
     public void setRowsMax(String rowsMax) {
         this.rowsMax = TextUtils.getRowCount(rowsMax);
     }
@@ -71,6 +76,7 @@ public class ListType extends PanelType{
     @Override
     public Object clone() throws CloneNotSupportedException {
         ListType clone = (ListType)super.clone();
+        clone.data = data;
         clone.rowLayout = rowLayout;
         clone.rowsMax = rowsMax;
         clone.colsMax = colsMax;                

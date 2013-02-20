@@ -80,6 +80,44 @@ public class UiResource extends AbstractResource<UiResource> {
         INGAME        
     }
     
+    public enum ClickType {
+            onListElement,
+            onDefault
+    }
+    
+    public class Action {
+                
+        ClickType clickType;
+        String type;
+        int clicks = 0;
+        boolean trans = false;
+        
+        public Action(Action action) {
+            this.clickType = action.clickType;
+            this.clicks = action.clicks;
+            this.trans = action.trans;
+            this.type = action.type;
+        }
+        
+        public Action() {}
+        
+        public String getType() {
+            return type;
+        }
+        
+        public int getClicks() {
+            return clicks;
+        }
+        
+        public boolean isTransparent() {
+            return trans;
+        }
+        
+        public ClickType getClickType() {
+            return clickType;
+        }
+    }
+    
     private static final Logger LOG = Logger.getLogger(UiResource.class.getName());
     private static HashMap<String, UiResource> uiResources = new HashMap<>();
     
@@ -99,7 +137,7 @@ public class UiResource extends AbstractResource<UiResource> {
     private int iOrientation;
     
     private String parent;
-    private String action;
+    private ArrayList<Action> actions;
     private boolean visible;
     private UiPosition position;
     private UiPosition imagePosition;
@@ -146,7 +184,8 @@ public class UiResource extends AbstractResource<UiResource> {
             LOG.log(Level.SEVERE, StringResource.getResource("_ndtype",param));
             new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndtype"),
                     param).renderSpecific("Missing TYPE");
-        }
+        }        
+        
         if (type.getUiType() == UiType.LIST) {
             String[] param = new String[] {id};
             ListType lt = (ListType) type;
@@ -163,6 +202,11 @@ public class UiResource extends AbstractResource<UiResource> {
             } else {
                 LOG.log(Level.INFO, StringResource.getResource("_blist", param));
             } 
+        }
+        
+        if (type.getLayoutType() == null) {
+            LOG.log(Level.INFO, StringResource.getResource("_mltype", new String[]{id}));
+            type.setLayoutType(LayoutType.INGAME);
         }
         
     }
@@ -217,11 +261,13 @@ public class UiResource extends AbstractResource<UiResource> {
                         ButtonType bType = (ButtonType)type;
                         bType.setText(eNode.getTextContent()); 
                         bType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));
+                        bType.setTextColor(((Element)eNode).getAttribute(LayoutXML.TEXTCOLOR));
                     } break;
                     case TEXT : {                        
                         TextType txType = (TextType)type;
                         txType.setText(eNode.getTextContent()); 
-                        txType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));
+                        txType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));                        
+                        txType.setTextColor(((Element)eNode).getAttribute(LayoutXML.TEXTCOLOR));
                     } break;    
                     default : {
                         String[] param = new String[] {LayoutXML.TEXT, id};
@@ -381,26 +427,73 @@ public class UiResource extends AbstractResource<UiResource> {
                 } break;
                 case LayoutXML.SCROLLING : {
                     scrolling = true;
-                    parse((Element)eNode);
+                    try {
+                        scrollX = ((Element)eNode).hasAttribute(LayoutXML.SPEEDX) ? Integer.parseInt(((Element)eNode).getAttribute(LayoutXML.SPEEDX))
+                                : 0;
+
+                        scrollY = ((Element)eNode).hasAttribute(LayoutXML.SPEEDY) ? Integer.parseInt(((Element)eNode).getAttribute(LayoutXML.SPEEDY))
+                                : 0;
+                    } catch (Exception e) {
+                        
+                    }
                 } break; 
                 case LayoutXML.SPEEDX : {
                     scrollX = Integer.parseInt(eNode.getTextContent());
                 } break;   
                 case LayoutXML.ACTION : {
-                    action = eNode.getTextContent();
-                } break;  
+                    if (actions == null) {
+                        actions = new ArrayList<>();
+                    }
+                    Action action = new Action();                    
+                    action.type = eNode.getTextContent();
+                    try {
+                        action.clicks = Integer.parseInt(((Element)eNode).getAttribute(LayoutXML.CLICK));
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"click", "action"}));
+                    }
+                    if (((Element)eNode).hasAttribute(LayoutXML.CLICKTYPE)) {
+                        try {
+                            switch (ClickType.valueOf(((Element)eNode).getAttribute(LayoutXML.CLICKTYPE))) {
+                                case onListElement : {
+                                    if (!type.getUiType().equals(UiType.LIST)) {
+                                        LOG.log(Level.WARNING, StringResource.getResource("_nuattrib", new String[] {"clicktype", "action"}));
+                                    }
+                                    action.clickType = ClickType.onListElement;
+                                } break;                                                         
+                            }
+                        } catch (Exception e) {
+                            LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"onListElement", "action"}));
+                        }
+                    }
+                    if (((Element)eNode).hasAttribute(LayoutXML.TRANSPARENT)) {
+                        try {
+                            action.trans = Boolean.parseBoolean(((Element)eNode).getAttribute(LayoutXML.TRANSPARENT));
+                        } catch (Exception e) {
+                            LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"transparent", "action"}));
+                        }
+                    }
+                    actions.add(action);
+                } break; 
+                case LayoutXML.ACTIONS : {
+                    actions = new ArrayList<>();
+                    parse((Element)eNode);
+                } break;
                 case LayoutXML.SPEEDY : {
                     scrollY = Integer.parseInt(eNode.getTextContent());
                 } break;
                 case LayoutXML.IMAGEPOSITION : {
                     imagePosition = UiPosition.valueOf(eNode.getTextContent());
                 } break;
+                case LayoutXML.ORIENTATION : {
+                    iOrientation = Integer.parseInt(eNode.getTextContent());
+                } break;
                 case LayoutXML.POSITION : {
                     position = UiPosition.valueOf(eNode.getTextContent());                
                 } break;     
                 case LayoutXML.LISTDATA : {
                     if(type.getUiType() == UiType.LIST) {
-                        ListType lt = (ListType)type;                        
+                        ListType lt = (ListType)type; 
+                        lt.setData(((Element)eNode).getAttribute(LayoutXML.DATA));
                         for (Element _elem : XmlUtils.parseRootElements(eNode, LayoutXML.LISTELEMENT)) {
                             lt.addElement(new UiResource(_elem,id));                        
                         }
@@ -467,6 +560,12 @@ public class UiResource extends AbstractResource<UiResource> {
     protected void copy(UiResource res) throws Exception {
         this.type = (AbstractType)res.type.clone();   
         this.mode = res.mode;
+        if (res.actions != null) {
+            this.actions = new ArrayList(res.actions.size());
+            for (Action action : res.actions) {
+                this.actions.add(new Action(action));
+            }
+        }
         this.bImageId = res.bImageId;
         this.bImagew = res.bImagew;
         this.bImageh = res.bImageh;
@@ -592,8 +691,8 @@ public class UiResource extends AbstractResource<UiResource> {
         return type.getConstraints();
     }
     
-    public String getAction() {
-        return action;
+    public ArrayList<Action> getActions() {
+        return actions;
     }
     
     public boolean isVisible() {

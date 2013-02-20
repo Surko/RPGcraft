@@ -4,12 +4,15 @@
  */
 package rpgcraft.panels.components;
 
+import java.awt.AWTEvent;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
+import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.resource.UiResource.Action;
 
 /**
  *
@@ -38,6 +41,10 @@ public interface Component extends MouseListener, Cloneable {
     
     public void addActionListener(ActionListener listener);
     
+    public void addActionListeners(ArrayList<Action> actions);
+    
+    public void addActionListener(Action action);            
+    
     public void removeActionListener(ActionListener listener);
     
     public AbstractMenu getOriginMenu();    
@@ -49,4 +56,18 @@ public interface Component extends MouseListener, Cloneable {
     public Component copy(Container cont, AbstractMenu menu);
     
     public boolean isShowing();
+    
+    public boolean isSelected();
+    
+    public void select();
+    
+    public void unselect();
+    
+    public void dispatchEvent(AWTEvent event);
+    
+    public void setBounds(int x, int y, int width, int height);
+    
+    public void updateUI();
+    
+    public java.awt.Component getParent();
 }

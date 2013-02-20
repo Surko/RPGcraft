@@ -33,7 +33,7 @@ public class MainMenu extends AbstractMenu{
     @Override
     public void initialize(Container gameContainer, InputHandle input) {
         super.initialize(gameContainer, input);
-        menuMap.put("mainmenu", this);
+        menuMap.put("mainMenu", this);
     }
 
     

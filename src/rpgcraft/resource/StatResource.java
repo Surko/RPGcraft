@@ -13,10 +13,10 @@ public class StatResource {
     
     
     public enum Stat {
-    HEALTH,
     HEALTHREGEN,
-    STAMINA,
+    HEALTHMAX,
     STAMINAREGEN,
+    STAMINAMAX,
     STRENGTH,
     AGILITY,
     SPEED,

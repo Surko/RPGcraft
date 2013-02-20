@@ -6,15 +6,11 @@ package rpgcraft.panels.components.swing;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import javax.swing.JPanel;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Container;
-import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.ButtonType;
 import rpgcraft.utils.TextUtils;
 
@@ -25,7 +21,6 @@ import rpgcraft.utils.TextUtils;
 public abstract class SwingCustomButton extends SwingComponent {
     String title;         
     boolean hit = false; 
-    ArrayList _listeners;
     ButtonType btnType;
    
     protected SwingCustomButton() {
@@ -58,15 +53,7 @@ public abstract class SwingCustomButton extends SwingComponent {
     
     @Override
     public abstract void paintComponent(Graphics g);
-   
-    @Override
-    public void fireEvent(ActionEvent event) {  
-        for (int i = 0;i<_listeners.size() ;i++ ){  
-            ActionListener listener = (ActionListener)_listeners.get(i);              
-            listener.actionPerformed(event);  
-        }
-    }
-    
+     
     
   
     @Override
@@ -91,17 +78,7 @@ public abstract class SwingCustomButton extends SwingComponent {
     
     @Override
     public void mouseClicked(MouseEvent e){  
-        fireEvent(new ActionEvent(this,0,null));  
-    }  
-   
-    @Override
-    public void addActionListener(ActionListener listener){  
-        _listeners.add(listener);  
-    }  
-    
-    @Override
-    public void removeActionListener(ActionListener listener){  
-        _listeners.remove(listener);  
-    }          
+        fireEvent(new ActionEvent(this,0,e.getClickCount(),null, null));  
+    }             
     
 } 

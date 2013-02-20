@@ -4,11 +4,12 @@
  */
 package rpgcraft.panels.listeners;
 
-import java.awt.event.ActionEvent;
+import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.ActionListener;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
+import rpgcraft.panels.components.Cursor;
 import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImagePanel;
@@ -20,7 +21,7 @@ import rpgcraft.resource.UiResource;
  * @see ActionListener
  * @author Kirrie
  */
-public class SetMenuListener implements ActionListener {
+public class SetMenuListener extends Listener {
         // String s menu na nacitanie
         String menu;
         /**
@@ -29,7 +30,16 @@ public class SetMenuListener implements ActionListener {
          */
         public SetMenuListener(String menu) {
             this.menu = menu;
+            String[] parts = menu.split("#");
+            switch (parts.length) {
+                case 2 : {
+                    this.param = parts[1];
+                    this.type = parts[0];
+                } break;                
+            }
         }
+        
+        
         
         /**
          * Metoda ActionPerformed vykonava operaciu ako je to pri kazdom Listenery.
@@ -45,10 +55,22 @@ public class SetMenuListener implements ActionListener {
          */
         @Override
         public void actionPerformed(ActionEvent e) {
+            //System.out.println(Thread.currentThread());
+            if (type != null) {
+                switch (type) {
+                    case "LIST" : {
+                        Cursor c = (Cursor)e.getParam();
+                        menu = c.getString(c.getColumnIndex(param));                        
+                    } break;                    
+                }
+            }
+            
             if (e.getSource() instanceof Component) {
                 Component c = (Component)e.getSource();
                 ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(menu));                
             }
+            
         }
+        
         
 }

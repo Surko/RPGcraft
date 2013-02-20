@@ -10,6 +10,7 @@ import java.io.ObjectOutput;
 import rpgcraft.entities.items.ItemGenerator;
 import rpgcraft.entities.types.ArmorType;
 import rpgcraft.entities.types.Type;
+import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.resource.EntityResource;
 
 /**
@@ -28,10 +29,10 @@ public class Item extends StaticEntity {
        
        private boolean equipped;
        
-       private int baseDamage = 0;       
+       private int aBaseDamage = 0;       
        private int baseMaxDurability = 0;
-       private int durability = 0;
-
+       private int durability = 0;        
+       
        private boolean levelable = false;
        private boolean flame = false;
        private boolean ice = false;
@@ -39,11 +40,13 @@ public class Item extends StaticEntity {
        private boolean poison = false;
        
        public Item() {
-           
        }
        
        public Item(String name, EntityResource res) {
            this.name = name;
+           this.res = res;
+           this.spriteType = Sprite.Type.ITEM;
+           System.out.println("Konstruktor");
        }
        
        /**
@@ -54,7 +57,9 @@ public class Item extends StaticEntity {
            gen = new ItemGenerator(name);
            return gen.generateAll();
        }
-                   
+        
+       
+       
        
         @Override
        public boolean isDestroyed() {
@@ -115,7 +120,7 @@ public class Item extends StaticEntity {
        }
        
        public void setBaseDamage(int damage) {
-           this.baseDamage = damage;
+           this.aBaseDamage = damage;
        }
        
        public void setBaseMaxDurability(int durability){
@@ -132,17 +137,7 @@ public class Item extends StaticEntity {
            this.paralyze = pa;
            this.poison = po;
        }
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        super.writeExternal(out);
-    }
-
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        super.readExternal(in);
-    }
-       
+     
        
        
 }

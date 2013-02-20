@@ -10,9 +10,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -50,7 +47,9 @@ import rpgcraft.resource.UiResource;
  */   
 public class Container {
     
-        // <editor-fold defaultstate="collapsed" desc=" Premenne ">        
+        // <editor-fold defaultstate="collapsed" desc=" Premenne ">    
+        public static Container mainContainer;
+    
         private int x,y,w,h,mw,mh;
         private BufferedImage resImage;
         private UiResource resource;
@@ -83,10 +82,11 @@ public class Container {
             this.resource = resource;
             this.x = resource == null ? 0 : resource.getX();
             this.y = resource == null ? 0 : resource.getY();
-            this.w = w;
-            this.h = h;
+                        
             this.mw = mw;
             this.mh = mh;
+            this.w = mw > w ? mw : w;
+            this.h = mh > h ? mh : h;
             this.parent = parent;
             this.changed = true;
             this.top = false;
@@ -96,11 +96,11 @@ public class Container {
         public Container(Container srcCont) {
             this.resource = srcCont.resource;
             this.x = srcCont.x;
-            this.y = srcCont.y;
-            this.w = srcCont.w;
-            this.h = srcCont.h;
+            this.y = srcCont.y;            
             this.mw = srcCont.mw;
             this.mh = srcCont.mh;
+            this.w = srcCont.w;
+            this.h = srcCont.h;
             this.top = srcCont.top;
             this.parent = srcCont.parent;            
             if (srcCont.childContainers != null) {
@@ -123,15 +123,21 @@ public class Container {
         
         // <editor-fold defaultstate="collapsed" desc=" Funkcie nad kontajnerom ">
         public void increase(int x, int y) {
-            if (this.x + x > w) {
+            
+            if (this.x + x > parent.w) {
                 this.x = 0;
             } else {
                 this.x+=x;
             } 
-            if (this.y + y > h) {
+            if (this.y + y > parent.h) {
                 this.y = 0;
             } else {
                 this.y+=y;
+            }
+            
+            if (c != null) {
+                c.setBounds(this.x, this.y, w, h);
+                
             }
         }
         
@@ -145,7 +151,7 @@ public class Container {
             }
             childContainers.add(cont);            
         }
-
+        
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Gettery ">
@@ -228,8 +234,8 @@ public class Container {
         
         // <editor-fold defaultstate="collapsed" desc=" Settery ">
         public void set(int w, int h, int pw, int ph) {
-            this.w = w;
-            this.h = h;
+            this.w = mw > w ? this.w : w;
+            this.h = mh > h ? this.h : h;
             this.changed = true;
         }
         
@@ -239,11 +245,19 @@ public class Container {
             if ((resource != null) &&(c instanceof SwingComponent)) {
                 JPanel swn = (JPanel)c;
                 swn.setVisible(visible);
-                setLayout((JPanel)c); 
+                setLayout((JPanel)c);   
+                
+                
                 swn.setMinimumSize(new Dimension(mw, mh));
                 swn.setPreferredSize(new Dimension(w, h));
-                swn.setSize(new Dimension(w,h));
+                c.setBounds(x, y, w, h);
+                swn.setSize(new Dimension(w, h));
             }
+        }
+        
+        public void setPositions(int[] positions) {
+            this.x = positions[0];
+            this.y = positions[1];
         }
         
         public void hasChanged() {

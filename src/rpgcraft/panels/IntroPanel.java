@@ -40,7 +40,7 @@ public class IntroPanel extends AbstractMenu {
     @Override
     public void initialize(Container gameContainer, InputHandle input) {
         super.initialize(gameContainer, input);
-        menuMap.put("intro", this);
+        menuMap.put("introMenu", this);
     }
                 
     
@@ -60,7 +60,7 @@ public class IntroPanel extends AbstractMenu {
     @Override
     public void inputHandling() {
         if ((input.enter.on)||(input.escape.on)) {            
-            setMenu(menuMap.get("mainmenu"));            
+            setMenu(menuMap.get("mainMenu"));            
         }
 
         if ((input.x.on==true)&&(input.q.on==true)) {
@@ -68,9 +68,7 @@ public class IntroPanel extends AbstractMenu {
         }
         
         if ((input.defense.on == true)) {
-            try {
-            ImageIO.write(contImage, "png", new File("null.png"));            
-            } catch (Exception e) {}
+            
         }
         
     }

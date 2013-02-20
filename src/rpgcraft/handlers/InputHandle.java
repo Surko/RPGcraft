@@ -15,6 +15,9 @@ import java.util.ArrayList;
 public class InputHandle implements KeyListener {
     private static ArrayList<Key> regKeys = new ArrayList();
     
+    // Ovladanie hry definovane triedou
+    private static InputHandle input;
+    
     public class Key {
         public boolean on = false, click = false;        
         public Key() {
@@ -26,6 +29,17 @@ public class InputHandle implements KeyListener {
         }
         
                         
+    }
+    
+    private InputHandle() {
+        
+    }
+    
+    public static InputHandle getInstance() {
+        if (input == null) {
+            input = new InputHandle();
+        }
+        return input;
     }
     
     public Key enter = new Key();

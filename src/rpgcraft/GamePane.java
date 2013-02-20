@@ -57,14 +57,10 @@ public class GamePane extends SwingImagePanel implements Runnable {
     // Sirka a Vyska Panelu s hrou
     private int pWidth;
     private int pHeight;                      
-        Component c;
-    private Graphics dbg;    
-    private volatile Image dbImage = null;
+    private Component c;
+  
     public InputHandle input;
             
-    @Override
-    public void fireEvent(ActionEvent event) {
-    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -85,20 +81,11 @@ public class GamePane extends SwingImagePanel implements Runnable {
     @Override
     public void mouseExited(MouseEvent e) {
     }
-
-    @Override
-    public void addActionListener(ActionListener listener) {
-    }
-
-    @Override
-    public void removeActionListener(ActionListener listener) {
-    }
     
     public GamePane() {
         // Inicializacia prazdneho menu
         menu = new BlankMenu();   
-        
-        menu.initialize(null, input);
+        backColor = Colors.getColor(Colors.Black);        
     }
     
     private void init() {
@@ -117,7 +104,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
         setBackground(Color.BLACK);
         setVisible(true);              
         
-        input = MainGameFrame.input;
+        input = InputHandle.getInstance();
+        menu.initialize(null, input);
+        
         logger.log(Level.INFO, StringResource.getResource("initinfo4"));        
         
         logger.log(Level.INFO, StringResource.getResource("initinfo5"));
@@ -164,7 +153,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
              
     @Override
     public void setSize(int w, int h) {
-        mFrame.setSize(w, h);
+        //mFrame.setSize(w, h);
         super.setSize(w, h);
     }
     
@@ -193,6 +182,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
             
             componentContainer = new rpgcraft.panels.components.Container(null, this.getWidth(), 
                 this.getHeight(), 0, 0, null);
+            rpgcraft.panels.components.Container.mainContainer = componentContainer;
             componentContainer.setComponent(this);
             componentContainer.setTop(true);
             
@@ -202,7 +192,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
             MainMenu main = new MainMenu(UiResource.getResource("mainMenu"));
             main.initialize(componentContainer, input);
             logger.log(Level.INFO, "Main panel set");
-            AboutPanel about = new AboutPanel(UiResource.getResource("aboutMenu"));
+            AboutMenu about = new AboutMenu(UiResource.getResource("aboutMenu"));
             about.initialize(componentContainer, input);
             GameMenu game = new GameMenu(UiResource.getResource("gameMenu"));
             game.initialize(componentContainer, input);
@@ -284,16 +274,12 @@ public class GamePane extends SwingImagePanel implements Runnable {
             }
 
         }                    
-    }
-    
-    public void createNewGame() {
-        AbstractMenu.getMenuByName("gamemenu").newMapInstance();
-    }
+    }    
     
     public void startGame() {
         if (t==null||!running) {
             t= new Thread(this);
-            t.start();            
+            t.start();
         }
     }
     
@@ -310,7 +296,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
         Framer.fpsTimer = System.currentTimeMillis();
         running = true;        
         
-        setMenu(AbstractMenu.getMenuByName("intro"));         
+        setMenu(AbstractMenu.getMenuByName("introMenu"));         
         
         while(running) {
             Framer.tick++;
@@ -341,16 +327,19 @@ public class GamePane extends SwingImagePanel implements Runnable {
         if (menu != null) {
             menu.grChange(true);
             menu.uiChange(true);
+            menu.setWidthHeight(x, y);
         }
         
         this.pWidth = x;
         this.pHeight = y;
+        this.setSize(x,y);
         
-        if (componentContainer != null)
+        if (componentContainer != null) {
             componentContainer.set(x, y, 0, 0);
+        }        
         
-        dbImage = null;        
-        setImageProperties();        
+        
+             
     }
     
     @Override
@@ -383,10 +372,10 @@ public class GamePane extends SwingImagePanel implements Runnable {
         this.menu = menu;
         if (menu != null) {
             removeAll();
-            menu.grChange(true);                   
-            menu.recalculate();
-            menu.update();                 
-            updateUI();            
+            menu.ugChange(true);                   
+            //menu.recalculate();
+            //menu.update();                 
+            //updateUI();            
         }
     }
     
@@ -402,55 +391,19 @@ public class GamePane extends SwingImagePanel implements Runnable {
     public void update() {
         if (mFrame.hasFocus()&&!gameOver) {
             if (menu!=null) {
+                //System.out.println(Thread.currentThread().getName());
                 menu.update();
                 menu.inputHandling();
             }            
         }
-    }
-    
-    private void setImageProperties() {
-        if (dbImage == null) {
-            dbImage = createImage(pWidth, pHeight);
-            
-            if (dbImage == null) {
-                new MultiTypeWrn(null, Colors.getColor(Colors.menuError1), "Null dbImage", null).renderSpecific("DbImage in GamePane is null");
-                return;
-            } else {
-                dbg = dbImage.getGraphics();
-            }
-            
-            dbg.setColor(Color.BLACK);
-            dbg.fillRect(0, 0, pWidth, pHeight);
-            
-            if (menu != null) {
-                menu.setWidthHeight(pWidth, pHeight);
-            }            
-        }
-    }
-    
-    @Override
-    protected void paintImage(Graphics g, Image dbImage) {               
-        // DEBUG!! -- Kontrola Threadu
-        //System.out.println(Thread.currentThread().getName());
-        
-        if (menu != null) {
-            if (dbImage == null) {
-                return;
-            }
-            //super.paintComponent(dbImage.getGraphics()); 
-            menu.paintMenu(dbImage.getGraphics());                         
-            
-            if (dbImage != null) {
-                g.drawImage(dbImage, 0, 0, null);                
-            }
-            
-        }
-    }
+    }               
     
     @Override
     public void paintComponent(Graphics g) {        
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, pWidth, pHeight);
+        super.paintComponent(g);
+        if (menu != null) {
+            menu.paintMenu(g);  
+        }
     }
 
 }

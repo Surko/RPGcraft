@@ -4,14 +4,18 @@
  */
 package rpgcraft.panels.components.template;
 
+import java.awt.AWTEvent;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import javax.swing.JPanel;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.listeners.ActionEvent;
+import rpgcraft.panels.listeners.Listener;
+import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.AbstractType;
 
@@ -26,6 +30,8 @@ public abstract class TemplateComponent extends JPanel implements Component {
     protected Container cont;
     protected boolean visible;
     protected boolean changed;
+    protected boolean isSelected;
+    protected ArrayList _listeners;
     
     protected TemplateComponent() {}
     
@@ -38,7 +44,44 @@ public abstract class TemplateComponent extends JPanel implements Component {
     } 
     
     @Override
-    public void fireEvent(ActionEvent event) {}
+    public void fireEvent(ActionEvent event) {
+        for (int i = 0;i<_listeners.size() ;i++ ){  
+            if (_listeners.get(i) instanceof Listener) {
+                Listener listener = (Listener)_listeners.get(i);                
+                listener.actionPerformed(event);  
+                continue;
+            }
+            if (_listeners.get(i) instanceof UiResource.Action) {
+                UiResource.Action action = (UiResource.Action)_listeners.get(i);
+                if (event.getClicks() > action.getClicks()) {
+                    ListenerFactory.getListener(action.getType()).actionPerformed(event);
+                }
+                continue;
+            }
+        }
+    }
+
+    @Override
+    public void addActionListener(ActionListener listener) {
+        _listeners.add(listener);
+    }
+
+    @Override
+    public void addActionListener(UiResource.Action action) {
+        _listeners.add(action);
+    }
+    
+    @Override
+    public void addActionListeners(ArrayList<UiResource.Action> actions) {
+        for (UiResource.Action action : actions) {
+            _listeners.add(action);
+        }
+    }
+    
+    @Override
+    public void removeActionListener(ActionListener listener) {
+        _listeners.remove(listener);
+    }    
     
     @Override
     public abstract void mouseClicked(MouseEvent e);
@@ -56,13 +99,8 @@ public abstract class TemplateComponent extends JPanel implements Component {
     public abstract void mouseEntered(MouseEvent e);
 
     @Override
-    public abstract void mouseExited(MouseEvent e);
+    public abstract void mouseExited(MouseEvent e);    
     
-    @Override
-    public void addActionListener(ActionListener listener) {}
-    
-    @Override
-    public void removeActionListener(ActionListener listener) {}        
     
     @Override
     public AbstractMenu getOriginMenu() {
@@ -77,6 +115,21 @@ public abstract class TemplateComponent extends JPanel implements Component {
     @Override
     public void setVisible(boolean aFlag) {
         this.visible = aFlag;
+    }
+    
+    @Override
+    public boolean isSelected() {
+        return isSelected;
+    }
+    
+    @Override
+    public void select() {
+        isSelected = true;
+    }
+    
+    @Override
+    public void unselect() {
+        isSelected = false;
     }
     
 }

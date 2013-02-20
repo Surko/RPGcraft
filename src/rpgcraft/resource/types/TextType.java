@@ -16,6 +16,7 @@ public class TextType extends AbstractType {
 
     String txText;
     String txFont;
+    String txColor;
 
     public TextType(UiType uiType) {
         super(uiType);
@@ -29,14 +30,22 @@ public class TextType extends AbstractType {
         this.txFont = txFont;                
     }
     
+    public void setTextColor(String txColor) {
+        this.txColor = txColor;
+    }
+    
     public String getText() {
         return txText;
     }
 
+    public String getTextColor() {
+        return txColor;
+    }
+    
     public String getsFont() {
         return txFont;
     }
-    
+        
     public Font getFont() {
         if (txFont == null) {
             return TextUtils.DEFAULT_FONT;

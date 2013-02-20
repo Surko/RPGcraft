@@ -4,12 +4,16 @@
  */
 package rpgcraft.entities;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import rpgcraft.entities.types.ArmorType;
 import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.AbstractInMenu;
 import rpgcraft.graphics.particles.BarParticle;
-import rpgcraft.map.Map;
+import rpgcraft.map.SaveState;
+import rpgcraft.map.chunks.Chunk;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StatResource.Stat;
 /**
@@ -17,9 +21,17 @@ import rpgcraft.resource.StatResource.Stat;
  * @author Kirrie
  */
 public class Player extends MovingEntity {        
+    private static final long serialVersionUID = 912804676578087866L;
+    /**
+     * Prazdny konstruktor pre vytvorenie instancie Externalizaciou.
+     */
+    public Player() {
+        System.out.println("Player constructor called");
+    }
     
-    public Player(String name, Map map, EntityResource res) {
+    public Player(String name, SaveState map, EntityResource res) {
         super(name, map, res);
+        System.out.println("Player constructor called");
         this.poweringBar = new BarParticle();
         map.addParticle(poweringBar);
     }
@@ -99,9 +111,16 @@ public class Player extends MovingEntity {
     }
     
     @Override
+    public void setChunk(Chunk chunk) {
+        super.setChunk(chunk);
+        map.loadMapAround(this);
+    }
+    
+    
+    @Override
     public boolean update() {
         if (isDestroyed()) return false;
-        if (!disabled) {
+        if (!active) {
             if (invulnerability > 0 ) invulnerability--;
                 
             if (stamina<maxStamina) {
@@ -161,8 +180,11 @@ public class Player extends MovingEntity {
     }
     
     @Override
-    public void setMap(Map map) {
+    public void setMap(SaveState map) {
         this.map = map;
+        if (poweringBar == null) {
+            poweringBar = new BarParticle();
+        }
         map.addParticle(poweringBar);
     }
     
@@ -186,6 +208,22 @@ public class Player extends MovingEntity {
     public void use(Entity item) {
         
     }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.
+        out.writeInt(lightRadius);
+        out.writeInt(sound);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in); //To change body of generated methods, choose Tools | Templates.
+        this.lightRadius = in.readInt();
+        this.sound = in.readInt();        
+    }
+    
+    
     
     
 }

@@ -16,6 +16,7 @@ public interface LayoutXML {
     public static final String TEXT = "text";
     public static final String LAYOUT = "layout";    
     public static final String ACTION = "action";
+    public static final String ACTIONS = "actions";
     public static final String LAYOUTTYPE = "layout-type";    
     public static final String SCROLLING = "scrolling";
     public static final String SPEEDX = "speedx";
@@ -49,5 +50,10 @@ public interface LayoutXML {
     public static final String COLSMAX = "cols-max";
     // ATRIBUTES
     public static final String FONT = "font";
+    public static final String TEXTCOLOR = "textcolor";
+    public static final String CLICK = "click";
+    public static final String TRANSPARENT = "transparent";
+    public static final String CLICKTYPE = "clicktype";
+    public static final String DATA = "data";
     
 }

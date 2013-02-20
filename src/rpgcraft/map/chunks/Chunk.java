@@ -17,8 +17,6 @@ import rpgcraft.entities.Entity;
  */
 public class Chunk implements Externalizable {
      private static final long serialVersionUID = 912804676578087866L;
-     private static final int serializationVersion = 1;
-     
      private static final int CHUNK_SIZE = 16;
      private static final int DEPTH = 128;
     
@@ -77,7 +75,6 @@ public class Chunk implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {    
-        out.writeInt(serializationVersion);
         out.writeInt(x);
         out.writeInt(y);
         for (int k = 0; k < DEPTH; k++) {
@@ -90,17 +87,18 @@ public class Chunk implements Externalizable {
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        if (in.readInt() != serializationVersion) throw new IOException("Neznama verzia archivu");
-        this.x = in.readInt();   
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {                
+        this.x = in.readInt();       
         this.y = in.readInt();
         for (int k = 0; k < DEPTH; k++) {
             for (int i = 0; i < CHUNK_SIZE; i++ ) {
-                for (int j = 0; j< CHUNK_SIZE; j++) { 
-                    blocks.setIntOnPosition(k, i, j, in.readInt());
+                for (int j = 0; j< CHUNK_SIZE; j++) {
+                        blocks.setIntOnPosition(k, i, j, in.readInt());
+                    
                 }
             }
-        }
+        }                
+        
     }
     
         

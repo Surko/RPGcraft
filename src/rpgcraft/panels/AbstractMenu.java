@@ -54,7 +54,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      */
     @Override
     public abstract void inputHandling();                
-    public abstract void setWidthHeight(int w, int h);   
+    public abstract void setWidthHeight(int w, int h);
     
     
     protected Container gameContainer;
@@ -64,10 +64,10 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     protected GridBagConstraints c;
     protected ArrayList<UiResource> scrollingResource;
     // Neutriedena Mapa zadana pomocou linkedHashMap.
-    protected Map<String, Container> uiContainers;
+    protected Map<UiResource, Container> uiContainers;
     protected boolean changedUi;
     protected boolean changedGr;
-    protected BufferedImage contImage;
+    protected Image contImage;
     protected boolean changedInit;
     
     
@@ -76,9 +76,9 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         this.gamePane = (GamePane)gameContainer.getComponent();
         this.input = input;                                       
         
-        contImage = new BufferedImage(gameContainer.getWidth(), gameContainer.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+        //contImage = new BufferedImage(gameContainer.getWidth(), gameContainer.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         
-        uiContainers = Collections.synchronizedMap(new LinkedHashMap<String,Container>());    
+        uiContainers = Collections.synchronizedMap(new LinkedHashMap<UiResource,Container>());    
         
         /*
          * Ked je originalny resource skrolovaci tak ho priradi do pola so 
@@ -102,7 +102,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         Container cont = new Container(res, lengths[0], lengths[2],
                 lengths[1], lengths[3], gameContainer); 
         
-        uiContainers.put(res.getId(), cont);                
+        uiContainers.put(res, cont);                
         
         cont.setChildContainers(getUI(res));
                                 
@@ -118,7 +118,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         if (resource.getType().getElements() != null) {            
             ArrayList<Container> containers = new ArrayList<>();
             for (UiResource _res : resource.getType().getElements()) {
-                int[] lengths = MathUtils.getLengths(_res, uiContainers.get(resource.getId()));
+                int[] lengths = MathUtils.getLengths(_res, uiContainers.get(resource));
                 
                 if (_res.isScrolling()) {
                     if (scrollingResource == null) {                        
@@ -127,9 +127,9 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                     scrollingResource.add(_res);
                 }        
             Container cont = new Container(_res,
-                    lengths[0], lengths[2], lengths[1], lengths[3], uiContainers.get(resource.getId()));
+                    lengths[0], lengths[2], lengths[1], lengths[3], uiContainers.get(resource));
             containers.add(cont);
-            uiContainers.put(_res.getId(), cont);
+            uiContainers.put(_res, cont);
             cont.setChildContainers(getUI(_res));            
             
             }
@@ -148,9 +148,9 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      * v originalnych velkostiach.
      */
     protected void recalculate(UiResource resource) {
-        int[] lengths = MathUtils.getLengths(resource, uiContainers.get(resource.getId()).getParentContainer());
+        int[] lengths = MathUtils.getLengths(resource, uiContainers.get(resource).getParentContainer());
         
-        Container cont = uiContainers.get(resource.getId());
+        Container cont = uiContainers.get(resource);
         cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
         if (resource.getType().getElements() != null) {
             for (UiResource _res : resource.getType().getElements()) {
@@ -161,6 +161,9 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     protected void initializeUI() {        
         recalculate(res);
+        gamePane.add(Framer.frameLabel);
+        paintElement(getContentGraphics(), res, gamePane);  
+        gamePane.updateUI();
         changedUi = false;
     }
     
@@ -174,10 +177,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return g;
     }
     
-    protected void initializeGraphics() {                
-        gamePane.add(Framer.frameLabel);
-        paintElement(getContentGraphics(), res, gamePane);          
-        gamePane.updateUI();
+    protected void initializeGraphics() {                                
         changedGr = false;   
         
     }
@@ -209,21 +209,21 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      */
     protected void paintElement(Graphics g, UiResource resource, JPanel comp) {        
                    
-        Container cont = uiContainers.get(resource.getId());
+        Container cont = uiContainers.get(resource);
         
         // Vykreslit prvok iba ked sa zmenil
         if ((cont.isChanged())) { 
             // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru
             int[] _rpos = MathUtils.getStartPositions(resource.getPosition(),cont.getParentWidth(), cont.getParentHeight(), cont.getWidth(), cont.getHeight());
-        
+            cont.setPositions(_rpos);
             cont.setChanged(false);
             switch (resource.getUiType()) {
                 case BUTTON : {                      
                      switch (resource.getLayoutType()) {
                         case INGAME : {
                             // Vytvorenie tlacidla z resource nachadzajuci sa v kontajnery cont a v tomto menu.
-                            TemplateButton butt = new TemplateButton(resource, cont, this);
-                            butt.addActionListener(ListenerFactory.getListener(resource.getAction()));
+                            SwingImageButton butt = new SwingImageButton(cont, this);
+                            butt.addActionListeners(resource.getActions());
                             cont.setComponent(butt); 
                         } break;
                         default : {                            
@@ -231,8 +231,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                                 comp.remove((SwingCustomButton)cont.getComponent());
                             }                               
                             SwingImageButton butt = new SwingImageButton(cont, this);
-                            butt.addActionListener(ListenerFactory.getListener(resource.getAction()));
-                            cont.setComponent(butt);                            
+                            butt.addActionListeners(resource.getActions());
+                            cont.setComponent(butt);                             
                             comp.add(butt,resource.getConstraints());                                                        
                         }
                     }
@@ -246,25 +246,26 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             if (cont.getComponent() != null) {
                                 comp.remove((SwingImagePanel)cont.getComponent());
                             }                            
-                            SwingImagePanel component = new SwingImagePanel(cont, this);                              
+                            SwingImagePanel component = new SwingImagePanel(cont, this);
+                            component.addActionListeners(resource.getActions());
                             cont.setComponent(component);                             
                             comp.add(component,resource.getConstraints());                            
                         } break;
                     }
                 } break;
                 case TEXT : {                
-                    
+                        if (cont.getComponent() != null) {
+                                    comp.remove((SwingText)cont.getComponent());
+                        } 
                         switch (resource.getLayoutType()) {
                             case INGAME : {                            
-                                TemplateText component = new TemplateText(resource, cont, this); 
+                                SwingText component = new SwingText(cont, this); 
                                 cont.setComponent(component);
                                 comp.add(component);
                             } break;
-                            default : {
-                                if (cont.getComponent() != null) {
-                                    comp.remove((SwingText)cont.getComponent());
-                                }                               
+                            default : {                           
                                 SwingText component = new SwingText(cont, this);
+                                component.addActionListeners(resource.getActions());
                                 cont.setComponent(component);
                                 comp.add(component,resource.getConstraints()); 
                             } break;
@@ -284,7 +285,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             if (cont.getComponent() != null) {
                                 comp.remove((SwingImageList)cont.getComponent());
                             }                            
-                            SwingImageList component = new SwingImageList(cont, this, new String[][] {new String[] {"ahoj"},new String[] {"ahoj"},new String[] {"ahoj"}});  
+                            SwingImageList component = new SwingImageList(cont, this, new String[][] {new String[] {"introMenu","ahoj"},new String[] {"gameMenu","ahoj"},new String[] {"intro","ahoj"}}); 
+                            component.addActionListeners(resource.getActions());
                             cont.setComponent(component);                            
                             comp.add(component,resource.getConstraints()); 
                         } break;
@@ -390,6 +392,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      */
     public void ugChange(boolean state) {
         changedGr = state;
+        changedUi = state;
     }
     
     public Container getContainer(String resource) {
@@ -399,24 +402,18 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     @Override
     public void setMenu(AbstractMenu menu) {
         gamePane.setMenu(menu);        
-    }
-    
-    public void newMapInstance() {}
+    }    
     
     @Override
-    public void paintMenu(Graphics g) {        
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());                 
-        g.drawImage(contImage, 0, 0, null); 
+    public void paintMenu(Graphics g) {                
     }
     
     @Override
     public void update() {  
        if (scrollingResource != null) {
             for (UiResource resource : scrollingResource) {
-                uiContainers.get(res).increase(res.getScrollX(), res.getScrollY());                
-            }
-            changedGr = true;
+                uiContainers.get(resource).increase(resource.getScrollX(), resource.getScrollY());                
+            }            
         }
        this.initializeImage();
     }

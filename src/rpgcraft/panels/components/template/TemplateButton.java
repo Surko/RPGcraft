@@ -5,14 +5,14 @@
 package rpgcraft.panels.components.template;
 
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import rpgcraft.panels.AboutPanel;
+import rpgcraft.panels.AboutMenu;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.ButtonType;
 
@@ -50,15 +50,8 @@ public class TemplateButton extends TemplateComponent {
     }
     
     @Override
-    public void mouseClicked(MouseEvent e) {
-        int x = cont.getX();
-        int y = cont.getY();
-        int w = cont.getWidth();
-        int h = cont.getHeight();
-        if ((e.getX() > x)&&(e.getX() < x + w)&&
-                (e.getY() > y)&&(e.getY() < y + h)) {          
-        fireEvent(new ActionEvent(this, 0, null));
-        }
+    public void mouseClicked(MouseEvent e) {                 
+        fireEvent(new ActionEvent(this, 0,e.getClickCount(), null, null));
     }
     
     @Override
@@ -86,17 +79,7 @@ public class TemplateButton extends TemplateComponent {
 
     @Override
     public void mouseExited(MouseEvent e) {
-    }
-    
-    @Override
-    public void addActionListener(ActionListener listener){  
-        _listeners.add(listener);  
-    }  
-   
-    @Override
-    public void removeActionListener(ActionListener listener){  
-        _listeners.remove(listener);  
-    }         
+    }          
 
     @Override
     public void update() {       

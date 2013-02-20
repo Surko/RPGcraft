@@ -74,7 +74,10 @@ public class SwingImageButton extends SwingCustomButton {
         SwingImageButton result = new SwingImageButton();     
         result.componentContainer = cont;
         result.menu = menu;
-        
+        if (!_listeners.isEmpty()) {
+            result.addOwnMouseListener();
+        }
+        result._listeners = _listeners;
         result.reconstructComponent();
         
         return result;

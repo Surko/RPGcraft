@@ -20,29 +20,31 @@ import rpgcraft.resource.StringResource;
 public class ListenerFactory {
     
     public enum Commands {
-        SETMENU        
+        SETMENU,
+        LOAD,
+        CREATE
     }
     
     private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());
-    public static final BlankListener blankListener = new BlankListener();
+    public static final Listener blankListener = new Listener();
     
-    public static HashMap<String, ActionListener> listeners = new HashMap<>();        
+    public static HashMap<String, Listener> listeners = new HashMap<>();        
     
-    public static ActionListener getListener(String command) {
+    public static Listener getListener(String command) {
         if (command == null) {
-            return blankListener;
+            return null;
         }
         
         if (listeners.containsKey(command)) {
             return listeners.get(command);
         } else {
-            ActionListener output = madeListener(command);
+            Listener output = madeListener(command);
             listeners.put(command, madeListener(command));
             return output;
         }
-    }
+    }        
     
-    private static ActionListener madeListener(String command) {        
+    private static Listener madeListener(String command) {        
         String[] parts = command.split("@");
         switch (parts.length) {
             case 0 : {
@@ -55,6 +57,12 @@ public class ListenerFactory {
                     switch (Commands.valueOf(parts[0])) {
                         case SETMENU : {
                             return new SetMenuListener(parts[1]);
+                        }
+                        case LOAD : {
+                            return new LoadSaveListener(parts[1]);
+                        }
+                        case CREATE : {
+                            return new CreateMenuListener(parts[1]);
                         }
                     }
                 } catch (Exception e) {

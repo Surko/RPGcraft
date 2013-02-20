@@ -4,18 +4,20 @@
  */
 package rpgcraft.panels.components.swing;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
+import java.awt.Graphics2D;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import rpgcraft.graphics.Colors;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.types.TextType;
 import rpgcraft.utils.TextUtils;
@@ -32,7 +34,7 @@ public class SwingText extends SwingComponent{
     protected int h = 0;
     protected Color textColor;
     protected Color backColor;
-    protected TextType txType;
+    protected TextType txType;    
         
     public SwingText() {}
     
@@ -40,12 +42,12 @@ public class SwingText extends SwingComponent{
         super(container, menu);        
         if (container != null) {    
             txType = (TextType)container.getResource().getType();
-            this.title = TextUtils.getResourceText(txType.getText());      
+            this.title = TextUtils.getResourceText(txType.getText());     
+            this.textColor = Colors.getColor(txType.getTextColor());
             setFont(txType.getFont()); 
             this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
-        }        
-        this.textColor = Color.BLACK;        
-        setBackground(backColor);
+        }                     
+        setBackground(backColor);        
         setTextSize();        
     }
     
@@ -53,23 +55,27 @@ public class SwingText extends SwingComponent{
     protected void reconstructComponent() {
         if (componentContainer != null) { 
             txType = (TextType)componentContainer.getResource().getType();
-            this.title = TextUtils.getResourceText(txType.getText());      
+            this.title = TextUtils.getResourceText(txType.getText());  
+            this.textColor = Colors.getColor(txType.getTextColor());
             setFont(txType.getFont());            
             this.backColor = Colors.getColor(componentContainer.getResource().getBackgroundColorId());
-        }        
-        this.textColor = Color.BLACK;        
+        }            
         setBackground(backColor);
         setTextSize();
     }
     
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g); 
-        g.setColor(textColor);  
-        g.setFont(getFont());
+        super.paintComponent(g);                  
         if (title != null) {
+            g.setFont(getFont());
+            g.setColor(textColor);
             g.drawString(title, 0, h);
-        }
+        }        
+        if (isSelected) {
+            g.setColor(Colors.getColor(Colors.selectedColor));
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }       
     }   
     
     private void setTextSize() {
@@ -100,40 +106,7 @@ public class SwingText extends SwingComponent{
     
     public int getH() {
         return h;
-    }
-    
-    @Override
-    public void fireEvent(ActionEvent event) {
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-    @Override
-    public void addActionListener(ActionListener listener) {
-    }
-
-    @Override
-    public void removeActionListener(ActionListener listener) {
-    }
+    }    
 
     @Override
     public Component copy(Container cont, AbstractMenu menu) {        
@@ -141,10 +114,41 @@ public class SwingText extends SwingComponent{
         
         result.componentContainer = cont;
         result.menu = menu;
-        
+        if ((_listeners != null)&&(!_listeners.isEmpty())) {
+            result.addOwnMouseListener();            
+        } else {
+            result._listeners = _listeners;
+        }
         result.reconstructComponent();
         
         return result;
+        
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {  
+        if (_listeners != null) {
+            fireEvent(new ActionEvent(this, 0, e.getClickCount(),null, null));
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
         
     }
 }

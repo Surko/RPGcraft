@@ -32,10 +32,7 @@ public class MainGameFrame {
     // okno v ktorom bude panel s hrou
     private static JFrame mFrame;
     // Panel s hrou
-    public static GamePane game;
-    
-    // Ovladanie hry definovane triedou
-    public static InputHandle input = new InputHandle();
+    public static GamePane game;        
     
     /**
      * @param args the command line arguments
@@ -58,7 +55,7 @@ public class MainGameFrame {
         game.add(Framer.frameLabel);
 
         mFrame.add(game);
-        mFrame.addKeyListener(input);
+        mFrame.addKeyListener(InputHandle.getInstance());
         mFrame.setVisible(true);
         
         game.startGame();

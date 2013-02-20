@@ -14,6 +14,7 @@ public class ButtonType extends AbstractType {
 
     String btnText;
     String btnFont;
+    String btnColor;
         
     public ButtonType(UiResource.UiType type) {
         super(type);
@@ -21,6 +22,10 @@ public class ButtonType extends AbstractType {
     
     public void setText(String btnText) {
         this.btnText = btnText;
+    }
+    
+    public void setTextColor(String btnColor) {
+        this.btnColor = btnColor;
     }
     
     public void setFont(String btnFont) {
@@ -33,6 +38,10 @@ public class ButtonType extends AbstractType {
 
     public String getFont() {
         return btnFont;
+    }
+    
+    public String getTextColor() {
+        return btnColor;
     }
     
 }

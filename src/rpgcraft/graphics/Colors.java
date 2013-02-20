@@ -63,6 +63,10 @@ public class Colors {
      */
     public static final String invOnTopColor = "invOnTopColor";
     /**
+     * Farba pri oznaceni elementu v liste
+     */
+    public static final String selectedColor = "selectedColor";
+    /**
      * Staticky initializator ktory do mapy <b>colors</b> vlozi vsetky farby
      */
     static {
@@ -78,6 +82,7 @@ public class Colors {
         colors.put(defenseColor, Color.YELLOW);
         colors.put(invBackColor, new Color(224, 224, 224));
         colors.put(invOnTopColor, new Color(145, 145, 145, 100));
+        colors.put(selectedColor, new Color(0, 0, 0, 50));
     }
  
     

@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 import rpgcraft.GamePane;
 import rpgcraft.errors.MissingFile;
+import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.handlers.InputHandle;
@@ -53,9 +54,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      * Abstraktna metoda s interface Menu zabezpecujuca uzivatelsky vstup
      */
     @Override
-    public abstract void inputHandling();                
-    public abstract void setWidthHeight(int w, int h);
-    
+    public abstract void inputHandling();                        
     
     protected Container gameContainer;
     protected GamePane gamePane;
@@ -72,6 +71,10 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     
     public void initialize(Container gameContainer,InputHandle input) {
+        if (res == null) {
+            new MultiTypeWrn(null, Color.red, "There is no resource associated with this menu", null).renderSpecific("Menu Error");
+        }
+        
         this.gameContainer = gameContainer;
         this.gamePane = (GamePane)gameContainer.getComponent();
         this.input = input;                                       
@@ -285,7 +288,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             if (cont.getComponent() != null) {
                                 comp.remove((SwingImageList)cont.getComponent());
                             }                            
-                            SwingImageList component = new SwingImageList(cont, this, new String[][] {new String[] {"introMenu","ahoj"},new String[] {"gameMenu","ahoj"},new String[] {"intro","ahoj"}}); 
+                            SwingImageList component = new SwingImageList(cont, this); 
                             component.addActionListeners(resource.getActions());
                             cont.setComponent(component);                            
                             comp.add(component,resource.getConstraints()); 
@@ -323,16 +326,15 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      * Dodatocne parametre urcuju co za farbu pozadia sa pouzije pri chybe a spravu
      * pre uzivatela.
      * @param iFile Text s imageresource na nacitanie obrazku
-     * @param c Farba pri chybe
      * @param msg Sprava pre uzivatela pri chybe
      * @return Obrazok pre menu
      */
-    public Image loadImage(String iFile, Color c, String msg) {        
+    public Image loadImage(String iFile, String msg) {        
         try {            
         Image out = ImageResource.getResource(iFile).getBackImage();
         return out;
         } catch(Exception e) {                
-             new MissingFile(e, c, msg).render();  
+             new MissingFile(e, msg).render();  
              return null;
         }        
     }
@@ -342,16 +344,15 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      * ziskava priamo z resource zadanom parametrom resource. Dodatocne parametre urcuju co za farbu pozadia sa 
      * pouzije pri chybe a spravu pre uzivatela.
      * @param resource ImageResouce na nacitanie obrazku
-     * @param c Farba pri chybe
      * @param msg Sprava pre uzivatela pri chybe
      * @return Obrazok pre menu
      */
-    public Image loadResourceImage(ImageResource resource, Color c, String msg) {
+    public Image loadResourceImage(ImageResource resource, String msg) {
         try {
             Image out = resource.getBackImage();
             return out;
         } catch(Exception e) {                
-             new MissingFile(e, c, msg).render();  
+             new MissingFile(e, msg).render();  
              return null;
         }   
     }    
@@ -417,6 +418,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
        this.initializeImage();
     }
+    
+    public void setWidthHeight(int w, int h) {}
 
     
 }

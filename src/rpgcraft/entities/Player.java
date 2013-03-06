@@ -12,7 +12,7 @@ import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.AbstractInMenu;
 import rpgcraft.graphics.particles.BarParticle;
-import rpgcraft.map.SaveState;
+import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StatResource.Stat;
@@ -29,7 +29,7 @@ public class Player extends MovingEntity {
         System.out.println("Player constructor called");
     }
     
-    public Player(String name, SaveState map, EntityResource res) {
+    public Player(String name, SaveMap map, EntityResource res) {
         super(name, map, res);
         System.out.println("Player constructor called");
         this.poweringBar = new BarParticle();
@@ -180,7 +180,7 @@ public class Player extends MovingEntity {
     }
     
     @Override
-    public void setMap(SaveState map) {
+    public void setMap(SaveMap map) {
         this.map = map;
         if (poweringBar == null) {
             poweringBar = new BarParticle();

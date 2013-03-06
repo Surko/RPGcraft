@@ -34,7 +34,7 @@ import rpgcraft.graphics.inmenu.AbstractInMenu;
 import rpgcraft.graphics.particles.Particle;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
-import rpgcraft.map.SaveState;
+import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.chunks.ChunkContent;
 import rpgcraft.map.tiles.*;
@@ -45,26 +45,41 @@ import rpgcraft.resource.StringResource;
  * @author Kirrie
  */
 
-public class SaveState  {    
+public class SaveMap  {    
     /* 
      * Pre zistenie kam ma zaradit mapu budem pouzivat bitove operacie posunu doprava o 4,
      * 0x0 - 15x15 budu v rovnakom priestore na disku pod menom region0x0
-     */
-       
-    private final Logger LOG = Logger.getLogger(getClass().getName());
+     */           
     
-    private String stateName;
+    /* 
+     * mod pre vykreslenia svetla
+     * 0 - Jednoduche vykreslenie len okolo hraca pomocou radiant brush
+     * 
+     */        
+    private static final int LIGHT_MODE = 0;
+    
+    /**
+     * mod pre renderovanie chunkov.
+     * 0 - jednoduche renderovanie. Vyrenderuje vsetko v buffery a nasledne aj vykresli.
+     * 1 - renderovanie okolo hraca. Vyrenderuje stvorec okolo hracovej pozicie s polomerom lightRadius pre hraca.
+     * 2 - dalsie mozne renderovanie na doplnenie.
+     */
+    private static final int RENDER_MODE = 1;
+    
+    private final Logger LOG = Logger.getLogger(getClass().getName());
     
     public HashMap<Integer,Tile> tiles = new HashMap<>();
     
-    Queue<Chunk> chunkQueue = new LinkedList<> ();
+    protected String saveName;
+    
+    protected Queue<Chunk> chunkQueue = new LinkedList<> ();
     private Deque<Particle> partRemove = new ArrayDeque<>();
     private Deque<Entity> entityRemove = new ArrayDeque<>();
     
     private int numberOfChunks;
     Chunk[][] chunksToRender;    
     
-    public int gameTime = 6 ;
+    private int gameTime = 6 ;
     
     protected int x;
     protected int y;
@@ -89,8 +104,8 @@ public class SaveState  {
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
     
-    private volatile ArrayList<Entity> entities = new ArrayList<>();
-    private volatile ArrayList<Particle> particles = new ArrayList<>();
+    protected volatile ArrayList<Entity> entities = new ArrayList<>();
+    protected volatile ArrayList<Particle> particles = new ArrayList<>();
     
     private Graphics2D g2d;
     
@@ -98,8 +113,8 @@ public class SaveState  {
     private int _xcurrent;
     private int _ycurrent;
     
-    private int xCoor;
-    private int yCoor;
+    private String xCoor;
+    private String yCoor;
     
     private int xPixels;
     private int yPixels;
@@ -126,14 +141,16 @@ public class SaveState  {
     private boolean stat = false;  
     private boolean particle = true;
     private boolean scaleable = false;
+    private boolean lighting = false;
     
     private static final Font coordinatesFont = new Font("Helvetica", Font.BOLD, 12);
     private static final int delayThread = 2;
     private static int jammedMenu = 0;
     
-    public SaveState(GamePane game, InputHandle input) {
-        this.game = game; 
-        this.input = input;     
+    public SaveMap(Save save) {
+        this.game = save.game; 
+        this.input = save.input;
+        this.saveName = save.saveName;
         this.width = game.getWidth();
         this.height = game.getHeight();
         this.dayLight = new DayLighting();
@@ -182,9 +199,9 @@ public class SaveState  {
             if (stat) {
                 paintStrings(g);
             }
-            } catch (Exception ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            }        
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }        
     }
     
     public void update() {
@@ -197,14 +214,20 @@ public class SaveState  {
             menu.update();
         }
         updateLighting();        
-    }
+    }        
     
     private void updateAround(Entity e) {
         if (chunkState) {
-            _xcurrent = e.getRegX();
-            _ycurrent = e.getRegY();
-            _lcurrent = e.getLevel();
-            
+                  
+            if (e == null) {
+                _xcurrent = 0;
+                _ycurrent = 0;
+                _lcurrent = 0; 
+            } else {
+                _xcurrent = e.getRegX();
+                _ycurrent = e.getRegY();
+                _lcurrent = e.getLevel();
+            }
             
             for (int i = 0; i < numberOfChunks; i++) {
                 for (int j = 0; j < numberOfChunks; j++) {
@@ -215,18 +238,28 @@ public class SaveState  {
             chunkState = false;
         }
         
+        if (e == null) {
+            xPixels = 0;
+            yPixels = 0;
+
+            if (stat) {            
+                xCoor = null;
+            }
+        } else {            
+            xPixels = e.getXPix() & 511;
+            yPixels = e.getYPix() & 511;
+
+            if (stat) {            
+                xCoor = ""+e.getXPix();
+                yCoor = ""+e.getYPix();
+            }  
+        }
+        
         //debuggingText();
         
         screenX = (width - (screenLength)) / 2 + 256;
         screenY = (height - (screenLength)) / 2 + 256;
-        
-        xPixels = e.getXPix() & 511;
-        yPixels = e.getYPix() & 511;
-        
-        if (stat) {            
-            xCoor = e.getXPix();
-            yCoor = e.getYPix();
-        }               
+                             
     }
     
     private void updateEntities() {
@@ -267,13 +300,22 @@ public class SaveState  {
     private void paintBackground(Graphics g) throws InterruptedException {
         try {
             
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, width, height);
             lastX = screenX - xPixels + 12;
             lastY = screenY - yPixels + 12;
-            g.translate(lastX, lastY);                         
-            chunksToPaint(chunksToRender, g);
+            g.translate(lastX, lastY);      
+            
+            switch (RENDER_MODE) {
+                case 0 : simpleChunkPainting(chunksToRender, g);
+                    break;
+                case 1 : playerChunkPainting(chunksToRender, g);
+                    break;
+            }
             g.translate(-lastX, -lastY);
         } catch (Exception e) {
-            Thread.sleep(delayThread);
+            g.translate(-lastX, -lastY);
+            Thread.sleep(delayThread);            
         }
 
     }
@@ -304,14 +346,20 @@ public class SaveState  {
         g.translate(-width/2, -height/2);
     }
     
-    private void paintLighting(Graphics g) {                                           
-       g.drawImage(lightingMap, 0, 0, null); 
+    private void paintLighting(Graphics g) { 
+       if (lighting) {
+            g.drawImage(lightingMap, 0, 0, null);
+        } 
     }
     
     private void paintStrings(Graphics g) {
         g.setFont(coordinatesFont);
         g.setColor(fpsColor);
-        g.drawString("x : " + xCoor + "\n y : " + yCoor , width-100, height-50);
+        if  (xCoor == null) {
+            g.drawString(StringResource.getResource("_mplayer"), 0, height-50);
+        } else {
+            g.drawString("x : " + xCoor + "\n y : " + yCoor , width-100, height-50);
+        }
     }    
     
     private void scale(Graphics g) {
@@ -319,7 +367,64 @@ public class SaveState  {
         g2d.scale(scaleParamX, scaleParamY);
     }
     
-    public void chunksToPaint(Chunk[][] _chunks, Graphics g) {  
+    private void playerChunkPainting(Chunk[][] _chunks, Graphics g) {
+        int[][] _layer;
+        int _chunkX, _chunkY;
+        Tile toDraw;
+        
+        int Pminx = player.getTileX() - player.getLightRadius();
+        int Pminy = player.getTileY() - player.getLightRadius();
+        int Pmaxx = player.getTileX() + player.getLightRadius();
+        int Pmaxy = player.getTileY() + player.getLightRadius();                
+        
+        
+        for (int i = 0 ; i< numberOfChunks; i++) {
+            for (int j = 0; j< numberOfChunks; j++) {
+                if (_chunks[i][j]==null) {
+                    continue;
+                }                                
+                
+                _chunkX = i << 9;
+                _chunkY = j << 9;
+                
+                int startX = Pminx - (i-1)*16;
+                if (startX < 0) {
+                    startX = 0;
+                }
+                int startY = Pminy - (j-1)*16;
+                if (startY < 0) {
+                    startY = 0;
+                }
+                int endX = Pmaxx - (i-1)*16;
+                if (endX > Chunk.getSize()) {
+                    endX = Chunk.getSize();
+                }
+                
+                int endY = Pmaxy - (j-1)*16;                        
+                if (endY > Chunk.getSize()) {
+                    endY = Chunk.getSize();
+                }
+                
+                if ((endX < 0)||(endY < 0)||(startX > Chunk.getSize())||(startY > Chunk.getSize())) {
+                    continue;
+                }
+                
+                _layer = _chunks[i][j].getLayer(_lcurrent);      
+                for (int _i = startX; _i< endX; _i++) {
+                    for (int _j = startY; _j< endY; _j++) {  
+                        toDraw = tiles.get(_layer[_i][_j]);
+                        if (toDraw == null) {
+                            continue;
+                        }
+
+                        g.drawImage(toDraw.getImage(), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
+                    }
+                }   
+            }
+        }
+    }
+    
+    private void simpleChunkPainting(Chunk[][] _chunks, Graphics g) {  
         int[][] _layer;
         int _chunkX, _chunkY;
         Tile toDraw;
@@ -345,7 +450,8 @@ public class SaveState  {
                 }
             }
         }
-    }     
+    }
+    
                                             
     public void setWidthHeight(Integer width, Integer height) {
         this.scaleParamX = width.doubleValue()/MainGameFrame.Fwidth;
@@ -496,15 +602,7 @@ public class SaveState  {
         if (input.stat.click) {
             stat = !stat;
             input.stat.click = false;
-        }
-        if (input.escape.click) {
-            for (Chunk chunk : chunkQueue) {
-                saveMap(chunk);
-            }
-            entities.clear();
-            game.setMenu(AbstractMenu.getMenuByName("mainMenu"));
-            input.escape.click = false;
-        }
+        }        
         
         if (input.particles.click) {
             particle = !particle;
@@ -528,12 +626,23 @@ public class SaveState  {
         return entities;
     }
     
-    private void timeLighting() {         
-        
-        g2d = (Graphics2D)lightingMap.getGraphics();
+    public int getGameTime() {
+        return gameTime;
+    }
+    
+    public void setGameTime(int time) {
+        this.gameTime = time;
+    }
+    
+    public void increaseGameTime() {
+        this.gameTime++;
+    }
+    
+    private void timeLighting() {                         
                         
         dayLight.init(gameTime);                
         
+        /*
         while (player == null) {
             try {
                 Thread.sleep(10L);
@@ -541,8 +650,24 @@ public class SaveState  {
                 
             }
         }
-        int radius = player.getLightRadius() + dayLight.getRadiusBuff();
+        */
         
+        if (lighting) {
+        
+            switch (LIGHT_MODE) {
+                case 0 : radialLighting();
+                    break;                            
+            }   
+            
+        }
+        
+        }
+       
+    
+    private void radialLighting() {
+        g2d = (Graphics2D)lightingMap.getGraphics();
+        
+        int radius = player.getLightRadius() + dayLight.getRadiusBuff();
         rg = new RadialGradientPaint(width /2, height /2, radius, dayLight.getFractions(), dayLight.getColors() );               
     
         g2d.setPaint(rg);
@@ -550,9 +675,7 @@ public class SaveState  {
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
         g2d.fillRect(0, 0, width, height);
         
-        
-        }
-        
+    }
     /**
      * 
      * @param x
@@ -563,10 +686,11 @@ public class SaveState  {
             return;
         }
         try {
-            inputStream = new ObjectInputStream(new FileInputStream(PathManager.getInstance().getWorldPath() + 
-                "/region["+ x +"."+ y +"].m"));
+            inputStream = new ObjectInputStream(new FileInputStream(
+                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS) + File.separator
+                    + "region["+x+","+y+"].m")); 
             try {
-                Save save = (Save) inputStream.readObject();
+                SaveChunk save = (SaveChunk) inputStream.readObject();
 
                 saveOld(save.getChunk());
                 ArrayList<Entity> entLoad = save.getEntities();
@@ -604,8 +728,8 @@ public class SaveState  {
     public void saveMap(int x, int y) {      
         try {
             outputStream = new ObjectOutputStream(new FileOutputStream(
-                        PathManager.getInstance().getWorldPath() +
-                        "/region["+ x + "." + y + "].m"));
+                            PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS)
+                    + "region["+x+","+y+"].m")); 
             for (Chunk chunk : chunkQueue) {
                 if ((chunk.getX() == x)&&(chunk.getY() == y)) {                                        
                     // Objekt s entitami, ktory ulozime k Chunku.
@@ -616,7 +740,7 @@ public class SaveState  {
                             e.setSaved(true);
                         }
                     }
-                    Save save = new Save(entSave, chunk);
+                    SaveChunk save = new SaveChunk(entSave, chunk);
                     outputStream.writeObject(save);
                     outputStream.close();
                 }
@@ -624,7 +748,7 @@ public class SaveState  {
         } catch(Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-    }
+    }           
     
     public void saveMap(Chunk chunkToSave) {
         try {
@@ -632,8 +756,8 @@ public class SaveState  {
             int chunkY = chunkToSave.getY();
             
             outputStream = new ObjectOutputStream(new FileOutputStream(
-                    PathManager.getInstance().getWorldPath() +
-                    "/region["+ chunkX + "." + chunkY + "].m"));
+                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS) + File.separator
+                    + "region["+chunkX+","+chunkY+"].m"));
             //outputStream.writeObject(chunkToSave);
             
             // Objekt s entitami, ktory ulozime k Chunku.
@@ -645,7 +769,7 @@ public class SaveState  {
                 }
             }
             
-            Save save = new Save(entSave, chunkToSave);
+            SaveChunk save = new SaveChunk(entSave, chunkToSave);
             outputStream.writeObject(save);
             outputStream.close();
             
@@ -667,6 +791,7 @@ public class SaveState  {
                 "\n x translated :"+ lastX +
                 "\n y translated :" + lastY);
     }
+
     
     private void debuggingTiles(Collection<Tile> tiles) {
         

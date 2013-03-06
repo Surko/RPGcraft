@@ -4,14 +4,26 @@
  */
 package rpgcraft.utils;
 
+import java.awt.AWTException;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.ImageOperation;
 import rpgcraft.graphics.Images;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.ImageResource;
+import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 
 /**
@@ -20,10 +32,11 @@ import rpgcraft.resource.UiResource;
  */
 public class ImageUtils {
     
-    
+    private static final Logger LOG = Logger.getLogger(ImageUtils.class.getName());
+    private static final int[] THUMBSIZE = new int[] {128,128};
     
     /**
-     * Metoda ktora vykresluje sposobom "kazdy resource v stvoci", vykresli obrazok na pozadi definovany v resource zadanom parametrom resource.
+     * Metoda ktora vykresluje sposobom "kazdy resource v stvorci", vykresli obrazok na pozadi definovany v resource zadanom parametrom resource.
      * Parameter cont (Container) je prislusny container pre tento resource z vlastnostami o 
      * vykreslenom resource do menu (polohy, vysky, otcovske parametre, obrazok). 
      * 
@@ -80,27 +93,6 @@ public class ImageUtils {
         }
     }
     
-    /**
-     * Metoda ktora vytvori docasny obrazok zmeneny podla urcitych parametrov (
-     * v tomto pripade zatial iba rotovany). Posluzia nam nato ImageOperation s metodami ako
-     * je napriklad rotate, 
-     * ktora dostava ako parameter orientaciu zadanu parametrom o. Metoda ma v mene temporary
-     * pretoze tieto obrazky existuju len pocas zivotnosti tohoto Menu.
-     * @param name Meno noveho obrazku
-     * @param o O kolko bude otoceny obrazok
-     * @return Novo inicializovany obrazok z triedy Images
-     * @see Images
-     * @see ImageOperation
-     */
-    public static Image makeTemporaryImage(String name,int o) {
-        ImageOperation io = ImageOperation.getInstance();
-        io.setOrigImage(ImageResource.getResource(name).getBackImage());
-        io.createBufferedImages(BufferedImage.TYPE_4BYTE_ABGR);
-        io.rotate(o);
-        return Images.newImage(name,io.getShowImg());  
-        
-    }   
-    
     public void modePainting(Graphics g, UiResource res, Container cont, int[] pos) {
         Image img = cont.getImage();
         switch (res.getPaintMode()) {
@@ -121,26 +113,114 @@ public class ImageUtils {
         }
     }
     
+    /**
+     * Metoda ktora vytvori docasny obrazok zmeneny podla urcitych parametrov (
+     * v tomto pripade zatial iba rotovany). Posluzia nam nato ImageOperation s metodami ako
+     * je napriklad rotate, 
+     * ktora dostava ako parameter orientaciu zadanu parametrom o. Metoda ma v mene temporary
+     * pretoze tieto obrazky existuju len pocas zivotnosti tohoto Menu.
+     * @param name Meno noveho obrazku
+     * @param o O kolko bude otoceny obrazok
+     * @return Novo inicializovany obrazok z triedy Images
+     * @see Images
+     * @see ImageOperation
+     */
+    public static Image makeTemporaryImage(String name,int o) {
+        ImageOperation io = ImageOperation.getInstance();
+        io.setOrigImage(ImageResource.getResource(name).getBackImage());
+        io.createBufferedImages(BufferedImage.TYPE_4BYTE_ABGR);
+        io.rotate(o);
+        return Images.newImage(name,io.getShowImg());  
+        
+    }           
+    
+    /**
+     * Metoda operateImage s parametrami container a resource ma za ulohu
+     * upravit obrazok podla zadaneho resource a kontajneru v ktorom sa obrazok nachadza.
+     * @param container Kontajner podla ktoreho upravujeme obrazok
+     * @param res Resource podla ktoreho upravujeme obrazok
+     * @return Pozmeneny obrazok podla zadanych parametrov
+     */
+    public static BufferedImage operateImage(Container container, UiResource res) {
+        Image img = ImageResource.getResource(res.getBackgroundTextureId()).getBackImage();
+        
+        int o = res.getImageOrientation();
+        int[] resize = null;
+        
+        try {
+            resize = new int[2];
+            resize[0] = MathUtils.getImageLength(container, res.getImageWidth());
+            if (resize[0] == -1) {
+                resize[0] = img.getWidth(null);
+            }
+            resize[1] = MathUtils.getImageLength(container, res.getImageHeight());
+            if (resize[1] == -1) {
+                resize[1] = img.getHeight(null);
+            }
+        } catch (Exception e) {
+            new MultiTypeWrn(e, Color.RED, "Problem to parse image lengths",null).renderSpecific(StringResource.getResource("_label_parsingerror"));
+        }
+        return operateImage(img, o, resize);
+                        
+    }
+    
     public static BufferedImage operateImage(Image img, int o, int[] resize) {
         if (img != null) {
             ImageOperation io = ImageOperation.getInstance();
             io.setOrigImage(img);
-            io.createBufferedImages(BufferedImage.TYPE_4BYTE_ABGR);
+            io.createBufferedImages(BufferedImage.TYPE_INT_RGB);
             if (o > 0) {                
                 io.rotate(o);
-            } else {
-                return (BufferedImage)img;
             }
             if (resize !=null) {
                 if (resize.length == 2) {
                     int w = resize[0];
                     int h = resize[1];
-                    io.betterresizeImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);                    
+                    if (w != img.getWidth(null) || h != img.getHeight(null)) {                          
+                        io.betterresizeImage(w, h, BufferedImage.TYPE_INT_RGB);                    
+                    }
                 }
             }
             return io.getShowImg();
         }
         return null;
+    }
+
+    public static BufferedImage makeThumbnailImage(Component comp) {
+        return operateImage(getScreenImage(comp),0, THUMBSIZE);
+    }
+    
+    public static BufferedImage makeThumbnailImage(Image image) {
+        return operateImage(image, 0, THUMBSIZE);
+    }
+    
+    public static BufferedImage getScreenImage(Component comp) {
+        
+        Dimension d = comp.getSize();
+        
+        if (d.width == 0||d.height == 0) {
+            d = comp.getPreferredSize();
+            comp.setSize(d);
+        }
+            
+        Rectangle region = new Rectangle(0, 0, d.width, d.height);
+        return getScreenImage(comp, region);        
+    }
+    
+    public static BufferedImage getScreenImage(Component comp, Rectangle region) {
+        BufferedImage image = new BufferedImage(region.width, region.height, BufferedImage.TYPE_INT_RGB);   
+        Graphics g2d = image.createGraphics();
+        
+        if (!comp.isOpaque()) {
+            g2d.setColor(comp.getBackground());
+            g2d.fillRect(region.x, region.y, region.width, region.height);
+        }
+        
+        g2d.translate(-region.x, -region.y);
+        comp.paint(g2d);
+        g2d.dispose();
+        return image;
+        
     }
     
     public static BufferedImage imageFromContainer(Container cont) {

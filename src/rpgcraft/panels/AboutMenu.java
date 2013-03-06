@@ -5,12 +5,20 @@
 package rpgcraft.panels;
 
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import rpgcraft.GamePane;
 import rpgcraft.graphics.Colors;
+import rpgcraft.graphics.ImageOperation;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
+import rpgcraft.utils.ImageUtils;
 
 /**
  * Trieda AboutPanel vytvori okno s informaciami o hre
@@ -29,8 +37,8 @@ public class AboutMenu extends AbstractMenu {
      */
     public AboutMenu(UiResource res) {
         this.res = res;
-        img = loadResourceImage(ImageResource.getResource("about"),Colors.getColor(Colors.menuError1),
-               StringResource.getResource("_mimage") + getClass().getName());     
+        img = loadResourceImage(ImageResource.getResource("about"), 
+                StringResource.getResource("_mimage") + getClass().getName());     
     }  
 
     @Override
@@ -48,7 +56,7 @@ public class AboutMenu extends AbstractMenu {
     public void inputHandling() {
         if (input.escape.on) {
             setMenu(menuMap.get("mainMenu"));
-        }
+        }                
     }
 
     @Override

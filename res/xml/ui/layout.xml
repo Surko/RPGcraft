@@ -32,8 +32,8 @@
       <background-color>Black</background-color>
       <background-image>about</background-image>
       <orientation>0</orientation>
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
+      <image-width>ORIGINAL</image-width>
+      <image-height>ORIGINAL</image-height>
       <image-position>CENTER</image-position>
     </background>
     <position>CENTER</position>
@@ -71,8 +71,8 @@
       <background-color>Black</background-color>
       <background-image>intro</background-image>
       <orientation>0</orientation>
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
+      <image-width>ORIGINAL</image-width>
+      <image-height>ORIGINAL</image-height>
       <image-position>CENTER</image-position>
     </background>
     <position>CENTER</position>       
@@ -92,6 +92,41 @@
       <image-height>FILL</image-height>
       <image-position>CENTER</image-position>
     </background>    
+  </element>
+  
+  <element>
+    <id>loadcreateMenu</id>
+    <type>PANEL</type>
+    <layout>
+      <layout-type>GRIDBAGSWING</layout-type>
+      <width>FILL_PARENT</width>
+      <height>FILL_PARENT</height>
+    </layout>
+    <background>
+      <background-color>Black</background-color>
+      <background-image>load</background-image>
+      <orientation>0</orientation>
+      <image-width>FILL</image-width>
+      <image-height>FILL</image-height>
+      <image-position>CENTER</image-position>
+    </background>
+    <position>CENTER</position>
+    <elements>
+      <element>
+        <id>text_about</id>
+        <type>TEXT</type>
+        <text textcolor="fpsColor">@textabout</text>        
+        <layout>
+          <width>300</width>
+          <height>20</height>
+          <scrolling speedy="2"/>          
+        </layout>
+        <background>
+              <background-color>transColor</background-color>
+        </background>
+        <position>CENTER</position>
+      </element>
+    </elements>    
   </element>
   
   <element>
@@ -157,7 +192,7 @@
         <background>
           <background-color>healthColor</background-color>   
         </background> 
-        <listdata>
+        <listdata data="[[gameMenu,@newgame]]">
           <list-element>
             <id>rowTextListView01</id>
             <type>TEXT</type>

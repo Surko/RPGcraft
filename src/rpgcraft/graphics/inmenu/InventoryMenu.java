@@ -12,7 +12,7 @@ import rpgcraft.entities.Entity;
 import rpgcraft.entities.Item;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.map.SaveState;
+import rpgcraft.map.SaveMap;
 
 /**
  *
@@ -36,7 +36,7 @@ public class InventoryMenu extends AbstractInMenu {
      * @param entity Entita pre ktoru sa vykresluje inventar
      * @param input Obsluha tlacidiel na klavesnici.
      */
-    public InventoryMenu(Entity entity, InputHandle input, SaveState map) {
+    public InventoryMenu(Entity entity, InputHandle input, SaveMap map) {
         super(entity, input);
         setGraphics();
         this.map = map;

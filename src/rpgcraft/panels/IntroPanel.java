@@ -4,18 +4,11 @@
  */
 package rpgcraft.panels;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
-import javax.swing.JPanel;
-import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
-import rpgcraft.resource.StringResource;
-import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
 
 /**
@@ -24,8 +17,8 @@ import rpgcraft.resource.UiResource;
  */
 public class IntroPanel extends AbstractMenu {
     
-    private int x;
-    private int y; 
+    private int w;
+    private int h; 
             
     public IntroPanel(UiResource res) { 
         this.res = res;
@@ -33,8 +26,8 @@ public class IntroPanel extends AbstractMenu {
     
     public IntroPanel(BufferedImage image) {
         this.contImage = image;
-        this.x = image.getWidth();
-        this.y = image.getHeight();
+        this.w = image.getWidth();
+        this.h = image.getHeight();
     }
 
     @Override
@@ -50,11 +43,11 @@ public class IntroPanel extends AbstractMenu {
     }
     
     public int getWidth() {
-        return x;
+        return w;
     }
     
     public int getHeight() {
-        return y;
+        return h;
     }
 
     @Override
@@ -85,6 +78,8 @@ public class IntroPanel extends AbstractMenu {
 
     @Override
     public void setWidthHeight(int w, int h) {
+        this.w = w;
+        this.h = h;
     }
 
     

@@ -22,11 +22,14 @@ import rpgcraft.graphics.inmenu.AbstractInMenu;
 import rpgcraft.graphics.inmenu.InventoryMenu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
-import rpgcraft.map.SaveState;
+import rpgcraft.map.Save;
+import rpgcraft.map.SaveMap;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.EntityResource;
+import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.utils.Framer;
+import rpgcraft.utils.ImageUtils;
 
 /**
  *
@@ -48,10 +51,13 @@ public class GameMenu extends AbstractMenu implements Runnable {
     
     public static final int PAINTING_TYPE = PaintingTypes.PAINTING_INSIDE_REPAINT;
     
+    private static final Logger LOG = Logger.getLogger(GameMenu.class.getName());
+    
     // Objekt pre hraca typu Player zdedeny po Entite    
     public Player player;
     private AbstractInMenu menu;
-    private SaveState map;
+    private Save save;
+    private SaveMap saveMap;
     private Thread buffThread;
     // Bufferovany obrazok v pamati. 
     private Image buffImage;
@@ -87,12 +93,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
     public void run() {
         while (true) {
             if (hasToRepaint) {
-                if ((map != null)&&(contImage != null)) {
+                if ((saveMap != null)&&(contImage != null)) {
                     if (screenImage == buffImage) {
-                       map.paint(contImage.getGraphics());
+                       saveMap.paint(contImage.getGraphics());
                        screenImage = contImage;
                     } else {
-                        map.paint(buffImage.getGraphics());
+                        saveMap.paint(buffImage.getGraphics());
                         screenImage = buffImage;
                     }
                 }
@@ -109,63 +115,84 @@ public class GameMenu extends AbstractMenu implements Runnable {
      * Metoda getMap vracia prisluchajucu instanciu mapy k tomuto Menu.
      * @return Mapa prisluchajuca k menu.
      */
-    public SaveState getMap() {
-        return map;
+    public SaveMap getMap() {
+        return saveMap;
     }
     
     // </editor-fold>     
     
     // <editor-fold defaultstate="collapsed" desc=" Settery ">
     
+    /**
+     * Metoda setWidthHeight nastavi velkosti (vysku a sirku) pre toto menu,
+     * aj velkost mapy aj velkost bufferovacich obrazkov ktore vykresluje toto menu.     
+     * Toto sa sklada z volania dvoch funkcii <b>setWidthHeight</b>, ktora nastavi
+     * velkost mapy na pozadovanie velkosti a <b>setImageProperties<b>, ktora nastavi
+     * velkosti bufferovacich obrazkov podla dalsich parametrov vykreslovania.
+     * @param w Nove sirky pre menu .
+     * @param h Nove vysky pre menu.
+     */
     @Override
     public void setWidthHeight(int w, int h) {        
-        map.setWidthHeight(w, h);             
+        saveMap.setWidthHeight(w, h);             
         setImageProperties(w, h);
     }
         
-    
+    /**
+     * Tato metoda zatial zdruzuje aj funkcie nacitania mapy aj vytvorenie novej mapy.
+     * Obidve funkcie sucasne su vylucitelne. Preto prepinam vzdy iba jednu.
+     */
     public synchronized void newMapInstance() {
         
         gamePane.setSize(MainGameFrame.Fwidth, MainGameFrame.Fheight);                
         
-        this.map = new SaveState(gamePane, input);        
+        this.save = new Save("skuska",gamePane, input);        
+        
         Logger.getLogger(getClass().getName()).log(Level.INFO, "Game map set");
         
         if (!gamePane.hasXmlInitialized()) {                         
             gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                  
         } else {
-            Logger.getLogger(getClass().getName()).log(Level.INFO, "Xml files were already initialized ---> ABORT");
+            LOG.log(Level.INFO, "Xml files were already initialized ---> ABORT");
         }
-        
-        map.loadMapAround(0,0);   
-        map.initializeTiles();
+        save.createNewSave();
+         
+        //save.loadAndStart("skuska");
+        saveMap = save.getSaveMap();
+        saveMap.loadMapAround(0,0);  
+        saveMap.initializeTiles();
         
         // Testovacie riadky na vytvorenie dvoch entit.
-        MovingEntity entity = new MovingEntity("Zombie", map, EntityResource.getResource("Zombie"));        
+        MovingEntity entity = new MovingEntity("Zombie", saveMap, EntityResource.getResource("Zombie"));        
         entity.initialize();        
         entity.trySpawn();
-        MovingEntity entity2 = new MovingEntity("Zombie", map, EntityResource.getResource("Zombie"));        
+        MovingEntity entity2 = new MovingEntity("Zombie", saveMap, EntityResource.getResource("Zombie"));        
         entity2.initialize(); 
         entity2.trySpawn();
         //entity.setImpassableTile(1); 
-        player = new Player("Surko", map, EntityResource.getResource("_player"));
+        player = new Player("Surko", saveMap, EntityResource.getResource("_player"));
         player.initialize();
         player.trySpawn();
         player.setHandling(input);
-        player.setLightRadius(96);
+        player.setLightRadius(6);
         player.setSound(128);
         //player.setImpassableTile(1);
         
         Item item = new Item("Healing Potion",EntityResource.getResource("healing1"));
         player.getInventory().add(item);
         
-        //map.addEntity(player);
+        // DEBUG PRE PRIDANIE HRACA, vylucitelne s nacitanim mapy
+        saveMap.addEntity(player);
         //map.addEntity(entity); 
         //map.addEntity(entity2);
         
-        InventoryMenu inventory = new InventoryMenu(player, input, map);
+        InventoryMenu inventory = new InventoryMenu(player, input, saveMap);
         
         setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
+        
+        if (saveMap.player == null) {
+            LOG.log(Level.WARNING, StringResource.getResource("_mplayer"));
+        }
         
         if (PAINTING_TYPE == 2) {
             buffThread = new Thread(this);        
@@ -186,7 +213,15 @@ public class GameMenu extends AbstractMenu implements Runnable {
     
     @Override
     public void inputHandling() {
-        map.inputHandling();
+        save.inputHandling();
+        
+        if (input.escape.click) {
+            save.saveAndQuit(ImageUtils.makeThumbnailImage(screenImage));            
+            setMenu(AbstractMenu.getMenuByName("mainMenu"));
+            save = null;
+            saveMap = null;
+            input.escape.click = false;
+        }
         
         
     }
@@ -203,23 +238,22 @@ public class GameMenu extends AbstractMenu implements Runnable {
          * System.out.println(Thread.currentThread().getName());
          * 
          */
-        if (map == null) {
+        if (saveMap == null) {
             newMapInstance();
         }
         
-        if (map.player != null) {
-            if (Framer.tick > 2500) {
-                if (map.gameTime==24) {
-                    map.gameTime = 0;
-                }
-                map.gameTime++;
-                map.setLightState(true);
-                Framer.tick = 0;
-            }          
-            input.keyUpdates();
-            map.update();
-            hasToRepaint = true;
-        }
+        if (Framer.tick > 2500) {
+            if (saveMap.getGameTime()==24) {
+                saveMap.setGameTime(0);
+            }
+            saveMap.increaseGameTime();
+            saveMap.setLightState(true);
+            Framer.tick = 0;
+        }          
+        input.keyUpdates();
+        saveMap.update();
+        hasToRepaint = true;
+
         super.update();
     }
     
@@ -236,8 +270,8 @@ public class GameMenu extends AbstractMenu implements Runnable {
             dbg.setColor(Color.BLACK);
             //dbg.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());
 
-            if (map != null) {
-                map.paint(dbg);
+            if (saveMap != null) {
+                saveMap.paint(dbg);
             }
 
             //changedGr = false;
@@ -277,8 +311,8 @@ public class GameMenu extends AbstractMenu implements Runnable {
         if (screenImage == null) {  
             return;
         }
-        if ((PAINTING_TYPE == 0)&&(screenImage != null)&&(map != null)) {
-            map.paint(screenImage.getGraphics());
+        if ((PAINTING_TYPE == 0)&&(screenImage != null)&&(saveMap != null)) {
+            saveMap.paint(screenImage.getGraphics());
         }
         
         g.drawImage(screenImage, 0, 0, null);
@@ -289,32 +323,45 @@ public class GameMenu extends AbstractMenu implements Runnable {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Privatne metody ">
+    
+    /**
+     * Metoda setImageProperties preinicializuje/vytvori nove obrazky na vykreslenie mapy
+     * podla novo zadanej vysky a sirky. Obrazok je definovany v AbstractMenu ako <b>contImage</b>
+     * Natoto posluzi metoda createImage v paneli v ktorom sa odohrava hra, v ktorom
+     * bolo vytvorene toto menu (vacsinou GamePane). Tato metoda vytvara off-screen
+     * obrazok pre dvojite bufferovanie. Po vytvoreni je zvykom otestovat ci nahodou nejake vlakno
+     * nezrusilo tento bufferovaci obrazok a ked nie tak ho prichysta na kreslenie.
+     * Pri PAINTING_TYPE rovnemu dvojke pouzivame princip page flipping co su 2 bufferovacie obrazky.
+     * Vystupuje tu vzdy jeden pointer <b>screenImage</b>, ktory ukazuje na jeden
+     * z tychto obrazkov ktory budeme vykreslovat na obrazovku,
+     * pricom druhy <b>buffImage</b> je zatial spracovavany druhym Threadom. 
+     * @param w Sirka bufferovacich obrazkov
+     * @param h Vyska bufferovacich obrazkov
+     */
     private void setImageProperties(int w, int h) {
+        contImage = gamePane.createImage(w, h);
+        if (PAINTING_TYPE == 2) {
+            buffImage = gamePane.createImage(w, h);
+        }
+        Graphics dbg;
         if (contImage == null) {
-            contImage = gamePane.createImage(w, h);
+            new MultiTypeWrn(null, Colors.getColor(Colors.internalError), "Null dbImage", null).renderSpecific("ContImage in GamePane is null");
+            return;
+        } else {
+            dbg = contImage.getGraphics();
+            dbg.setColor(Color.BLACK);
+            dbg.fillRect(0, 0, w, h); 
             if (PAINTING_TYPE == 2) {
-                buffImage = gamePane.createImage(w, h);
-            }
-            Graphics dbg;
-            if (contImage == null) {
-                new MultiTypeWrn(null, Colors.getColor(Colors.menuError1), "Null dbImage", null).renderSpecific("ContImage in GamePane is null");
-                return;
-            } else {
-                dbg = contImage.getGraphics();
+                dbg = buffImage.getGraphics();
                 dbg.setColor(Color.BLACK);
                 dbg.fillRect(0, 0, w, h); 
-                if (PAINTING_TYPE == 2) {
-                    dbg = buffImage.getGraphics();
-                    dbg.setColor(Color.BLACK);
-                    dbg.fillRect(0, 0, w, h); 
-                }
-                screenImage = contImage;
             }
-                                                         
+            screenImage = contImage;
         }
+                                                         
+        
     }
     
-    // </editor-fold>
-   
+    // </editor-fold>   
     
 }

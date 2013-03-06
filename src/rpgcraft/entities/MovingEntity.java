@@ -20,7 +20,7 @@ import rpgcraft.graphics.particles.TextParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.map.SaveState;
+import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource;
@@ -83,7 +83,7 @@ public class MovingEntity extends Entity {
                          
     }
     
-    public MovingEntity(String name, SaveState map, EntityResource res) {
+    public MovingEntity(String name, SaveMap map, EntityResource res) {
         this.map = map;        
         this.res = res;        
         this.name = res.getName() != null ? res.getName() : name;                

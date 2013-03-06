@@ -5,6 +5,7 @@
 package rpgcraft.errors;
 
 import java.awt.Color;
+import rpgcraft.graphics.Colors;
 
 /**
  *
@@ -13,9 +14,9 @@ import java.awt.Color;
 public class MissingFile extends ErrorWrn {
     
     
-    public MissingFile(Exception e,Color cl,String msg) {
+    public MissingFile(Exception e,String msg) {
         this.e = e;
-        this.cl = cl;
+        this.cl = Colors.getColor(Colors.missError);
         this.msg = msg;        
         
     }

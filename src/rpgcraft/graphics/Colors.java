@@ -18,17 +18,17 @@ public class Colors {
     private static HashMap<String,Color> colors = new HashMap<>();
     
     /**
-     * Modra farba indikujuca Error suvisiaci s menu
+     * Modra farba indikujuca Error suvisiaci s chybajucim suborom.
      */
-    public static final String menuError1 = "menuError1";
+    public static final String missError = "missColor";
     /**
      * Zlta farba pre vypis FPS
      */
     public static final String fpsColor = "fpsColor";
     /**
-     * Cervena farba indikujuca Error suvisiaci s tlacidlami
+     * Cervena farba indikujuca Error pri nejakej vnutornej chybe
      */
-    public static final String  buttonTextureError = "buttonTextureError";
+    public static final String  internalError = "internalError";
     /**
      * Transparentna farba s ciernym zakladom.
      */
@@ -71,8 +71,8 @@ public class Colors {
      */
     static {
         colors.put(fpsColor, Color.YELLOW);
-        colors.put(menuError1, Color.getHSBColor(0.56f, 1.0f, 0.8f));
-        colors.put(buttonTextureError, Color.RED);
+        colors.put(missError, Color.getHSBColor(0.56f, 1.0f, 0.8f));
+        colors.put(internalError, Color.RED);
         colors.put(transparentColor, new Color(0, 0, 0, 0));
         colors.put(fullBlack, Color.BLACK);
         colors.put(Black, Color.BLACK);

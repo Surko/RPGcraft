@@ -59,7 +59,7 @@ public class ListenerFactory {
                             return new SetMenuListener(parts[1]);
                         }
                         case LOAD : {
-                            return new LoadSaveListener(parts[1]);
+                            return new LoadCreateListener(parts[1]);
                         }
                         case CREATE : {
                             return new CreateMenuListener(parts[1]);

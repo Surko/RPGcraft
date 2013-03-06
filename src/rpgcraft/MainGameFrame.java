@@ -42,7 +42,6 @@ public class MainGameFrame {
         
         try {
         mFrame = new JFrame("RPGcraft!");
-
         PathManager.getInstance(args);
         loadStringResource();
         
@@ -76,6 +75,13 @@ public class MainGameFrame {
     private static void loadStringResource() {  
         StringResource.initializeResources();
     }
+    
+    public static void endGame() {
+        if (game != null) {
+            game.endGame();
+        }
+    }
+        
         
     
     // Triedy

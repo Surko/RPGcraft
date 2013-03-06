@@ -5,8 +5,6 @@
 package rpgcraft;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
@@ -15,12 +13,10 @@ import java.lang.management.ManagementFactory;
 import java.util.logging.*;
 import javax.swing.*;
 import org.w3c.dom.Element;
-import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.panels.*;   
-import rpgcraft.panels.components.swing.SwingComponent;
 import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
@@ -50,7 +46,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
     // Bool hodnota ci boli initializovane xml subory s entitami a dlazdicami
     private boolean xmlInitialized = false;        
     // Premenne urcujuce stav hry
-    private volatile static boolean running = false;    
+    private volatile static boolean running = true;    
     public volatile static boolean gameOver = false;    
     //
     //
@@ -85,7 +81,18 @@ public class GamePane extends SwingImagePanel implements Runnable {
     public GamePane() {
         // Inicializacia prazdneho menu
         menu = new BlankMenu();   
-        backColor = Colors.getColor(Colors.Black);        
+        
+        /*
+         // DEBUGGING
+         Object[][] sk = DataUtils.getDataArrays("[#BEST(NAME,IMAGE,DATE),[@newgame,ahoj]]");
+         for (int i = 0; i< sk.length; i++) 
+           for (int j = 0; j < sk[i].length; j++) {
+               System.out.println(sk[i][j]);
+               }
+         */
+        
+        backColor = Colors.getColor(Colors.Black);   
+                
     }
     
     private void init() {
@@ -194,9 +201,13 @@ public class GamePane extends SwingImagePanel implements Runnable {
             logger.log(Level.INFO, "Main panel set");
             AboutMenu about = new AboutMenu(UiResource.getResource("aboutMenu"));
             about.initialize(componentContainer, input);
+            logger.log(Level.INFO, "About panel set"); 
             GameMenu game = new GameMenu(UiResource.getResource("gameMenu"));
-            game.initialize(componentContainer, input);
-            logger.log(Level.INFO, "About panel set");            
+            game.initialize(componentContainer, input);            
+            logger.log(Level.INFO, "Game panel set"); 
+            LoadCreateMenu loadcreate = new LoadCreateMenu(UiResource.getResource("loadcreateMenu"));
+            loadcreate.initialize(componentContainer, input);
+            logger.log(Level.INFO, "LoadCreate panel set"); 
 
             
 
@@ -228,8 +239,10 @@ public class GamePane extends SwingImagePanel implements Runnable {
     private void initializeEntities(File file, String res) {
         logger.log(Level.INFO, "EntFile: {0}", file.getName());
         XmlReader xmlread = new XmlReader();
-        for (File xmlfile : file.listFiles()) {                                                 
-            xmlread.parseXmlFile(xmlfile);
+        for (File xmlfile : file.listFiles()) { 
+            if (xmlfile.getName().substring(xmlfile.getName().length() - 3).equals("xml")) {
+                xmlread.parseXmlFile(xmlfile);
+            }
             
             for (Element elem : xmlread.parseElements(res)) {
                 EntityResource.newBundledResource(elem);
@@ -241,8 +254,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
         logger.log(Level.INFO, "TileFile: {0}", file.getName());
         XmlReader xmlread = new XmlReader();
         for (File xmlfile : file.listFiles()) {                                     
-            
-            xmlread.parseXmlFile(xmlfile);
+            if (xmlfile.getName().substring(xmlfile.getName().length() - 3).equals("xml")) {
+                xmlread.parseXmlFile(xmlfile);
+            }
             
             for (Element elem : xmlread.parseElements(TilesXML.TILE)) {
                 TileResource.newBundledResource(elem);
@@ -252,12 +266,13 @@ public class GamePane extends SwingImagePanel implements Runnable {
     
     private void initializeImages(File file) {
         logger.log(Level.INFO, "ImageFile: {0}", file.getName());
-        XmlReader xmlreader = new XmlReader();    
+        XmlReader xmlread = new XmlReader();    
         for (File xmlfile : file.listFiles()) {
-            
-            xmlreader.parseXmlFile(xmlfile);
+            if (xmlfile.getName().substring(xmlfile.getName().length() - 3).equals("xml")) {
+                xmlread.parseXmlFile(xmlfile);
+            }
                         
-            for (Element elem : xmlreader.parseElements(ImagesXML.IMAGE)) {
+            for (Element elem : xmlread.parseElements(ImagesXML.IMAGE)) {
                 ImageResource.newBundledResource(elem);
             }
         }                    
@@ -265,11 +280,13 @@ public class GamePane extends SwingImagePanel implements Runnable {
     
     private void initializeUI(File file) {
         logger.log(Level.INFO, "UIFile: {0}", file.getName());
-        XmlReader xmlreader = new XmlReader();    
+        XmlReader xmlread = new XmlReader();    
         for (File xmlfile : file.listFiles()) {
-            
-            xmlreader.parseXmlFile(xmlfile);
-            for (Element elem : xmlreader.parseRootElements(UiXML.ELEMENT)) {
+            System.out.println(xmlfile.getName().substring(xmlfile.getName().length() - 3));
+            if (xmlfile.getName().substring(xmlfile.getName().length() - 3).equals("xml")) {
+                xmlread.parseXmlFile(xmlfile);
+            }
+            for (Element elem : xmlread.parseRootElements(UiXML.ELEMENT)) {
                 UiResource.newBundledResource(elem);
             }
 
@@ -277,7 +294,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
     }    
     
     public void startGame() {
-        if (t==null||!running) {
+        if (t==null||running) {
             t= new Thread(this);
             t.start();
         }
@@ -293,8 +310,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
         if (!initialized) {
             init();
         }
-        Framer.fpsTimer = System.currentTimeMillis();
-        running = true;        
+        Framer.fpsTimer = System.currentTimeMillis();       
         
         setMenu(AbstractMenu.getMenuByName("introMenu"));         
         
@@ -315,6 +331,10 @@ public class GamePane extends SwingImagePanel implements Runnable {
         }
     }  
          
+    public void endGame() {
+        running = false;
+    } 
+     
     /**
      * Dokopy nastavi Width a Height hracieho okna. Hlavne vyuzivane pri aktualizovani
      * komponentu do ktoreho kreslime 

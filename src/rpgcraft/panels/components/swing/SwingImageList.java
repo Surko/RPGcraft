@@ -24,6 +24,7 @@ import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.ListType;
+import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.TextUtils;
 
 /**
@@ -101,6 +102,10 @@ public class SwingImageList extends SwingImagePanel {
         super(container, menu);   
         lType = (ListType)container.getResource().getType();
         changedList = true;
+        ArrayList<String> columns = new ArrayList<>();
+        getColumns(container.getResource(), columns);        
+        columns.add(0, "_id");
+        setModel(lType.getData(), columns.toArray(new String[0]));
         addMouseListener(this);
         // Neutriedena Mapa zadana pomocou linkedHashMap.
     }
@@ -350,7 +355,7 @@ public class SwingImageList extends SwingImagePanel {
         model = new ListModel(objects, columns);
         
     }
-            
+
     public void setModel(Object[][] objects) {
         model = new ListModel(objects);
     }

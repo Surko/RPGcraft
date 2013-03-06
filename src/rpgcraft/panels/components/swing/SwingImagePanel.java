@@ -41,8 +41,7 @@ public class SwingImagePanel extends SwingComponent {
         super(container, menu);
         if (container != null) {
             this.backImage = container.getResource().getBackgroundTextureId() != null ?
-                    ImageUtils.operateImage(ImageResource.getResource(container.getResource().getBackgroundTextureId()).getBackImage(),
-                        container.getResource().getImageOrientation(), null) :
+                    ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
                     null;        
             this.backColor = container.getResource().getBackgroundColorId() != null ? 
                     Colors.getColor(container.getResource().getBackgroundColorId()) :
@@ -55,8 +54,7 @@ public class SwingImagePanel extends SwingComponent {
         this.changed = true;
         if (componentContainer != null) {
             this.backImage = componentContainer.getResource().getBackgroundTextureId() != null ?
-                    ImageUtils.operateImage(ImageResource.getResource(componentContainer.getResource().getBackgroundTextureId()).getBackImage(),
-                        componentContainer.getResource().getImageOrientation(), null) :
+                    ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
                     null;        
             this.backColor = componentContainer.getResource().getBackgroundColorId() != null ? 
                     Colors.getColor(componentContainer.getResource().getBackgroundColorId()) :

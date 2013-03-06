@@ -49,8 +49,7 @@ public class XmlReader {
         	doc = db.parse(file);
 
 	}catch (Exception e) {
-		new MissingFile(e, Color.blue, "Chyba pri citani XML").render();                        
-                      
+		new MissingFile(e, "Chyba pri citani XML").render();                                              
 	}
     }
     

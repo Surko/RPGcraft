@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.UiResource.UiType;
+import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.TextUtils;
 
 /**
@@ -38,7 +39,8 @@ public class ListType extends PanelType{
     protected int rowsMax;
     protected int colsMax;
     protected int rowLayout = -3;
-    protected String data;
+    protected String sData;
+    protected Object[][] data;
     protected ArrayList<UiResource> elements;
     
     public ListType(UiType uiType) {
@@ -46,6 +48,11 @@ public class ListType extends PanelType{
     }    
 
     public void setData(String data) {
+        this.sData = data;
+        this.data = DataUtils.getDataArrays(data);
+    }
+    
+    public void setData(Object[][] data) {
         this.data = data;
     }
     
@@ -71,6 +78,10 @@ public class ListType extends PanelType{
     
     public int getMaxCols() {
         return colsMax;
+    }
+    
+    public Object[][] getData() {
+        return data;
     }
     
     @Override

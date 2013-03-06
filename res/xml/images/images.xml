@@ -7,7 +7,7 @@
 		  <id>intro</id>
 		  <globalw>363</globalw>
 		  <globalh>82</globalh>  
-			<back-texture>panel\introIMG.png</back-texture>		
+			<back-texture>panel/introIMG.png</back-texture>		
 			<x>0</x>
 			<y>0</y>					
 		</ui-image>	
@@ -16,7 +16,7 @@
 		  <id>main</id>
 		  <globalw>1024</globalw>
 		  <globalh>1024</globalh>  
-			<back-texture>panel\MainMenuIMG.jpg</back-texture>		
+			<back-texture>panel/MainMenuIMG.jpg</back-texture>		
 			<x>0</x>
 			<y>0</y>					
 		</ui-image>
@@ -25,16 +25,25 @@
 		  <id>about</id>
 		  <globalw>373</globalw>
 		  <globalh>82</globalh>  
-			<back-texture>panel\introIMG.png</back-texture>		
+			<back-texture>panel/introIMG.png</back-texture>		
 			<x>0</x>
 			<y>0</y>					
 		</ui-image>
     	
     <ui-image>
+      <id>load</id>
+      <globalw>1024</globalw>
+      <globalh>1024</globalh>
+      <back-texture>panel/loadback.png</back-texture>
+      <x>0</x>
+      <y>0</y>
+     </ui-image>	
+    	
+    <ui-image>
 		  <id>mainButtonTexture</id>
 		  <globalw>626</globalw>
 		  <globalh>417</globalh>  
-			<back-texture>panel\ButtonTexture.jpg</back-texture>		
+			<back-texture>panel/ButtonTexture.jpg</back-texture>		
 			<x>0</x>
 			<y>0</y>					
 	  </ui-image>			

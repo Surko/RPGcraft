@@ -18,10 +18,11 @@ import rpgcraft.MainGameFrame;
  */
 public class ErrorWrn{
     
-    protected Logger logger = Logger.getLogger(getClass().getName());
+    protected static Logger logger = Logger.getLogger(ErrorWrn.class.getName());
     protected String msg;
     protected Color cl;
     protected Exception e;
+    private static JPanel errorPanel;
     
     /**
      * Protected metoda umozni generovanie lepsie vyzerajucich errorov pri triedach zdedenych od tejto.
@@ -42,27 +43,46 @@ public class ErrorWrn{
     }
     
     public void renderSpecific(String errorType) {
+        MainGameFrame.endGame();
+        if (errorPanel == null) {
+            changeWindow(MainGameFrame.getFrame(), Render(),errorType);
+        } else {
+            Render();
+        }
         
-        changeWindow(MainGameFrame.getFrame(), Render(),errorType);
         
     }
     
     protected JPanel Render() {
-        JPanel errorPanel = new JPanel(new GridBagLayout());
-        errorPanel.setBackground(cl);
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(100, 100, 100, 100);
-        c.fill = GridBagConstraints.BOTH;
-        c.weightx=1;
-        c.weighty=1;
+        if (errorPanel == null) {
+            errorPanel = new JPanel(new GridBagLayout());
+            errorPanel.setBackground(cl);
+            GridBagConstraints c = new GridBagConstraints();
+            c.insets = new Insets(100, 100, 100, 100);
+            c.fill = GridBagConstraints.BOTH;
+            c.weightx=1;
+            c.weighty=1;
+            JTextArea eText = new JTextArea();     
+            eText.setEditable(false);
+            String fullErrorText = msg + ": \n" + stack2string(e);    
+            logger.log(Level.SEVERE, fullErrorText);
+            eText.setText(fullErrorText);
+            errorPanel.add(new JScrollPane(eText),c);            
+        } else {
+            try {
                 
-        JTextArea eText = new JTextArea();     
-        eText.setEditable(false);
-        String fullErrorText = msg + ": \n" + stack2string(e);
-        logger.log(Level.SEVERE, fullErrorText);
-        eText.setText(fullErrorText);
-        errorPanel.add(new JScrollPane(eText),c);
+                JScrollPane sPane = (JScrollPane) errorPanel.getComponent(0);
+                JViewport eView = (JViewport) sPane.getComponent(0);
+                JTextArea eText = (JTextArea) eView.getComponent(0);
+                String fullErrorText = msg + ": \n" + stack2string(e);
+                logger.log(Level.SEVERE, fullErrorText);
+                eText.append(fullErrorText);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Fatal error : different component structure", e);
+                System.exit(0);
+            }
+            
+        }                                       
                 
         return errorPanel;
     }
@@ -81,6 +101,7 @@ public class ErrorWrn{
             e.printStackTrace(pw);
             return "------\r\n" + sw.toString() + "------\r\n";
             } catch(Exception e2) {
+                logger.log(Level.INFO, "Unknown printStackTrace {0}", e2);
                 return "Unknown printStackTrace " + e2;
             }
     }

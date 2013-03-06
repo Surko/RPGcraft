@@ -41,7 +41,7 @@ public class TextUtils {
                 return null;
             }
         }
-    }
+    }    
     
     public static int getTextHeight(Font font) {
         FontMetrics fm = FontDesignMetrics.getMetrics(font);

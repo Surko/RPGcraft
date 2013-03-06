@@ -13,11 +13,11 @@ import rpgcraft.panels.components.Cursor;
  *
  * @author kirrie
  */
-public class LoadSaveListener extends Listener {
+public class LoadCreateListener extends Listener {
     
     private String save;
     
-    public LoadSaveListener(String save) {
+    public LoadCreateListener(String save) {
         this.save = save;
         String[] parts = save.split("#");
         switch (parts.length) {
@@ -41,7 +41,8 @@ public class LoadSaveListener extends Listener {
 
         if (e.getSource() instanceof Component) {
             Component c = (Component)e.getSource();
-            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName("gameMenu"));                
+            
+            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName("loadcreateMenu"));                
         }
 
     }

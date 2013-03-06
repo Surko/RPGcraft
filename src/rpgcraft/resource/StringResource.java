@@ -25,46 +25,50 @@ import java.util.logging.Logger;
  */
 public class StringResource {
     
+    private static final String init = "String Resource initialising";
+    private static final String done = "DONE";
+    private static final String missing = "String Resource is missing";
+    
     private static HashMap<String, String> stringResources;
     
     public static void initializeResources(Locale locale) {        
-        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, "String Resource initialising");
+        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, init);
         
         try {
             ResourceBundle rb = ResourceBundle.getBundle("rpgcraft.properties.strings", locale);  
             stringResources = convertBundleToMap(rb);
-            Logger.getLogger(StringResource.class.getName()).log(Level.INFO, "DONE");
+            Logger.getLogger(StringResource.class.getName()).log(Level.INFO, done);
         } catch (Exception e) {
-            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, "String Resource: not found ");        
+            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, missing);        
         }
     }
     
     public static void initializeResources() {  
-        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, "String Resource initialising");
+        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, init);
         
         try {
             ResourceBundle rb = ResourceBundle.getBundle("rpgcraft.properties.strings");  
             stringResources = convertBundleToMap(rb);
-            Logger.getLogger(StringResource.class.getName()).log(Level.INFO, "DONE");
+            Logger.getLogger(StringResource.class.getName()).log(Level.INFO, done);
         } catch (Exception e) {
-            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, "String Resource: not found ");        
+            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, missing);        
         }
         
     }
     
     public static void initializeResources(ResourceBundle rb) {
-        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, "String Resource initialising");
+        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, init);
         
         try { 
             stringResources = convertBundleToMap(rb);
-            Logger.getLogger(StringResource.class.getName()).log(Level.INFO, "DONE");
+            Logger.getLogger(StringResource.class.getName()).log(Level.INFO, done);
         } catch (Exception e) {
-            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, "String Resource: not found ");        
+            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, missing);        
         }
     }
     
     public static String getResource(String name) {
-        return stringResources.get(name);
+        return String.format(stringResources.get(name), null);
     }
     
     public static String getResource(String name, String[] param) {

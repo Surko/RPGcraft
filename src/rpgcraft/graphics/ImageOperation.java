@@ -11,8 +11,10 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.awt.image.ImageObserver;
 import java.awt.image.RescaleOp;
 import javax.swing.JComponent;
@@ -86,6 +88,7 @@ public class ImageOperation {
                                   origImage.getHeight(null),
                                   type);
         destImage.getGraphics().drawImage(origImage, 0, 0, null);
+        showImage = destImage;
     }
     
     /**
@@ -177,63 +180,48 @@ public class ImageOperation {
        rotate(theta, (int)(destImage.getWidth()/2), (int)(destImage.getHeight()/2));
     }
     
+    /**
+     * 
+     * @param theta
+     * @param origX
+     * @param origY 
+     */
     public void rotate(double theta, int origX, int origY) {
       AffineTransform xForm = new AffineTransform();
+     
+      xForm.rotate(theta * Math.PI / 180, origX, origY);
+
+      AffineTransform translationTransform;
+      translationTransform = findTranslation(xForm, destImage);
+      xForm.preConcatenate(translationTransform);
       
-      double relX = origX / destImage.getWidth();
-      double relY = origY / destImage.getHeight();
-      
-      if (destImage.getWidth() > destImage.getHeight())
-      {
-        xForm.setToTranslation(relX * destImage.getWidth(), relY * destImage.getWidth());
-        xForm.rotate(theta);
-
-        int diff = destImage.getWidth() - destImage.getHeight();
-
-        switch ((int)MathUtils.radToAngle(theta))
-        {
-        case 90:
-          xForm.translate(relX * destImage.getWidth(), relY * destImage.getWidth() + diff);
-          break;
-        case 180:
-          xForm.translate(relX * destImage.getWidth(), relY * destImage.getWidth() + diff);
-          break;
-        default:
-          xForm.translate(relX * destImage.getWidth(), relY * destImage.getWidth());
-          break;
-        }
-      }
-      else if (destImage.getHeight() > destImage.getWidth())
-      {
-        xForm.setToTranslation(relX * destImage.getHeight(), relY * destImage.getHeight());
-        xForm.rotate(theta);
-
-        int diff = destImage.getHeight() - destImage.getWidth();
-
-        switch ((int)MathUtils.radToAngle(theta))
-        {
-        case 180:
-          xForm.translate(-relX * destImage.getHeight() + diff, -relY * destImage.getHeight());
-          break;
-        case 270:
-          xForm.translate(-relX * destImage.getHeight() + diff, -relY * destImage.getHeight());
-          break;
-        default:
-          xForm.translate(-0.5 * destImage.getHeight(), -0.5 * destImage.getHeight());
-          break;
-        }
-      }
-      else
-      {
-        xForm.setToTranslation(relX * destImage.getWidth(), relY * destImage.getHeight());
-        xForm.rotate(theta);
-        xForm.translate(-relX * destImage.getHeight(), -relY * destImage.getWidth());
-      }
-
-      AffineTransformOp op = new AffineTransformOp(xForm, AffineTransformOp.TYPE_BILINEAR);
+      BufferedImageOp op = new AffineTransformOp(xForm, AffineTransformOp.TYPE_BILINEAR);
 
       showImage = op.filter(destImage, null);
     }
+    
+    
+    /**
+     * 
+     * @param xForm
+     * @param bi
+     * @return 
+     */
+    private AffineTransform findTranslation(AffineTransform xForm, BufferedImage bi) {
+        Point2D pointInt, pointOut;
+
+        pointInt = new Point2D.Double(0.0, 0.0);
+        pointOut = xForm.transform(pointInt, null);
+        double ytrans = pointOut.getY();
+
+        pointInt = new Point2D.Double(0, bi.getHeight());
+        pointOut = xForm.transform(pointInt, null);
+        double xtrans = pointOut.getX();
+
+        AffineTransform tat = new AffineTransform();
+        tat.translate(-xtrans, -ytrans);
+        return tat;
+      }
     
     /**
      * Metoda nam vrati originalny obrazok s ktorym pracujeme. Len pre debug vyuzitie

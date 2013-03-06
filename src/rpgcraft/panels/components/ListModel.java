@@ -27,7 +27,7 @@ public class ListModel {
     
     public ListModel(Object[][] data) {
         c = new ListCursor();
-    }
+    }    
     
     public class ListCursor extends Cursor {                
         Iterator<Object[]> iterator;

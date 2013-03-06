@@ -19,7 +19,7 @@ import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.particles.BarParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
-import rpgcraft.map.SaveState;
+import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource.EffectEvent;
@@ -65,7 +65,7 @@ public abstract class Entity implements Externalizable {
     // Bool ci je entita posunutelna
     protected boolean pushable;
     // Mapa prisluchajuca k entite
-    protected SaveState map;
+    protected SaveMap map;
     // Level na ktorej sa nachadza entita s x-ovou a y-ovou poziciou vo svete.
     protected int level,xPix, yPix;
     // Aktivny predmet entity ktory drzi akurat v rukach.
@@ -177,7 +177,7 @@ public abstract class Entity implements Externalizable {
      * @param map Map pre aktualnu entity
      * @see Map
      */
-    public void setMap(SaveState map) {
+    public void setMap(SaveMap map) {
         this.map = map;        
     }
     
@@ -217,6 +217,16 @@ public abstract class Entity implements Externalizable {
     
     public int getLevel() {
         return level;
+    }
+    
+    public int getTileX() {
+        int res = xPix >> 5;
+        return res < 0 ? Chunk.getSize() + res : res;
+    }
+    
+    public int getTileY() {
+        int res = yPix >> 5;
+        return res < 0 ? Chunk.getSize() + res : res;
     }
     
     public boolean getSaved() {

@@ -4,6 +4,7 @@
  */
 package rpgcraft.utils;
 
+import java.awt.Image;
 import javax.swing.JPanel;
 import rpgcraft.MainGameFrame;
 import rpgcraft.panels.components.Container;
@@ -106,6 +107,20 @@ public class MathUtils {
         
         return _lengths;
     }
+    
+    public static int getImageLength(Container cont, String sLength) throws Exception {
+        switch (sLength) {
+            case "FILL" : {
+                return cont.getWidth();
+            }
+            case "ORIGINAL" : {
+                return -1;
+            }    
+            default :
+                return Integer.parseInt(sLength);            
+            }
+    }
+    
     
     /**
      * Tato metoda vrati dlzku ziskanu z UiResource zadaneho ako parameter. 

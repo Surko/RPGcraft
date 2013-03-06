@@ -16,6 +16,8 @@ import java.util.logging.Logger;
  * @author 
  */
 public final class PathManager {
+    public static final String MAPS = File.separator + "maps";
+    
     private static final String WORLD = "maps";
     private static final String LOG = "logs";
     private static final String SCRIPT = "scripts";
@@ -84,13 +86,13 @@ public final class PathManager {
     private byte getOs(String os) {
         
         if (os.startsWith("Windows")) {
-            return 1;
+            return WINDOWS;
         }
         if (os.startsWith("Linux")) {
-            return 0;
+            return LINUX;
         }
         if (os.startsWith("MacOS")) {
-            return 2;
+            return MAC;
         }
         
         return -1;

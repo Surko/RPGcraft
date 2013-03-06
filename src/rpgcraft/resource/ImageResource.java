@@ -4,6 +4,7 @@
  */
 package rpgcraft.resource;
 
+import java.awt.Color;
 import java.awt.Image;
 import java.io.File;
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import javax.xml.bind.annotation.XmlAccessOrder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import rpgcraft.errors.MissingFile;
+import rpgcraft.graphics.Colors;
 import rpgcraft.manager.PathManager;
 import rpgcraft.xml.ImagesXML;
 import rpgcraft.xml.XmlReader;
@@ -60,7 +63,8 @@ public class ImageResource extends AbstractResource<ImageResource>{
                 try {
                         backImage = ImageIO.read(new File(PathManager.getInstance().getUiPath(),textureName));                       
                     } catch(Exception e) {
-                        Logger.getLogger(getClass().getName()).log(Level.SEVERE, StringResource.getResource("_mimage"),id);            
+                        Logger.getLogger(getClass().getName()).log(Level.SEVERE, StringResource.getResource("_mimage", new String[] {id}));
+                        new MissingFile(e, StringResource.getResource("_mimage", new String[] {id})).render();
                     }
                 } break; 
                 case ImagesXML.TTEXTURE : {
@@ -68,7 +72,9 @@ public class ImageResource extends AbstractResource<ImageResource>{
                 try {
                         topImage = ImageIO.read(new File(PathManager.getInstance().getUiPath(),textureName));                       
                     } catch(Exception e) {
-                        Logger.getLogger(getClass().getName()).log(Level.SEVERE, StringResource.getResource("_mimage"),id);            
+                        
+                        Logger.getLogger(getClass().getName()).log(Level.SEVERE, StringResource.getResource("_mimage", new String[] {id}));
+                        new MissingFile(e, StringResource.getResource("_mimage", new String[] {id})).render();
                     }
                 } break;     
                 case ImagesXML.ID : {

@@ -113,18 +113,20 @@
     <position>CENTER</position>
     <elements>
       <element>
-        <id>text_about</id>
-        <type>TEXT</type>
-        <text textcolor="fpsColor">@textabout</text>        
+        <id>text_habout</id>
+        <type>PANEL</type>
         <layout>
-          <width>300</width>
-          <height>20</height>
-          <scrolling speedy="2"/>          
+          <layout-type>GRIDBAGSWING</layout-type>
+          <width>400</width>
+          <height>FILL_PARENT</height>
         </layout>
         <background>
-              <background-color>transColor</background-color>
+        <background-color>selectedColor</background-color>
+        <orientation>0</orientation>
+        <image-width>FILL</image-width>
+        <image-height>FILL</image-height>
+        <image-position>CENTER</image-position>
         </background>
-        <position>CENTER</position>
       </element>
     </elements>    
   </element>
@@ -154,7 +156,7 @@
         <id>btn_newgame</id>
         <template>abstract_swing_button</template>
         <text>@newgame</text>        
-        <action>SETMENU@gameMenu</action>
+        <action>SETMENU@loadcreateMenu</action>
         <layout>
           <x>0</x>      
           <y>0</y>
@@ -190,7 +192,7 @@
           <cols-max>3</cols-max>
         </layout>
         <background>
-          <background-color>healthColor</background-color>   
+          <background-color>fpsColor</background-color>   
         </background> 
         <listdata data="[[gameMenu,@newgame]]">
           <list-element>

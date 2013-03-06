@@ -108,16 +108,29 @@ public class MathUtils {
         return _lengths;
     }
     
-    public static int getImageLength(Container cont, String sLength) throws Exception {
-        switch (sLength) {
+    public static int getImageWidth(Image img, Container cont, String sWidth) throws Exception {
+        switch (sWidth) {
             case "FILL" : {
                 return cont.getWidth();
             }
             case "ORIGINAL" : {
-                return -1;
+                return img.getWidth(null);
             }    
             default :
-                return Integer.parseInt(sLength);            
+                return Integer.parseInt(sWidth);            
+            }
+    }
+    
+    public static int getImageHeight(Image img, Container cont, String sHeight) throws Exception {
+        switch (sHeight) {
+            case "FILL" : {
+                return cont.getHeight();
+            }
+            case "ORIGINAL" : {
+                return img.getHeight(null);
+            }    
+            default :
+                return Integer.parseInt(sHeight);            
             }
     }
     

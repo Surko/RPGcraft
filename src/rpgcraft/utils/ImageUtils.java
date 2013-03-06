@@ -149,14 +149,10 @@ public class ImageUtils {
         
         try {
             resize = new int[2];
-            resize[0] = MathUtils.getImageLength(container, res.getImageWidth());
-            if (resize[0] == -1) {
-                resize[0] = img.getWidth(null);
-            }
-            resize[1] = MathUtils.getImageLength(container, res.getImageHeight());
-            if (resize[1] == -1) {
-                resize[1] = img.getHeight(null);
-            }
+            resize[0] = MathUtils.getImageWidth(img, container, res.getImageWidth());
+
+            resize[1] = MathUtils.getImageHeight(img, container, res.getImageHeight());
+
         } catch (Exception e) {
             new MultiTypeWrn(e, Color.RED, "Problem to parse image lengths",null).renderSpecific(StringResource.getResource("_label_parsingerror"));
         }

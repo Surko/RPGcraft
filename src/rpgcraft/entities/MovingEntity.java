@@ -22,6 +22,7 @@ import rpgcraft.graphics.spriteoperation.Sprite.Type;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
+import rpgcraft.map.tiles.AttackedTile;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource;
 import rpgcraft.resource.EffectResource.EffectEvent;
@@ -65,6 +66,7 @@ public class MovingEntity extends Entity {
     protected Double doublexGo = 0d;
     protected Double doubleyGo = 0d;
 
+    protected AttackedTile targetedTile;
         
     private HashMap<Sprite.Type, ArrayList<Sprite>> movingEntitySprites;       
     
@@ -474,25 +476,36 @@ public class MovingEntity extends Entity {
      */
     @Override
     protected int interactWith(int x0, int y0, int x1, int y1, double modifier) {
-        boolean done = false;
+        boolean entInteracted = false;
         for (Entity e : map.getEntities()) {
             if (e != this) {
                 if ((e.xPix >= x0)&&(e.xPix <= x1)&&
                         (e.yPix <= y0)&&(e.yPix >= y1)) {
-                    done = tryHurt(e, modifier);
+                    entInteracted = tryHurt(e, modifier);
                     
                 }               
             }
         }                
-        if (done) return 0;
+        if (entInteracted) {
+            return 0;
+        }
         
         int xTile = (x0 + x1)/2;
         int yTile = (y0 + y1)/2;
         
-        Chunk chunk = map.chunkPixExist(xTile, yTile);        
-        Tile tile = map.tiles.get(chunk.getTile(level, xTile >> 5, yTile >> 5));
+        Chunk chunk = map.chunkPixExist(xTile, yTile);
+        int x = xTile >> 5, y = yTile >> 5;
+        Tile tile = map.tiles.get(chunk.getTile(level, x, y));            
         
-        tryHurt(tile, modifier);
+        if (targetedTile == null) {                    
+            targetedTile = new AttackedTile(tile, x, y);            
+        } else {
+            if (targetedTile.getOriginTile().equals(tile)) {
+                targetedTile = new AttackedTile(tile, x, y);
+            }           
+        }
+        
+        tryHurt(targetedTile, chunk, modifier);
         return 0;        
     }
     
@@ -510,11 +523,17 @@ public class MovingEntity extends Entity {
         }
     }
     
-    protected boolean tryHurt(Tile tile, double modifier) {                
+    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {                
         
-        if (levelType == tile.getMaterialType())
-            tile.hit(damage * modifier);        
-        return true;
+        if ((levelType.getValue() & tile.getMaterialType().getValue()) > 0) {
+            if (tile.hit(damage * modifier) <= 0) {
+                chunk.destroyTile(level, tile.getX(), tile.getY());
+                return true;
+            }
+            return true;
+        } 
+        return false;
+        
     }
     
     

@@ -48,6 +48,22 @@ public class TextUtils {
         return (fm.getAscent() - fm.getDescent());
     }
     
+    public static int getTextWidth(Font font, String title) {
+        FontMetrics fm = FontDesignMetrics.getMetrics(font);
+        return fm.stringWidth(title);
+    }
+    
+    public static int[] getTextSize(Font font, String title) {
+        int[] result = new int[2];
+        if ((title == null)||(font == null)) return result;
+        
+        FontMetrics fm = FontDesignMetrics.getMetrics(font);
+        result[0] = fm.stringWidth(title);
+        result[1] = (fm.getAscent() - fm.getDescent());
+        
+        return result;
+    }
+    
     public static int getRowCount(String rows) {
         if ((rows != null)) {
             try {

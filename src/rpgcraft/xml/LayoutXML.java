@@ -51,6 +51,7 @@ public interface LayoutXML {
     // ATRIBUTES
     public static final String FONT = "font";
     public static final String TEXTCOLOR = "textcolor";
+    public static final String FONTSIZE = "size";
     public static final String CLICK = "click";
     public static final String TRANSPARENT = "transparent";
     public static final String CLICKTYPE = "clicktype";

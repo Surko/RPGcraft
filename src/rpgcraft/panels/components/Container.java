@@ -59,6 +59,7 @@ public class Container {
         private ArrayList<Container> childContainers;
         private boolean changed;
         private boolean visible;
+        private ArrayList<Container> positionslessCont;
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
@@ -82,11 +83,11 @@ public class Container {
             this.resource = resource;
             this.x = resource == null ? 0 : resource.getX();
             this.y = resource == null ? 0 : resource.getY();
-                        
+            this.positionslessCont = null;
             this.mw = mw;
             this.mh = mh;
-            this.w = mw > w ? mw : w;
-            this.h = mh > h ? mh : h;
+            this.w = w;
+            this.h = h;
             this.parent = parent;
             this.changed = true;
             this.top = false;
@@ -195,6 +196,10 @@ public class Container {
             return c;
         }
         
+        public ArrayList<Container> getPositionslessCont() {
+            return positionslessCont;
+        }                
+        
         public java.awt.Component getSwingComponent() {
             if (c instanceof Component) {
                 return (java.awt.Component)c;
@@ -233,10 +238,26 @@ public class Container {
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Settery ">
-        public void set(int w, int h, int pw, int ph) {
+        public void set(int w, int h, int mw, int mh) {
             this.w = mw > w ? this.w : w;
-            this.h = mh > h ? this.h : h;
+            this.h = mh > h ? this.h : h;            
             this.changed = true;
+        }
+        
+        public void set(int w, int h) {
+            this.w = w;
+            this.h = h;
+        }
+        
+        public void clearPositionsless() {
+            positionslessCont = null;
+        }
+        
+        public void addPositionslessCont(Container cont) {
+            if (positionslessCont == null) {
+                positionslessCont = new ArrayList<>();                
+            }
+            positionslessCont.add(cont);
         }
         
         public void setComponent(Component c) {
@@ -246,11 +267,9 @@ public class Container {
                 JPanel swn = (JPanel)c;
                 swn.setVisible(visible);
                 setLayout((JPanel)c);   
-                
-                
+                                
                 swn.setMinimumSize(new Dimension(mw, mh));
-                swn.setPreferredSize(new Dimension(w, h));
-                c.setBounds(x, y, w, h);
+                swn.setPreferredSize(new Dimension(w, h));                
                 swn.setSize(new Dimension(w, h));
             }
         }

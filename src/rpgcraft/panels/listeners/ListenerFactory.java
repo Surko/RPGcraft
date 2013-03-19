@@ -39,7 +39,7 @@ public class ListenerFactory {
             return listeners.get(command);
         } else {
             Listener output = madeListener(command);
-            listeners.put(command, madeListener(command));
+            listeners.put(command, output);
             return output;
         }
     }        

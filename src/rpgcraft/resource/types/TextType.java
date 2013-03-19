@@ -15,7 +15,7 @@ import rpgcraft.utils.TextUtils;
 public class TextType extends AbstractType {
 
     String txText;
-    String txFont;
+    Font txtFont; // Skutocny font
     String txColor;
 
     public TextType(UiType uiType) {
@@ -26,8 +26,19 @@ public class TextType extends AbstractType {
         this.txText = txText;
     }
     
-    public void setFont(String txFont) {
-        this.txFont = txFont;                
+    public void setFont(String txFont) {           
+        if (txFont == null) {
+            this.txtFont = TextUtils.DEFAULT_FONT;            
+        } else {
+            this.txtFont = Font.decode(txFont); 
+            
+        }
+    }
+    
+    public void setFontSize(String size) {
+        if (txtFont != null && !size.equals("")) {
+            this.txtFont = txtFont.deriveFont(Float.valueOf(size));
+        }                
     }
     
     public void setTextColor(String txColor) {
@@ -43,15 +54,11 @@ public class TextType extends AbstractType {
     }
     
     public String getsFont() {
-        return txFont;
+        return txtFont.getName();
     }
         
     public Font getFont() {
-        if (txFont == null) {
-            return TextUtils.DEFAULT_FONT;
-        } else {
-            return Font.decode(txFont);
-        }
+        return txtFont;
     }
     
 }

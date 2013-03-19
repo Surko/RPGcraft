@@ -44,7 +44,7 @@ public class AboutMenu extends AbstractMenu {
     @Override
     public void initialize(rpgcraft.panels.components.Container gameContainer, InputHandle input) {
         super.initialize(gameContainer, input);
-        menuMap.put("about", this);
+        menuMap.put("aboutMenu", this);
     }
     
     

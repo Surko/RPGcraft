@@ -12,7 +12,7 @@ import java.awt.Color;
  */
 public class MultiTypeWrn extends ErrorWrn {
     
-    public MultiTypeWrn(Exception e,Color cl,String msg, String[] param) {
+    public MultiTypeWrn(Exception e,Color cl,String msg, Object[] param) {
         this.e = e;
         this.cl = cl;
         this.msg = String.format(msg, param);        

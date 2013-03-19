@@ -32,6 +32,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
     protected boolean changed;
     protected boolean isSelected;
     protected ArrayList _listeners;
+    protected boolean isNoData;
     
     protected TemplateComponent() {}
     
@@ -106,7 +107,20 @@ public abstract class TemplateComponent extends JPanel implements Component {
     public AbstractMenu getOriginMenu() {
         return null;
     }
+    
+    @Override
+    public boolean isNoData() {
+        return isNoData;
+    }
         
+    @Override
+    public void refresh() {
+    }
+    
+    public void refreshPositions(int w,int h, int pw, int ph) {
+        
+    }
+    
     @Override
     public abstract Component copy(Container cont, AbstractMenu menu);
     

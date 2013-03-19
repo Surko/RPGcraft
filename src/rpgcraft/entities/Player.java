@@ -120,18 +120,29 @@ public class Player extends MovingEntity {
     @Override
     public boolean update() {
         if (isDestroyed()) return false;
+        
         if (!active) {
+            
             if (invulnerability > 0 ) invulnerability--;
                 
             if (stamina<maxStamina) {
+                
                 stamina += staminaRegen;
+                
             }
+            
             if (isSwimming()) {
+                
                 if (stamina > 0) {
+                    
                     stamina -= staminaRegen;
+                    
                 } else {
+                    
                     hit(1, rpgcraft.graphics.spriteoperation.Sprite.Type.TILE);
+                    
                 }
+                
             }
             
             

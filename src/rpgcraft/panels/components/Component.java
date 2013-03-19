@@ -69,5 +69,11 @@ public interface Component extends MouseListener, Cloneable {
     
     public void updateUI();
     
+    public boolean isNoData();
+    
+    public void refresh();
+    
+    public void refreshPositions(int w, int h, int pw, int ph);
+    
     public java.awt.Component getParent();
 }

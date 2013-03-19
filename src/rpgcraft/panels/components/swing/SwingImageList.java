@@ -38,7 +38,7 @@ public class SwingImageList extends SwingImagePanel {
     boolean changedList;
     Container[] containers;    
     int w,h;
-    int selected;
+    int selected = -1;
     ListType lType;
     // </editor-fold>
     
@@ -106,7 +106,11 @@ public class SwingImageList extends SwingImagePanel {
         getColumns(container.getResource(), columns);        
         columns.add(0, "_id");
         setModel(lType.getData(), columns.toArray(new String[0]));
+        
         addMouseListener(this);
+        // Mouse listeners length
+        // System.out.println(this.getMouseListeners().length);
+        
         // Neutriedena Mapa zadana pomocou linkedHashMap.
     }
     // </editor-fold>
@@ -277,9 +281,18 @@ public class SwingImageList extends SwingImagePanel {
      */
     private boolean selectItem(int x, int y) {
         java.awt.Component c = getComponentAt(x, y);
+        if (selected >= 0) {
+            containers[selected].getComponent().unselect();
+        }
+        
         for (int i = 0; i < containers.length; i++) {
             if (containers[i].getSwingComponent() == c) {
-                containers[selected].getComponent().unselect();
+                if (containers[i].getComponent().isNoData()) {                             
+                    selected = -1;
+                    changedList = true;
+                    return false;
+                }               
+                
                 selected = i;
                 containers[i].getComponent().select();
                 changedList = true;
@@ -519,6 +532,20 @@ public class SwingImageList extends SwingImagePanel {
                 
             } break;            
         }      
+        
+        if (table == 0) {
+            makeTemplateList(1);
+            changedList = true;
+            
+            GridBagConstraints gc = new GridBagConstraints();
+            // Implicitne nastavene gridx a gridy aby mi komponenty neutekali
+            // dobokov alebo aby neprekryvala jedna druhu
+            gc.gridx = 0;
+            gc.gridy = 0;
+            for (Container cont : containers)
+                this.add(cont.getSwingComponent(), gc);
+        }
+        
         if (table > 0) {
             makeTemplateList(table);
             changedList = true;
@@ -588,10 +615,12 @@ public class SwingImageList extends SwingImagePanel {
             switch (action.getClickType()) {   
                 case onListElement : {
                     if (event.getParam() instanceof Cursor) {
-                        Cursor c = (Cursor)event.getParam();
-                        c.moveToPosition(selected);
-                        Listener list = ListenerFactory.getListener(action.getType());
-                        list.actionPerformed(event);
+                        if (selected >= 0) {
+                            Cursor c = (Cursor)event.getParam();
+                            c.moveToPosition(selected);
+                            Listener list = ListenerFactory.getListener(action.getType());
+                            list.actionPerformed(event);
+                        }
                     }
                 } break;
                 default : {
@@ -604,13 +633,7 @@ public class SwingImageList extends SwingImagePanel {
     
     
     @Override
-    public void mouseClicked(MouseEvent e) { 
-        if (selectItem(e.getX(), e.getY())) {              
-            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor()));
-        }
-        else {
-            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, null));
-        }
+    public void mouseClicked(MouseEvent e) {         
     }
 
     @Override
@@ -619,6 +642,13 @@ public class SwingImageList extends SwingImagePanel {
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        System.out.println(this.getMouseListeners().length);
+        if (selectItem(e.getX(), e.getY())) {              
+            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor()));           
+        }
+        else {
+            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, null));
+        }
     }
 
     @Override

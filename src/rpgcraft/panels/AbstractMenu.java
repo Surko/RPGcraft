@@ -215,10 +215,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         Container cont = uiContainers.get(resource);
         
         // Vykreslit prvok iba ked sa zmenil
-        if ((cont.isChanged())) { 
-            // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru
-            int[] _rpos = MathUtils.getStartPositions(resource.getPosition(),cont.getParentWidth(), cont.getParentHeight(), cont.getWidth(), cont.getHeight());
-            cont.setPositions(_rpos);
+        if ((cont.isChanged())) {             
             cont.setChanged(false);
             switch (resource.getUiType()) {
                 case BUTTON : {                      
@@ -239,12 +236,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             comp.add(butt,resource.getConstraints());                                                        
                         }
                     }
-                    return;
-                }
+                } break;
                 case PANEL : {
                     switch (resource.getLayoutType()) {
                         case INGAME : {                                   
-                        } break;                    
+                        }                 
                         default : {
                             if (cont.getComponent() != null) {
                                 comp.remove((SwingImagePanel)cont.getComponent());
@@ -252,7 +248,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             SwingImagePanel component = new SwingImagePanel(cont, this);
                             component.addActionListeners(resource.getActions());
                             cont.setComponent(component);                             
-                            comp.add(component,resource.getConstraints());                            
+                            comp.add(component,resource.getConstraints());                         
                         } break;
                     }
                 } break;
@@ -273,9 +269,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                                 comp.add(component,resource.getConstraints()); 
                             } break;
                         }
-                    
-                    return;
-                }
+                } break;
                 case IMAGE : {
                 
                 } break;
@@ -291,7 +285,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             SwingImageList component = new SwingImageList(cont, this); 
                             component.addActionListeners(resource.getActions());
                             cont.setComponent(component);                            
-                            comp.add(component,resource.getConstraints()); 
+                            comp.add(component,resource.getConstraints());                             
                         } break;
                     }
                 }
@@ -307,16 +301,26 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
          * kazdy resource ako kontainer pre podelementy.
          */
             
-            if (resource.getType().getElements() != null) {
-                for (UiResource _resource : resource.getType().getElements()) {
-                    if (cont.getComponent() instanceof JPanel) {
-                        paintElement(g, _resource, (JPanel)cont.getComponent());
-                        cont.getComponent().update();
-                    } else {
-                        paintElement(g, _resource, comp);
-                    }
+        if (resource.getType().getElements() != null) {
+            for (UiResource _resource : resource.getType().getElements()) {
+                if (cont.getComponent() instanceof JPanel) {
+                    paintElement(g, _resource, (JPanel)cont.getComponent());
+                    cont.getComponent().update();
+                } else {
+                    paintElement(g, _resource, comp);
                 }
             }
+        }
+        
+        /*
+         * Refresh komponent <=> urcenie vysok a sirok podla ostatnych elementov.
+         * Prebieha postorder aby sme zarucili ze ostatne podelementy tohoto elementu
+         * uz boli refreshnute a tym ziskali spravne velkosti.
+         */
+        if (cont.getComponent() != null) {
+            cont.getComponent().refresh();
+        }
+        
     }              
     
     

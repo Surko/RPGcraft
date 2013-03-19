@@ -4,7 +4,9 @@
  */
 package rpgcraft.resource.types;
 
+import java.awt.Font;
 import rpgcraft.resource.UiResource;
+import rpgcraft.utils.TextUtils;
 
 /**
  *
@@ -13,7 +15,7 @@ import rpgcraft.resource.UiResource;
 public class ButtonType extends AbstractType {
 
     String btnText;
-    String btnFont;
+    Font btnFont;
     String btnColor;
         
     public ButtonType(UiResource.UiType type) {
@@ -29,14 +31,25 @@ public class ButtonType extends AbstractType {
     }
     
     public void setFont(String btnFont) {
-        this.btnFont = btnFont;                
+        if (btnFont == null) {
+            this.btnFont = TextUtils.DEFAULT_FONT;            
+        } else {
+            this.btnFont = Font.decode(btnFont); 
+            
+        }
+    }
+    
+    public void setFontSize(String size) {
+        if (btnFont != null && !size.equals("")) {
+            this.btnFont = btnFont.deriveFont(Float.valueOf(size));
+        }                
     }
     
     public String getText() {
         return btnText;
     }
 
-    public String getFont() {
+    public Font getFont() {
         return btnFont;
     }
     

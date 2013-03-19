@@ -4,35 +4,40 @@
  */
 package rpgcraft.panels.components.swing;
 
-import java.awt.AWTEvent;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
-import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
+import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource.Action;
 import rpgcraft.resource.types.AbstractType;
+import rpgcraft.utils.MathUtils;
 
 /**
  *
  * @author Surko
  */
-public abstract class SwingComponent extends JPanel implements Component {    
+public abstract class SwingComponent extends JPanel implements Component {  
+    private static final Logger LOG = Logger.getLogger(SwingComponent.class.getName());
+    
     protected Container componentContainer;
     protected AbstractMenu menu;
     protected boolean changed;
     protected AbstractType type;   
     protected boolean isSelected;
     protected ArrayList _listeners;
+    protected boolean isNoData = false;
     
-    protected SwingComponent() {        
+    protected SwingComponent() { 
     }
     
     public SwingComponent(Container container,AbstractMenu menu) {
@@ -96,6 +101,7 @@ public abstract class SwingComponent extends JPanel implements Component {
                 if (action.isTransparent()) {
                     ((Component)this.getParent()).fireEvent(event);
                 }
+                
                 continue;
             }            
         }
@@ -126,7 +132,9 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public void addActionListeners(ArrayList<Action> actions) {
         if (actions != null) {
-            addOwnMouseListener();
+            if (this.getMouseListeners().length == 0) {
+                addOwnMouseListener();
+            }
             if (_listeners == null) {
                 _listeners = new ArrayList();
             }
@@ -157,7 +165,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public void unselect() {
         isSelected = false;
-    }
+    }        
     
     @Override
     public void update() {};
@@ -174,14 +182,29 @@ public abstract class SwingComponent extends JPanel implements Component {
         super.updateUI(); 
     }
     
+    @Override
+    public boolean isNoData() {
+        return isNoData;
+    }
     
-    
+    protected abstract void reconstructComponent();  
     /**
      * Metoda clone ktora skopiruje obsah Componenty a vrati novu instanciu tohoto objektu.
      * @return Nova instancia objektu SwingComponent
      */
     @Override
     public abstract Component copy(Container cont, AbstractMenu menu);    
-    protected abstract void reconstructComponent();    
-            
+      
+    @Override
+    public void refreshPositions(int w, int h, int pw, int ph) {
+        int[] _rpos = MathUtils.getStartPositions(componentContainer.getResource().getPosition(),
+                      pw, ph, w , h);
+        componentContainer.setPositions(_rpos);
+        setBounds(_rpos[0], _rpos[1], w, h);    
+    }
+    
+    @Override
+    public void refresh() {
+        LOG.log(Level.INFO, StringResource.getResource("_rsh", new String[] {componentContainer.getResource().getId()}));
+    }
 }

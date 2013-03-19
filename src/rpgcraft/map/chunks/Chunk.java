@@ -69,6 +69,10 @@ public class Chunk implements Externalizable {
             this.loaded = loaded;
         }
         
+        public void destroyTile(int layer, int x, int y) {
+            blocks.setIntOnPosition(layer, x & 15, x & 15, -1);
+        }
+        
         public boolean getLoaded() {
             return loaded;
         }

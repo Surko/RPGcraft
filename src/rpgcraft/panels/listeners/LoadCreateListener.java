@@ -6,6 +6,7 @@ package rpgcraft.panels.listeners;
 
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Cursor;
 
@@ -41,8 +42,11 @@ public class LoadCreateListener extends Listener {
 
         if (e.getSource() instanceof Component) {
             Component c = (Component)e.getSource();
+                        
+            GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
+            gameMenu.loadMapInstance(save);
+            c.getOriginMenu().setMenu(gameMenu);
             
-            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName("loadcreateMenu"));                
         }
 
     }

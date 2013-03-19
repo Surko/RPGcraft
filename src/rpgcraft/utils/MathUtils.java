@@ -75,6 +75,34 @@ public class MathUtils {
         return positions;
     }
     
+    private static int getSpecificLength(UiResource resource, Container cont, String length, int minLength, boolean state) {
+        
+        switch (length) {
+            
+            case UiSize.AUTO : {
+                return -1;
+            }
+            case UiSize.FILL_PARENT : {
+                int result;
+                if (state) {
+                    result = getWidth(resource, cont);
+                } else {
+                    result = getHeight(resource, cont);
+                }
+                return minLength > result ? minLength : result;                
+            }
+            case UiSize.BLANK : {
+                return minLength;
+            } 
+            default : {
+                int result = Integer.parseInt(length);
+                return minLength > result ? minLength : result;
+            }
+                
+        }
+        
+    }
+    
     /**
      * Metoda getLengths ziskava do pola, ktore vrati ako navratovu hodnotu, dlzky
      * a sirky resource zadaneho ako parameter. Ked je to rodicovsky komponent ( tak 
@@ -84,26 +112,11 @@ public class MathUtils {
      */
     public static int[] getLengths(UiResource resource, Container cont) {
         int[] _lengths = new int[4];
-        if (resource.getWidth() == null) {
-            _lengths[0] = getWidth(resource, cont);                                       
-            _lengths[1] = resource.getMinWidth() == null ? 0 :
-                    (resource.getMinWidth().equals(UiSize.FILL_PARENT) ? _lengths[0] : Integer.parseInt(resource.getMinWidth()));                
-        } else {
-            _lengths[0] = resource.getWidth().equals(UiSize.FILL_PARENT) ? getWidth(resource, cont)
-                : Integer.parseInt(resource.getWidth());            
-            _lengths[1] = resource.getMinWidth() == null ? 0 :
-                    (resource.getMinWidth().equals(UiSize.FILL_PARENT) ? getWidth(resource, cont) : Integer.parseInt(resource.getMinWidth()));  
-        }
-        if (resource.getHeight() == null) {
-            _lengths[2]= getHeight(resource, cont);
-            _lengths[3] = resource.getMinHeight() == null ? 0 :
-                    (resource.getMinHeight().equals(UiSize.FILL_PARENT) ? _lengths[2] : Integer.parseInt(resource.getMinHeight())); 
-        } else {
-            _lengths[2] = resource.getHeight().equals(UiSize.FILL_PARENT) ? getHeight(resource, cont)
-                : Integer.parseInt(resource.getHeight());            
-            _lengths[3] = resource.getMinHeight() == null ? 0 :
-                    (resource.getMinHeight().equals(UiSize.FILL_PARENT) ? getHeight(resource, cont) : Integer.parseInt(resource.getMinHeight())); 
-        }
+
+        _lengths[1] = getSpecificLength(resource, cont, resource.getMinWidth(), 0, true);
+        _lengths[0] = getSpecificLength(resource, cont, resource.getWidth(), _lengths[1], true);
+        _lengths[3] = getSpecificLength(resource,cont, resource.getMinHeight(), 0, false);
+        _lengths[2] = getSpecificLength(resource, cont, resource.getHeight(), _lengths[3], false);
         
         return _lengths;
     }

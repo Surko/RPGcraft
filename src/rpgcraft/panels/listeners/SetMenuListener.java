@@ -4,8 +4,10 @@
  */
 package rpgcraft.panels.listeners;
 
+import java.awt.Color;
 import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.ActionListener;
+import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
@@ -13,6 +15,7 @@ import rpgcraft.panels.components.Cursor;
 import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImagePanel;
+import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 
 /**
@@ -67,7 +70,15 @@ public class SetMenuListener extends Listener {
             
             if (e.getSource() instanceof Component) {
                 Component c = (Component)e.getSource();
-                ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(menu));                
+                Menu newMenu = AbstractMenu.getMenuByName(menu);
+                
+                if (newMenu != null) {                                    
+                    ((Menu)c.getOriginMenu()).setMenu(newMenu);                
+                } else {
+                    new MultiTypeWrn(null, Color.red, StringResource.getResource("_nelistener",
+                            new String[] {menu}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+                }
+                
             }
             
         }

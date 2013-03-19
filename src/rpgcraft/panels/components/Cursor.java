@@ -4,8 +4,6 @@
  */
 package rpgcraft.panels.components;
 
-import java.util.Iterator;
-
 /**
  *
  * @author kirrie

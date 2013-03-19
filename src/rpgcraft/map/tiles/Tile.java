@@ -28,7 +28,7 @@ public class Tile {
     protected SpriteSheet sheet;
     protected int damage;
     protected int health;
-    protected int tileStrength;
+    protected int tileStrength;        
     
     // PUBLIC METHODS
  
@@ -70,11 +70,7 @@ public class Tile {
     
     public String getName() {
         return name;
-    }
-    
-    public ItemLevelType getMaterialType() {
-        return materialType;
-    }
+    }        
     
     public boolean isDestroyable() {
         return destroyable;
@@ -87,10 +83,10 @@ public class Tile {
 
     public void moveInto(Entity e) {
         
-    }
+    }    
     
-    public void hit(double damage) {
-        this.health -= damage;
+    public boolean equalsTo(Tile tile) {        
+        return this.id == tile.id ? true : false;
     }
     
     

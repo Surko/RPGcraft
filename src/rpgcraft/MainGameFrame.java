@@ -4,7 +4,6 @@
  */
 package rpgcraft;
 
-import java.awt.GridBagLayout;
 import java.util.logging.Logger;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -14,21 +13,23 @@ import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.resource.StringResource;
 import rpgcraft.utils.Framer;
+
 /**
  * 20.7 1st revision
  * 1.8 2nd revision
  * 20.8 3rd revision
  * 31.8 4rd revision
+ * xx.1 - 18.3 5rd revision
  * @author Kirrie
  */
 
 public class MainGameFrame {
-    // Definovane velkosti okna
-    public static final int Fwidth = 800;
-    public static final int Fheight = 600;
     
     private final static Logger logger = Logger.getLogger("MainGameFrame");
-    
+        
+    // Definovane velkosti okna
+    public static final int Fwidth = 800;
+    public static final int Fheight = 600;        
     // okno v ktorom bude panel s hrou
     private static JFrame mFrame;
     // Panel s hrou
@@ -81,12 +82,8 @@ public class MainGameFrame {
             game.endGame();
         }
     }
-        
-        
     
-    // Triedy
-    
-    
+    // Triedy        
     /**
      * Staticka trieda implementujuca ComponentListener, 
      * ktora ma za ulohu menit velkost obrazovky pri kazdom

@@ -137,7 +137,43 @@ public class GameMenu extends AbstractMenu implements Runnable {
         saveMap.setWidthHeight(w, h);             
         setImageProperties(w, h);
     }
+    
+    public void recalcWidthHeight() {       
+        setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
+    }
+    
+    public synchronized void loadMapInstance(String saveName) {
         
+        gamePane.setSize(MainGameFrame.Fwidth, MainGameFrame.Fheight); 
+        
+        if (!gamePane.hasXmlInitialized()) {                         
+            gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                  
+        } else {
+            LOG.log(Level.INFO, "Xml files were already initialized ---> ABORT");
+        }
+                        
+        this.save = new Save(saveName,gamePane, input); 
+        
+        Logger.getLogger(getClass().getName()).log(Level.INFO, "Game map set");
+        
+        if (save.loadAndStart(saveName)) {
+        
+            saveMap = save.getSaveMap();
+            saveMap.loadMapAround(0,0);  
+            saveMap.initializeTiles();                
+            
+            if (saveMap.player == null) {
+                LOG.log(Level.WARNING, StringResource.getResource("_mplayer"));
+            }
+            
+            if (PAINTING_TYPE == 2) {
+                buffThread = new Thread(this);        
+                buffThread.start();
+            }
+        }
+        
+    }
+    
     /**
      * Tato metoda zatial zdruzuje aj funkcie nacitania mapy aj vytvorenie novej mapy.
      * Obidve funkcie sucasne su vylucitelne. Preto prepinam vzdy iba jednu.
@@ -156,8 +192,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
             LOG.log(Level.INFO, "Xml files were already initialized ---> ABORT");
         }
         save.createNewSave();
-         
-        //save.loadAndStart("skuska");
+        
         saveMap = save.getSaveMap();
         saveMap.loadMapAround(0,0);  
         saveMap.initializeTiles();
@@ -228,20 +263,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
         
     @Override
     public synchronized void update() {
-        /*
-         * Kontrola Threadu. Z istych dovodov AWT-Event-Queue Thread (vlakno vyhradne pre
-         * vykreslovanie) tiez vyvolava tuto metodu aj ked nema nasledne hned
-         * za Update Threadom.
-         * Preto je metoda synchronized. V konecnom dosledku je jedno 
-         * kto vyvolava tuto metodu, ale je dolezite aby bola
-         * vyvolana iba raz a nie viacero razy (viedlo to k dvojnasobnemu poctu entit)
-         * System.out.println(Thread.currentThread().getName());
-         * 
-         */
-        if (saveMap == null) {
-            newMapInstance();
-        }
-        
+
         if (Framer.tick > 2500) {
             if (saveMap.getGameTime()==24) {
                 saveMap.setGameTime(0);

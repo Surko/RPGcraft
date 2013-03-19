@@ -67,11 +67,11 @@ public class StringResource {
         }
     }
     
-    public static String getResource(String name) {
+    public static String getResource(Object name) {
         return String.format(stringResources.get(name), null);
     }
     
-    public static String getResource(String name, String[] param) {
+    public static String getResource(String name, Object[] param) {
         return String.format(stringResources.get(name), param);            
     }
     

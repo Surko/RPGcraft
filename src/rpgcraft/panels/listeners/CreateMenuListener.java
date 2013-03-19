@@ -65,6 +65,8 @@ public class CreateMenuListener extends Listener {
             if (AbstractMenu.getMenuByName(menu)==null) {                
                 FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(menu));
                 ((Menu)c.getOriginMenu()).setMenu(factMenu);  
+            } else {
+                ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(menu));                          
             }
                           
         }

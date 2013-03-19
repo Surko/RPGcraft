@@ -38,16 +38,6 @@ public class SwingImageButton extends SwingCustomButton {
     }
     
     @Override
-    public Dimension getPreferredSize(){  
-        if (img!=null){  
-            return new Dimension(300,20);  
-        } else { 
-            return new Dimension(300,20);  
-        }  
-    }  
-    
-    
-    @Override
     public void paintComponent(Graphics g) {    
         Graphics2D g2D = (Graphics2D) g;
         
@@ -66,7 +56,8 @@ public class SwingImageButton extends SwingCustomButton {
         g2D.drawImage(io.getShowImg(), 2, 2, null);
         
         g.setColor(Color.black);
-        g.drawString(title, 100, 15);
+        g.setFont(getFont());
+        g.drawString(title, 100, h);
     }
 
     @Override

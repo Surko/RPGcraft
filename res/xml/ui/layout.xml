@@ -8,7 +8,9 @@
       <layout-type>GRIDBAGSWING</layout-type>    
       <insets>5,5,5,5</insets>    
       <weightx>0</weightx> 
-      <weighty>0</weighty> 
+      <weighty>0</weighty>
+      <width>300</width>
+      <height>20</height> 
     </layout>
     <background>
       <background-color>Black</background-color>
@@ -24,7 +26,6 @@
     <id>aboutMenu</id>
     <type>PANEL</type>
     <layout>
-      <layout-type>GRIDBAGSWING</layout-type>
       <width>FILL_PARENT</width>
       <height>FILL_PARENT</height>
     </layout>
@@ -60,10 +61,10 @@
     <type>PANEL</type>
     <layout>
       <layout-type>GRIDBAGSWING</layout-type>
-      <width>500</width>      
-      <height>500</height>
-      <minwidth>FILL_PARENT</minwidth>
-      <minheight>FILL_PARENT</minheight>
+      <width>AUTO</width>      
+      <height>AUTO</height>
+      <minwidth>AUTO</minwidth>
+      <minheight>AUTO</minheight>
       <weightx>1</weightx>
       <weighty>1</weighty>
     </layout>
@@ -101,6 +102,8 @@
       <layout-type>GRIDBAGSWING</layout-type>
       <width>FILL_PARENT</width>
       <height>FILL_PARENT</height>
+      <weightx>1</weightx>
+      <weighty>1</weighty>
     </layout>
     <background>
       <background-color>Black</background-color>
@@ -111,23 +114,59 @@
       <image-position>CENTER</image-position>
     </background>
     <position>CENTER</position>
-    <elements>
+    <elements>    
       <element>
-        <id>text_habout</id>
-        <type>PANEL</type>
-        <layout>
-          <layout-type>GRIDBAGSWING</layout-type>
-          <width>400</width>
-          <height>FILL_PARENT</height>
+        <id>CreateWorld1</id>
+        <template>abstract_swing_button</template>
+        <text size="20.0f">@newgame</text>
+        <action>SETMENU@aboutMenu</action>   
+        <layout>   
+          <weightx>1</weightx>
+          <weighty>0</weighty>  
+          <x>0</x>      
+          <y>0</y>       
         </layout>
+        <position>LEFT</position>   
+      </element>             
+      <element>
+        <id>SaveView01</id>
+        <type>LIST</type>        
+        <layout>
+          <layout-type>GRIDBAGSWING</layout-type>    
+          <width>400</width>
+          <height>FILL_PARENT</height>          
+          <actions>
+            <action click="2" clicktype="onListElement">LOAD@LIST#_id</action>
+          </actions>
+          <weightx>1</weightx>
+          <weighty>0</weighty>      
+          <x>1</x>
+          <y>0</y> 
+          <rows-layout>HORIZONTALROWS</rows-layout>
+          <rows-max>AUTOTYPE</rows-max>
+          <cols-max>1</cols-max>
+        </layout>
+        <position>CENTER</position>
         <background>
-        <background-color>selectedColor</background-color>
-        <orientation>0</orientation>
-        <image-width>FILL</image-width>
-        <image-height>FILL</image-height>
-        <image-position>CENTER</image-position>
-        </background>
-      </element>
+          <background-color>selectedColor</background-color>   
+        </background> 
+        <listdata data="[[gameMenu,@newgame]]">
+        <list-element>
+            <id>rowTextSaveView01</id>
+            <type>TEXT</type>
+            <text size="20.0f">No Data</text>
+            <layout>
+              <layout-type>GRIDBAGSWING</layout-type>
+              <width>100</width>
+              <height>20</height>
+            </layout>
+            <background>
+              <background-color>transColor</background-color>
+            </background>
+            <position>CENTER</position>                          
+          </list-element>          
+        </listdata>
+      </element>     
     </elements>    
   </element>
   
@@ -136,8 +175,8 @@
     <type>PANEL</type>
     <layout>
       <layout-type>GRIDBAGSWING</layout-type>
-      <width>FILL_PARENT</width>
-      <height>FILL_PARENT</height>
+      <width>800</width>
+      <height>600</height>
       <fill>BOTH</fill>
       <weightx>1</weightx>
       <weighty>1</weighty>
@@ -155,18 +194,19 @@
       <element>
         <id>btn_newgame</id>
         <template>abstract_swing_button</template>
-        <text>@newgame</text>        
+        <text size="20.0f">@newgame</text>        
         <action>SETMENU@loadcreateMenu</action>
         <layout>
           <x>0</x>      
           <y>0</y>
         </layout>
+        <position>CENTER</position>
       </element>
       <element>
         <id>btn_about</id>
         <template>abstract_swing_button</template>
         <text>@about</text>        
-        <action>SETMENU@about</action>
+        <action>SETMENU@aboutMenu</action>
         <layout>
           <x>0</x>      
           <y>1</y>
@@ -194,7 +234,7 @@
         <background>
           <background-color>fpsColor</background-color>   
         </background> 
-        <listdata data="[[gameMenu,@newgame]]">
+        <listdata data="[#SAVE(NAME,NAME)]">
           <list-element>
             <id>rowTextListView01</id>
             <type>TEXT</type>

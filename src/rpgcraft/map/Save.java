@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.Externalizable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -105,7 +106,7 @@ public class Save {
         }
     }
     
-    public void loadAndStart(String saveName) {
+    public boolean loadAndStart(String saveName) {
         try {
             this.state = new SaveMap(this);
             LOG.log(Level.INFO, StringResource.getResource("_label_confirmload"), saveName);
@@ -126,8 +127,17 @@ public class Save {
             state.loadMapAround(chunkX, chunkY);            
             
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, StringResource.getResource(saveName), ex);
+            if (ex instanceof FileNotFoundException) {
+                LOG.log(Level.SEVERE, StringResource.getResource("_label_cannotsaveload"), ex.toString());
+                new MultiTypeWrn(ex, Color.red, StringResource.getResource("_msave", new String[] {saveName}),
+                        null).renderSpecific(StringResource.getResource("_label_saverror"));                  
+            } else {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+            return false;
         }
+        
+        return true;
     }
     
     public void createNewSave() {
@@ -141,7 +151,7 @@ public class Save {
     public SaveMap getSaveMap() {
         return state;
     }           
-            
+    
     public static ArrayList<ArrayList<Object>> getGameSavesParam(ArrayList<String> param) {
         ObjectInputStream _inputStream;
         ArrayList<ArrayList<Object>> resultRecords = new ArrayList<>();

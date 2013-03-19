@@ -38,6 +38,8 @@ public class UiResource extends AbstractResource<UiResource> {
     public interface UiSize {
         public static final String FILL_PARENT = "FILL_PARENT";
         public static final String WRAP_CONTENT = "WRAP_CONTENT";
+        public static final String BLANK = "";
+        public static final String AUTO = "AUTO";
     }       
     
     public enum UiPaintMode {
@@ -54,15 +56,27 @@ public class UiResource extends AbstractResource<UiResource> {
     }
 
     public enum UiPosition {
-        CENTER,
-        RIGHT,
-        LEFT,
-        TOP,
-        TOP_RIGHT,
-        TOP_LEFT,
-        BOTTOM,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT
+        CENTER(GridBagConstraints.CENTER),
+        RIGHT(GridBagConstraints.EAST),
+        LEFT(GridBagConstraints.WEST),
+        TOP(GridBagConstraints.NORTH),
+        TOP_RIGHT(GridBagConstraints.NORTHEAST),
+        TOP_LEFT(GridBagConstraints.NORTHWEST),
+        BOTTOM(GridBagConstraints.SOUTH),
+        BOTTOM_LEFT(GridBagConstraints.SOUTHWEST),
+        BOTTOM_RIGHT(GridBagConstraints.SOUTHEAST);
+        
+        private int value;
+        
+        private UiPosition(int value) {
+            this.value = value;
+        }
+        
+        public int getValue() {
+            return value;
+        }
+        
+        
     }
     
     public interface FillType {
@@ -127,7 +141,7 @@ public class UiResource extends AbstractResource<UiResource> {
     private String bImagew;
     private String bImageh;
     private String bColorId;
-    private String w,h,mw,mh;
+    private String w=UiSize.BLANK,h=UiSize.BLANK,mw=UiSize.BLANK,mh =UiSize.BLANK;
     private int hGap;
     private int vGap;
     private int align;   
@@ -253,7 +267,8 @@ public class UiResource extends AbstractResource<UiResource> {
                     mh = eNode.getTextContent();
                 }   break;    
                 case LayoutXML.ID : {
-                    id = eNode.getTextContent();                      
+                    id = eNode.getTextContent();  
+                    System.out.println(id);
                 } break;
                 case LayoutXML.TEXT : {
                     switch (type.getUiType()) {
@@ -262,12 +277,14 @@ public class UiResource extends AbstractResource<UiResource> {
                         bType.setText(eNode.getTextContent()); 
                         bType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));
                         bType.setTextColor(((Element)eNode).getAttribute(LayoutXML.TEXTCOLOR));
+                        bType.setFontSize(((Element)eNode).getAttribute(LayoutXML.FONTSIZE));
                     } break;
                     case TEXT : {                        
                         TextType txType = (TextType)type;
                         txType.setText(eNode.getTextContent()); 
                         txType.setFont(((Element)eNode).getAttribute(LayoutXML.FONT));                        
                         txType.setTextColor(((Element)eNode).getAttribute(LayoutXML.TEXTCOLOR));
+                        txType.setFontSize(((Element)eNode).getAttribute(LayoutXML.FONTSIZE));
                     } break;    
                     default : {
                         String[] param = new String[] {LayoutXML.TEXT, id};
@@ -487,8 +504,23 @@ public class UiResource extends AbstractResource<UiResource> {
                 case LayoutXML.ORIENTATION : {
                     iOrientation = Integer.parseInt(eNode.getTextContent());
                 } break;
-                case LayoutXML.POSITION : {
-                    position = UiPosition.valueOf(eNode.getTextContent());                
+                case LayoutXML.POSITION : {                       
+                    if (type.getLayoutType() != null) {
+                        switch (type.getLayoutType()) {
+                            case GRIDBAGSWING : {
+                                try {
+                                    ((GridBagConstraints)type.getConstraints()).anchor = UiPosition.valueOf(eNode.getTextContent()).getValue();
+                                } catch (Exception e) {
+                                    LOG.log(Level.WARNING,
+                                            StringResource.getResource("_iparam"), "weighty");
+                                }
+                            }   break;
+                            default :
+                                position = UiPosition.valueOf(eNode.getTextContent());                            
+                        }
+                    }
+                    
+                    position = UiPosition.valueOf(eNode.getTextContent());                     
                 } break;     
                 case LayoutXML.LISTDATA : {
                     if(type.getUiType() == UiType.LIST) {

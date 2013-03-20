@@ -4,20 +4,20 @@
  */
 package rpgcraft.panels.components.template;
 
-import java.awt.AWTEvent;
 import java.awt.Graphics;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.JPanel;
+import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.UiResource;
-import rpgcraft.resource.types.AbstractType;
 
 /**
  *
@@ -45,17 +45,17 @@ public abstract class TemplateComponent extends JPanel implements Component {
     } 
     
     @Override
-    public void fireEvent(ActionEvent event) {
+    public void isMouseSatisfied(ActionEvent event) {
         for (int i = 0;i<_listeners.size() ;i++ ){  
             if (_listeners.get(i) instanceof Listener) {
                 Listener listener = (Listener)_listeners.get(i);                
                 listener.actionPerformed(event);  
                 continue;
             }
-            if (_listeners.get(i) instanceof UiResource.Action) {
-                UiResource.Action action = (UiResource.Action)_listeners.get(i);
+            if (_listeners.get(i) instanceof Action) {
+                Action action = (Action)_listeners.get(i);
                 if (event.getClicks() > action.getClicks()) {
-                    ListenerFactory.getListener(action.getType()).actionPerformed(event);
+                    ListenerFactory.getListener(action.getAction()).actionPerformed(event);
                 }
                 continue;
             }
@@ -68,13 +68,13 @@ public abstract class TemplateComponent extends JPanel implements Component {
     }
 
     @Override
-    public void addActionListener(UiResource.Action action) {
+    public void addActionListener(Action action) {
         _listeners.add(action);
     }
     
     @Override
-    public void addActionListeners(ArrayList<UiResource.Action> actions) {
-        for (UiResource.Action action : actions) {
+    public void addActionListeners(ArrayList<Action> actions) {
+        for (Action action : actions) {
             _listeners.add(action);
         }
     }
@@ -117,6 +117,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
     public void refresh() {
     }
     
+    @Override
     public void refreshPositions(int w,int h, int pw, int ph) {
         
     }
@@ -144,6 +145,11 @@ public abstract class TemplateComponent extends JPanel implements Component {
     @Override
     public void unselect() {
         isSelected = false;
+    }
+    
+    @Override
+    public void processKeyEvents(InputHandle input) {
+        
     }
     
 }

@@ -52,16 +52,15 @@ public class IntroPanel extends AbstractMenu {
 
     @Override
     public void inputHandling() {
-        if ((input.enter.on)||(input.escape.on)) {            
+        super.inputHandling();
+        if (input.runningKeys.contains(input.enter.getKeyCode())||
+                input.runningKeys.contains(input.escape.getKeyCode())) {            
             setMenu(menuMap.get("mainMenu"));            
         }
 
-        if ((input.x.on==true)&&(input.q.on==true)) {
+        if (input.runningKeys.contains(input.x.getKeyCode())&&
+                input.runningKeys.contains(input.q.getKeyCode())) {
             System.exit(0);
-        }
-        
-        if ((input.defense.on == true)) {
-            
         }
         
     }

@@ -162,32 +162,32 @@ public class InventoryMenu extends AbstractInMenu {
             return;
         } 
                             
-        if (input.inventory.click) {
+        if (input.clickedKeys.contains(input.inventory.getKeyCode())) {
             map.setMenu(null);
             input.freeKeys();
         }
         
-        if (input.up.click) {
+        if (input.clickedKeys.contains(input.up.getKeyCode())) {
             if (selection > 0) {
                 selection--;
                 changedState= true;
             }      
-            input.up.click = false;
+            input.clickedKeys.remove(input.up.getKeyCode());
         }
                 
-        if (input.down.click) {
+        if (input.clickedKeys.contains(input.down.getKeyCode())) {
             if (selection < entity.getInventory().size() - 1) {
                 selection++;
                 changedState = true;
             }            
-            input.down.click = false;
+            input.clickedKeys.remove(input.down.getKeyCode());
         }
         
-        if (input.attack.click) {
+        if (input.clickedKeys.contains(input.attack.getKeyCode())) {
             System.out.println("DONE!!");
             subMenu = new ItemMenu(entity, input, selectedItem(), selectPosX, selectPosY);
             subMenu.activate();
-            input.attack.click = false;
+            input.clickedKeys.remove(input.attack.getKeyCode());
         }
         
         

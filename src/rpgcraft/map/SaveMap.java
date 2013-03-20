@@ -599,20 +599,20 @@ public class SaveMap  {
             }
         }
         
-        if (input.stat.click) {
+        if (input.clickedKeys.contains(input.stat.getKeyCode())) {
             stat = !stat;
-            input.stat.click = false;
+            input.clickedKeys.remove(input.stat.getKeyCode());
         }        
         
-        if (input.particles.click) {
+        if (input.clickedKeys.contains(input.particles.getKeyCode())) {
             particle = !particle;
-            input.particles.click = false;
+            input.clickedKeys.remove(input.particles.getKeyCode());
         }
         
-        if (input.scaling.click) {
+        if (input.clickedKeys.contains(input.scaling.getKeyCode())) {
             scaleable = !scaleable;
             setWidthHeight(game.getWidth(), game.getHeight());
-            input.scaling.click = false;
+            input.clickedKeys.remove(input.scaling.getKeyCode());
         }
     }
 

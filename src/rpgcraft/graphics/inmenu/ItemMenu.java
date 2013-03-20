@@ -96,25 +96,25 @@ public class ItemMenu extends AbstractInMenu {
     
     @Override
     public void inputHandling() {
-        if (input.escape.click) {
+        if (input.clickedKeys.contains(input.escape.getKeyCode())) {
             input.freeKeys();
             deactivate();
             return;
         }
         
-        if (input.up.click) {      
+        if (input.clickedKeys.contains(input.up.getKeyCode())) {      
             if (selection > 0)
                 selection--;
-            input.up.click = false;
+            input.clickedKeys.remove(input.up.getKeyCode());
         }
         
-        if (input.down.click) {      
+        if (input.clickedKeys.contains(input.down.getKeyCode())) {      
             if (selection < choices.size() - 1)
                 selection++;
-            input.down.click = false;
+            input.clickedKeys.remove(input.down.getKeyCode());
         }
         
-        if (input.attack.click) {
+        if (input.clickedKeys.contains(input.attack.getKeyCode())) {
             if (choices.size() > 0)
                 use();
             input.freeKeys();

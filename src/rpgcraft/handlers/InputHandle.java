@@ -7,32 +7,77 @@ package rpgcraft.handlers;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
  * @author Kirrie
  */
 public class InputHandle implements KeyListener {
-    private static ArrayList<Key> regKeys = new ArrayList();
+    private static ArrayList<Key> regKeys = new ArrayList<>();
+    private static HashMap<Integer, Character> charKeys = new HashMap();
     
     // Ovladanie hry definovane triedou
-    private static InputHandle input;
+    private static InputHandle input;    
     
-    public class Key {
-        public boolean on = false, click = false;        
-        public Key() {
-            regKeys.add(this);
+    public ArrayList<Integer> clickedKeys;
+    public ArrayList<Integer> runningKeys;
+    
+    public enum Keys {
+        VK_W(KeyEvent.VK_W, 'w'),
+        VK_A(KeyEvent.VK_A, 'a'),        
+        VK_S(KeyEvent.VK_S, 's'),
+        VK_D(KeyEvent.VK_D, 'd'),
+        VK_B(KeyEvent.VK_B, 'b'),
+        VK_C(KeyEvent.VK_C, 'c'),        
+        VK_F(KeyEvent.VK_F, 'f'),
+        VK_E(KeyEvent.VK_E, 'e'),
+        VK_ESCAPE(KeyEvent.VK_ESCAPE, '\0'),
+        VK_CONTROL(KeyEvent.VK_CONTROL, '\0'),        
+        VK_ALT(KeyEvent.VK_ALT, '\0'),
+        VK_SPACE(KeyEvent.VK_SPACE, ' '),
+        VK_BACK_SPACE(KeyEvent.VK_BACK_SPACE, '\0'),
+        VK_SHIFT(KeyEvent.VK_SHIFT, '\0'),
+        VK_ENTER(KeyEvent.VK_ENTER, '\n');
+        
+        private final int keyCode;        
+        
+        private Keys(int keyCode, char keyChar) {
+            this.keyCode = keyCode;    
+            charKeys.put(keyCode, keyChar);
+        }
+        
+        public final int getCode() {
+            return keyCode;
+        }
+         
+    }
+    
+    public char getChar(int keyCode) {
+        return charKeys.get(keyCode);
+    }
+    
+    public static class Key {
+     
+        private int code;
+        
+        public Key(int code) {            
+            this.code = code;
+        }
+       
+        public int getKeyCode() {
+            return code;
         }
         
         public void update() {
             
         }
-        
-                        
+                                
     }
     
     private InputHandle() {
-        
+        clickedKeys = new ArrayList<>();
+        runningKeys = new ArrayList<>();
     }
     
     public static InputHandle getInstance() {
@@ -42,28 +87,30 @@ public class InputHandle implements KeyListener {
         return input;
     }
     
-    public Key enter = new Key();
-    public Key up = new Key();
-    public Key down = new Key();
-    public Key left = new Key();
-    public Key right = new Key();
-    public Key escape = new Key();
-    public Key attack = new Key();
-    public Key inventory = new Key();
-    public Key q = new Key();
-    public Key x = new Key();
-    public Key stat = new Key();
-    public Key debug = new Key();
-    public Key particles = new Key();
-    public Key scaling = new Key();
-    public Key defense = new Key();
-    public Key print = new Key();
+        
+    public static Key enter = new Key(KeyEvent.VK_ENTER);
+    public static Key up = new Key(KeyEvent.VK_W);
+    public static Key down = new Key(KeyEvent.VK_S);
+    public static Key left = new Key(KeyEvent.VK_A);
+    public static Key right = new Key(KeyEvent.VK_D);
+    public static Key escape = new Key(KeyEvent.VK_ESCAPE);
+    public static Key attack = new Key(KeyEvent.VK_SPACE);
+    public static Key inventory = new Key(KeyEvent.VK_I);
+    public static Key q = new Key(KeyEvent.VK_Q);
+    public static Key x = new Key(KeyEvent.VK_X);
+    public static Key stat = new Key(KeyEvent.VK_F3);
+    public static Key debug = new Key(KeyEvent.VK_F5);
+    public static Key particles = new Key(KeyEvent.VK_F4);
+    public static Key scaling = new Key(KeyEvent.VK_F12);
+    public static Key defense = new Key(KeyEvent.VK_CONTROL);
+    public static Key print = new Key(KeyEvent.VK_PRINTSCREEN);
+
     
     @Override
     public void keyTyped(KeyEvent e) {
         
     }
-
+    
     public void keyUpdates() {
         for (Key k : regKeys) {
             k.update();
@@ -71,69 +118,27 @@ public class InputHandle implements KeyListener {
     }
     
     public void freeKeys() {
-        for (Key k : regKeys) {
-            k.click = false;
-        }
+        clickedKeys.clear();
     }
     
     private void clickEvent(int code, boolean state) {
-        switch (code) {
-            case KeyEvent.VK_I : inventory.click = state;
-                break;
-            case KeyEvent.VK_W : up.click = state;
-                break;            
-            case KeyEvent.VK_S : down.click = state;
-                break;
-            case KeyEvent.VK_A : left.click = state;
-                break;
-            case KeyEvent.VK_D : right.click = state;
-                break;            
-            case KeyEvent.VK_F3 : stat.click = state;    
-                break;    
-            case KeyEvent.VK_F4 : particles.click = state;
-                break;
-            case KeyEvent.VK_F5 : debug.click = state;
-                break;
-            case KeyEvent.VK_F12 : scaling.click = state;
-                break;
-            case KeyEvent.VK_SPACE : attack.click = state;
-                break;
-            case KeyEvent.VK_ESCAPE : escape.click = state;
-                break;    
-            case KeyEvent.VK_PRINTSCREEN : print.click = state;
-                break;
+        if (state) {
+            if (!clickedKeys.contains(code)) {
+                clickedKeys.add(code);
+            }
+        } else {
+            clickedKeys.remove(code);
         }
     }
     
     private void runEvent(int code, boolean state) {
-        
-        switch (code) {
-            case KeyEvent.VK_W : up.on = state;
-                break;            
-            case KeyEvent.VK_UP : up.on = state;
-                break;
-            case KeyEvent.VK_S : down.on = state;
-                break;
-            case KeyEvent.VK_A : left.on = state;
-                break;
-            case KeyEvent.VK_D : right.on = state;
-                break;        
-            case KeyEvent.VK_I : inventory.on = state;
-                break;    
-            case KeyEvent.VK_ENTER : enter.on = state;
-                break;
-            case KeyEvent.VK_ESCAPE : escape.on = state;
-                break;
-            case KeyEvent.VK_SPACE : attack.on = state;
-                break;
-            case KeyEvent.VK_CONTROL : defense.on = state;
-                break;
-            case KeyEvent.VK_X : x.on = state;
-                break;
-            case KeyEvent.VK_Q : q.on = state;    
-                break;   
-            case KeyEvent.VK_PRINTSCREEN : print.on = state;
-                break;    
+        //System.out.println(runningKeys.size());
+        if (state) {
+            if (!runningKeys.contains(code)) {
+                runningKeys.add(code);
+            }
+        } else {
+            runningKeys.remove((Integer)code);
         }
     }
     

@@ -11,14 +11,15 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
-import rpgcraft.resource.UiResource.Action;
 import rpgcraft.resource.types.AbstractType;
 import rpgcraft.utils.MathUtils;
 
@@ -34,7 +35,8 @@ public abstract class SwingComponent extends JPanel implements Component {
     protected boolean changed;
     protected AbstractType type;   
     protected boolean isSelected;
-    protected ArrayList _listeners;
+    protected ArrayList _mlisteners;
+    protected ArrayList<Action> _klisteners;
     protected boolean isNoData = false;
     
     protected SwingComponent() { 
@@ -78,28 +80,35 @@ public abstract class SwingComponent extends JPanel implements Component {
      * @param action Akcia ktora musi byt splnena.
      * @param event Udalost podla ktorej sa rozhodne ci bude akcia splnena.
      */
-    protected void isActionSatisfied(Action action, ActionEvent event) {
+    protected void fireMouseEvent(Action action, ActionEvent event) {
+  
         if (event.getClicks() >= action.getClicks()) {
-            Listener list = ListenerFactory.getListener(action.getType());
+            Listener list = ListenerFactory.getListener(action.getAction());
             list.actionPerformed(event);                               
         }
+        
+    }
+    
+    public void fireKeyEvent(Action action, ActionEvent event) {
+        Listener list = ListenerFactory.getListener(action.getAction());
+        list.actionPerformed(event);
     }
     
     @Override
-    public void fireEvent(ActionEvent event) {
-        for (int i = 0;i<_listeners.size() ;i++ ){  
-            if (_listeners.get(i) instanceof ActionListener) {
-                ActionListener listener = (ActionListener)_listeners.get(i);                
+    public void isMouseSatisfied(ActionEvent event) {
+        for (int i = 0;i<_mlisteners.size() ;i++ ){  
+            if (_mlisteners.get(i) instanceof ActionListener) {
+                ActionListener listener = (ActionListener)_mlisteners.get(i);                
                 listener.actionPerformed(event);  
                 continue;
             }
-            if (_listeners.get(i) instanceof Action) {
-                Action action = (Action)_listeners.get(i);
+            if (_mlisteners.get(i) instanceof Action) {
+                Action action = (Action)_mlisteners.get(i);
                 
-                isActionSatisfied(action, event);
+                fireMouseEvent(action, event);
                 
                 if (action.isTransparent()) {
-                    ((Component)this.getParent()).fireEvent(event);
+                    ((Component)this.getParent()).isMouseSatisfied(event);
                 }
                 
                 continue;
@@ -110,46 +119,57 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public void addActionListener(ActionListener listener) {
         if (listener != null) {
-            addOwnMouseListener();
-            if (_listeners == null) {
-                _listeners = new ArrayList();
+            if (_mlisteners == null) {
+                _mlisteners = new ArrayList();
             }
-            _listeners.add(listener);
+            _mlisteners.add(listener);
         }
     }
 
     @Override
     public void addActionListener(Action action) {
         if (action != null) {
-            addOwnMouseListener();
-            if (_listeners == null) {
-                _listeners = new ArrayList();
-            }
-            _listeners.add(action);
+            
+            switch (action.getType()) {
+                case MOUSE : {
+                    if (_mlisteners == null) {
+                        _mlisteners = new ArrayList();
+                    }
+                    
+                    if (this.getMouseListeners().length == 0) {
+                        addOwnMouseListener();
+                    }
+                    
+                    _mlisteners.add(action);
+                } break;
+                case KEY : {
+                    if (_klisteners == null) {
+                        _klisteners = new ArrayList();                        
+                    }
+                    _klisteners.add(action);
+                } break;
+            }                        
         }
     }
     
     @Override
     public void addActionListeners(ArrayList<Action> actions) {
-        if (actions != null) {
-            if (this.getMouseListeners().length == 0) {
-                addOwnMouseListener();
-            }
-            if (_listeners == null) {
-                _listeners = new ArrayList();
-            }
+        if (actions != null) {                       
+            
             for (Action action : actions) {
-                _listeners.add(action);
+                addActionListener(action);
             }
         }
     }
 
     @Override
     public void removeActionListener(ActionListener listener) {
-        _listeners.remove(listener);
-        if (_listeners.size() == 0) {
-            removeMouseListener(this);
-        }
+        if (_mlisteners.remove(listener)) {        
+            if (_mlisteners.size() == 0) {
+                removeMouseListener(this);
+            }
+        } else
+            _klisteners.remove(listener);
     }            
             
     @Override
@@ -205,6 +225,21 @@ public abstract class SwingComponent extends JPanel implements Component {
     
     @Override
     public void refresh() {
-        LOG.log(Level.INFO, StringResource.getResource("_rsh", new String[] {componentContainer.getResource().getId()}));
+        //LOG.log(Level.INFO, StringResource.getResource("_rsh", new String[] {componentContainer.getResource().getId()}));
+    }
+    
+    @Override
+    public void processKeyEvents(InputHandle input) {                
+        
+        if (_klisteners != null && !_klisteners.isEmpty()) {
+            
+            System.out.println(new Integer(86).equals(86));
+            
+            for (Action action : _klisteners) {
+                if (input.clickedKeys.contains(action.getKey())) {
+                    fireKeyEvent(action, new ActionEvent(this, 0, -1, action.getAction(), null));
+                }
+            }
+        }
     }
 }

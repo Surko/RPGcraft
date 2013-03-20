@@ -250,12 +250,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
     public void inputHandling() {
         save.inputHandling();
         
-        if (input.escape.click) {
+        if (input.clickedKeys.contains(input.escape)) {
             save.saveAndQuit(ImageUtils.makeThumbnailImage(screenImage));            
             setMenu(AbstractMenu.getMenuByName("mainMenu"));
             save = null;
             saveMap = null;
-            input.escape.click = false;
+            input.clickedKeys.remove(input.escape);
         }
         
         

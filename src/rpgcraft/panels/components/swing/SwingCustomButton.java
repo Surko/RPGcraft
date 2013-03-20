@@ -39,8 +39,7 @@ public abstract class SwingCustomButton extends SwingComponent {
         super(container,menu);  
         btnType = (ButtonType)container.getResource().getType();
         this.title = TextUtils.getResourceText(btnType.getText());  
-        setFont(btnType.getFont());         
-        _listeners = new ArrayList();        
+        setFont(btnType.getFont());               
         setTextSize();
         addMouseListener(this); 
     }
@@ -49,8 +48,7 @@ public abstract class SwingCustomButton extends SwingComponent {
     protected void reconstructComponent() {
         btnType = (ButtonType)componentContainer.getResource().getType();
         this.title = TextUtils.getResourceText(btnType.getText());           
-        setFont(btnType.getFont());
-        _listeners = new ArrayList();         
+        setFont(btnType.getFont());    
         setTextSize();
         addMouseListener(this);
     }
@@ -62,13 +60,13 @@ public abstract class SwingCustomButton extends SwingComponent {
         
         Dimension imgDim = prefferedDim;
         
-        _w = componentContainer.getWidth() == -1 ? imgDim.width : componentContainer.getWidth();
-        _h = componentContainer.getHeight() == -1 ? imgDim.height : componentContainer.getHeight();
+        _w = componentContainer.isAutoWidth() ? imgDim.width : componentContainer.getWidth();
+        _h = componentContainer.isAutoHeight() ? imgDim.height : componentContainer.getHeight();
         
         componentContainer.set(_w, _h);
         setSize(_w, _h);  
         
-        if (componentContainer.getParentWidth() == -1 || componentContainer.getParentHeight() == -1) {  
+        if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
             componentContainer.getParentContainer().addPositionslessCont(componentContainer);
             return;
@@ -115,7 +113,7 @@ public abstract class SwingCustomButton extends SwingComponent {
     
     @Override
     public void mouseClicked(MouseEvent e){  
-        fireEvent(new ActionEvent(this,0,e.getClickCount(),null, null));  
+        isMouseSatisfied(new ActionEvent(this,0,e.getClickCount(),null, null));  
     }             
     
 } 

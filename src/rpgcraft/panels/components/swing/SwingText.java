@@ -121,11 +121,11 @@ public class SwingText extends SwingComponent{
         result.isNoData = true;
         result.componentContainer = cont;
         result.menu = menu;
-        if ((_listeners != null)&&(!_listeners.isEmpty())) {
-            result.addOwnMouseListener();            
-        } else {
-            result._listeners = _listeners;
+        if (_mlisteners != null && !_mlisteners.isEmpty()) {
+            result.addOwnMouseListener();
         }
+        result._mlisteners = _mlisteners;        
+        result._klisteners = _klisteners;
         result.reconstructComponent();
         
         return result;
@@ -134,8 +134,8 @@ public class SwingText extends SwingComponent{
 
     @Override
     public void mouseClicked(MouseEvent e) {  
-        if (_listeners != null) {
-            fireEvent(new ActionEvent(this, 0, e.getClickCount(),null, null));
+        if (_mlisteners != null) {
+            isMouseSatisfied(new ActionEvent(this, 0, e.getClickCount(),null, null));
         }
     }
 
@@ -166,14 +166,17 @@ public class SwingText extends SwingComponent{
                         
         int[] txtSize = TextUtils.getTextSize(getFont(), title); 
         
-        _w = componentContainer.getWidth() == -1 ? txtSize[0] : componentContainer.getWidth();
-        _h = componentContainer.getHeight() == -1 ? txtSize[1] : componentContainer.getHeight();
+        w = txtSize[0];
+        h = txtSize[1];
+        
+        _w = componentContainer.isAutoWidth() ? txtSize[0] : componentContainer.getWidth();
+        _h = componentContainer.isAutoHeight() ? txtSize[1] : componentContainer.getHeight();
         
         setSize(_w, _h);
-        componentContainer.set(_w, _h);
+        componentContainer.set(w, h);
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
-        if (componentContainer.getParentWidth() == -1 || componentContainer.getParentHeight() == -1) {  
+        if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
             componentContainer.getParentContainer().addPositionslessCont(componentContainer);
             return;
@@ -182,6 +185,6 @@ public class SwingText extends SwingComponent{
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
         
         refreshPositions(_w, _h, componentContainer.getParentWidth(), 
-                componentContainer.getParentHeight()); 
+                componentContainer.getParentHeight());   
     }
 }

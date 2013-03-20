@@ -28,6 +28,7 @@ import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
 import rpgcraft.panels.components.swing.SwingImagePanel;
+import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.ImageResource;
@@ -50,11 +51,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     // ABSTRACT CLASSES
     
-    /**
-     * Abstraktna metoda s interface Menu zabezpecujuca uzivatelsky vstup
-     */
-    @Override
-    public abstract void inputHandling();                        
+    
+    public abstract void setWidthHeight(int w, int h);
     
     protected Container gameContainer;
     protected GamePane gamePane;
@@ -223,7 +221,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                         case INGAME : {
                             // Vytvorenie tlacidla z resource nachadzajuci sa v kontajnery cont a v tomto menu.
                             SwingImageButton butt = new SwingImageButton(cont, this);
-                            butt.addActionListeners(resource.getActions());
+                            butt.addActionListeners(resource.getMouseActions());
+                            butt.addActionListeners(resource.getKeyActions());
                             cont.setComponent(butt); 
                         } break;
                         default : {                            
@@ -231,7 +230,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                                 comp.remove((SwingCustomButton)cont.getComponent());
                             }                               
                             SwingImageButton butt = new SwingImageButton(cont, this);
-                            butt.addActionListeners(resource.getActions());
+                            butt.addActionListeners(resource.getMouseActions());
+                            butt.addActionListeners(resource.getKeyActions());
                             cont.setComponent(butt);                             
                             comp.add(butt,resource.getConstraints());                                                        
                         }
@@ -246,7 +246,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                                 comp.remove((SwingImagePanel)cont.getComponent());
                             }                            
                             SwingImagePanel component = new SwingImagePanel(cont, this);
-                            component.addActionListeners(resource.getActions());
+                            component.addActionListeners(resource.getMouseActions());   
+                            component.addActionListeners(resource.getKeyActions()); 
                             cont.setComponent(component);                             
                             comp.add(component,resource.getConstraints());                         
                         } break;
@@ -264,7 +265,27 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                             } break;
                             default : {                           
                                 SwingText component = new SwingText(cont, this);
-                                component.addActionListeners(resource.getActions());
+                                component.addActionListeners(resource.getMouseActions());   
+                                component.addActionListeners(resource.getKeyActions()); 
+                                cont.setComponent(component);
+                                comp.add(component,resource.getConstraints()); 
+                            } break;
+                        }
+                } break;
+                case EDITTEXT : {                
+                        if (cont.getComponent() != null) {
+                                    comp.remove((SwingInputText)cont.getComponent());
+                        } 
+                        switch (resource.getLayoutType()) {
+                            case INGAME : {                            
+                                SwingInputText component = new SwingInputText(cont, this); 
+                                cont.setComponent(component);
+                                comp.add(component);
+                            } break;
+                            default : {                           
+                                SwingInputText component = new SwingInputText(cont, this);
+                                component.addActionListeners(resource.getMouseActions());   
+                                component.addActionListeners(resource.getKeyActions()); 
                                 cont.setComponent(component);
                                 comp.add(component,resource.getConstraints()); 
                             } break;
@@ -283,7 +304,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                                 comp.remove((SwingImageList)cont.getComponent());
                             }                            
                             SwingImageList component = new SwingImageList(cont, this); 
-                            component.addActionListeners(resource.getActions());
+                            component.addActionListeners(resource.getMouseActions());   
+                            component.addActionListeners(resource.getKeyActions()); 
                             cont.setComponent(component);                            
                             comp.add(component,resource.getConstraints());                             
                         } break;
@@ -407,11 +429,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     @Override
     public void setMenu(AbstractMenu menu) {
         gamePane.setMenu(menu);        
-    }    
-    
-    @Override
-    public void paintMenu(Graphics g) {                
-    }
+    }        
     
     @Override
     public void update() {  
@@ -421,9 +439,22 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
             }            
         }
        this.initializeImage();
-    }
+    }      
     
-    public void setWidthHeight(int w, int h) {}
+    
+    
+    /**
+     * Metoda s interfacu Menu zabezpecujuca uzivatelsky vstup.
+     */
+    @Override
+    public void inputHandling() {
+        for (Container cont : uiContainers.values())
+            cont.getComponent().processKeyEvents(input);
+    }
 
+    @Override
+    public void paintMenu(Graphics g) {
+        
+    }
     
 }

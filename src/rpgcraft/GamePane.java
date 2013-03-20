@@ -21,6 +21,7 @@ import rpgcraft.panels.*;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
 import rpgcraft.panels.components.swing.SwingImagePanel;
+import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
@@ -104,6 +105,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
         }
         if (c instanceof SwingText) {
             System.out.println(parString + " -> text: " + c.getLocation()+ "," + c.getSize());
+        }
+        if (c instanceof SwingInputText) {
+            System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize());
         }
 
         if (c instanceof SwingImagePanel) {                
@@ -322,7 +326,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
         Framer.fpsTimer = System.currentTimeMillis();       
         
         // Nastavenie prveho menu.
-        setMenu(AbstractMenu.getMenuByName("aboutMenu"));         
+        setMenu(AbstractMenu.getMenuByName("introMenu"));         
         
         while(running) {
             Framer.tick++;
@@ -432,7 +436,11 @@ public class GamePane extends SwingImagePanel implements Runnable {
             if (menu!=null) {
                 //System.out.println(Thread.currentThread().getName());
                 menu.update();
-                menu.inputHandling();
+                if (input.clickedKeys.size() != 0 || input.runningKeys.size() != 0) {
+                    System.out.println("Handling Input for Menu");
+                    menu.inputHandling();
+                    input.freeKeys();
+                }
             }            
         }
     }               

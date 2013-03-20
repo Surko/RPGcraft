@@ -52,7 +52,7 @@ public class MainMenu extends AbstractMenu{
 
     @Override
     public void inputHandling() {
-        
+        super.inputHandling();
     }         
 
     @Override

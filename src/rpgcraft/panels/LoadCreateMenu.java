@@ -28,9 +28,18 @@ public class LoadCreateMenu extends AbstractMenu {
     
     @Override
     public void inputHandling() {
-        if (input.escape.on) {
-            setMenu(menuMap.get("mainMenu"));
+        if (input.runningKeys.size() > 0) {
+        
+            if (input.runningKeys.contains(input.escape.getKeyCode())) {
+                setMenu(menuMap.get("mainMenu"));
+            }
+        
         }
+    }
+
+    @Override
+    public void setWidthHeight(int w, int h) {
+        
     }
     
 }

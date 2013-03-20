@@ -54,7 +54,8 @@ public class AboutMenu extends AbstractMenu {
      */
     @Override
     public void inputHandling() {
-        if (input.escape.on) {
+        super.inputHandling();
+        if (input.runningKeys.contains(input.escape.getKeyCode())) {
             setMenu(menuMap.get("mainMenu"));
         }                
     }
@@ -64,4 +65,8 @@ public class AboutMenu extends AbstractMenu {
         this.x = w;
         this.y = y;
     }   
+
+    @Override
+    public void paintMenu(Graphics g) {        
+    }
 }

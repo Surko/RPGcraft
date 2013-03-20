@@ -42,7 +42,7 @@ public class TemplateButton extends TemplateComponent {
     }
     
     @Override
-    public void fireEvent(ActionEvent event) {  
+    public void isMouseSatisfied(ActionEvent event) {  
         for (int i = 0;i<_listeners.size() ;i++ ){  
             ActionListener listener = (ActionListener)_listeners.get(i);  
             listener.actionPerformed(event);  
@@ -51,7 +51,7 @@ public class TemplateButton extends TemplateComponent {
     
     @Override
     public void mouseClicked(MouseEvent e) {                 
-        fireEvent(new ActionEvent(this, 0,e.getClickCount(), null, null));
+        isMouseSatisfied(new ActionEvent(this, 0,e.getClickCount(), null, null));
     }
     
     @Override

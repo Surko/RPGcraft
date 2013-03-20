@@ -53,6 +53,19 @@
         </background>
         <position>CENTER</position>
       </element>
+      <element>
+        <id>text_edit</id>
+        <type>EDITTEXT</type>
+        <text textcolor="fpsColor">@textabout</text>        
+        <layout>
+          <width>AUTO</width>
+          <height>AUTO</height>                  
+        </layout>
+        <background>
+              <background-color>Black</background-color>
+        </background>
+        <position>TOP</position>
+      </element>
     </elements>    
   </element>
   
@@ -68,6 +81,9 @@
       <weightx>1</weightx>
       <weighty>1</weighty>
     </layout>
+    <actions>
+      <action type="KEY" code="VK_W">SETMENU@loadcreateMenu</action>
+    </actions>
     <background>
       <background-color>Black</background-color>
       <background-image>intro</background-image>
@@ -221,16 +237,16 @@
           <weightx>0</weightx> 
           <weighty>0</weighty>
           <width>400</width>
-          <height>400</height>
-          <actions>
-            <action click="2" clicktype="onListElement">LOAD@LIST#_id</action>
-          </actions>
+          <height>400</height>          
           <x>1</x>
           <y>0</y> 
           <rows-layout>DIAGONALROWS</rows-layout>
           <rows-max>2</rows-max>
           <cols-max>3</cols-max>
         </layout>
+        <actions>
+            <action click="2" clicktype="onListElement">LOAD@LIST#_id</action>
+        </actions>
         <background>
           <background-color>fpsColor</background-color>   
         </background> 

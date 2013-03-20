@@ -7,13 +7,17 @@ package rpgcraft.panels.components.swing;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
+import rpgcraft.handlers.InputHandle;
+import rpgcraft.handlers.InputHandle.Keys;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.TextType;
@@ -43,7 +47,7 @@ public class SwingInputText extends SwingComponent {
             setFont(txType.getFont()); 
             this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
         }                     
-        setBackground(backColor);        
+        setBackground(Color.RED);        
         setTextSize();        
     }
     
@@ -66,8 +70,7 @@ public class SwingInputText extends SwingComponent {
     
     @Override
     public Component copy(Container cont, AbstractMenu menu) {
-        return null;
-        
+        return null;        
     }
 
     @Override
@@ -77,8 +80,8 @@ public class SwingInputText extends SwingComponent {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (_listeners != null) {
-            fireEvent(new ActionEvent(this, 0, e.getClickCount(),null, null));
+        if (_mlisteners != null) {
+            isMouseSatisfied(new ActionEvent(this, 0, e.getClickCount(),null, null));
         }        
     }
 
@@ -109,14 +112,17 @@ public class SwingInputText extends SwingComponent {
                         
         int[] txtSize = TextUtils.getTextSize(getFont(), text); 
         
-        _w = componentContainer.getWidth() == -1 ? txtSize[0] : componentContainer.getWidth();
-        _h = componentContainer.getHeight() == -1 ? txtSize[1] : componentContainer.getHeight();
+        w = txtSize[0];
+        h = txtSize[1];
+        
+        _w = componentContainer.isAutoWidth() ? txtSize[0] : componentContainer.getWidth();
+        _h = componentContainer.isAutoHeight() ? txtSize[1] : componentContainer.getHeight();
         
         setSize(_w, _h);
         componentContainer.set(w, h);
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
-        if (componentContainer.getParentWidth() == -1 || componentContainer.getParentHeight() == -1) {  
+        if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
             componentContainer.getParentContainer().addPositionslessCont(componentContainer);
             return;
@@ -125,6 +131,39 @@ public class SwingInputText extends SwingComponent {
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
         
         refreshPositions(_w, _h, componentContainer.getParentWidth(), 
-                componentContainer.getParentHeight());             
+                componentContainer.getParentHeight());          
     }
+
+    @Override
+    public void processKeyEvents(InputHandle input) {                
+        boolean upper = false;
+        char c = '\0';
+        System.out.println(input.clickedKeys);
+        for (int keyCode : input.runningKeys) {
+            
+            switch (keyCode) {
+                case KeyEvent.VK_BACK_SPACE :
+                    if (text.length() > 0) {
+                        text = text.substring(0, text.length() - 1);
+                    }
+                    break;
+                case KeyEvent.VK_SHIFT : {
+                    upper = true;
+                } break;
+                default :
+                    break;
+            }
+            
+        }
+        
+        for (int keyCode : input.clickedKeys) {
+            c = input.getChar(keyCode);
+        }
+
+        if (c != '\0')
+            text += (upper == true ? Character.toUpperCase(c) : c);
+        
+        refresh(); 
+    }
+            
 }

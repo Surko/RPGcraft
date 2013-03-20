@@ -51,6 +51,7 @@ public class Container {
         public static Container mainContainer;
     
         private int x,y,w,h,mw,mh;
+        private boolean autow,autoh;
         private BufferedImage resImage;
         private UiResource resource;
         private Component c;
@@ -235,10 +236,22 @@ public class Container {
             return childContainers;
         }
         
+        public boolean isAutoWidth() {
+            return autow;            
+        }
+        
+        public boolean isAutoHeight() {
+            return autoh;
+        }
+        
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Settery ">
         public void set(int w, int h, int mw, int mh) {
+            if (w == -1 || mw == -1) 
+                autow = true;
+            if (h == -1 || mh == -1)
+                autoh = true;
             this.w = mw > w ? this.w : w;
             this.h = mh > h ? this.h : h;            
             this.changed = true;

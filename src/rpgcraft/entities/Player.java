@@ -56,20 +56,20 @@ public class Player extends MovingEntity {
      */
     @Override
     public void inputHandling() { 
-            if (input.up.on) {
+            if (input.runningKeys.contains(input.up.getKeyCode())) {
                 doubleyGo -= fullSpeed;                
             }
-            if (input.down.on) {
+            if (input.runningKeys.contains(input.down.getKeyCode())) {
                 doubleyGo += fullSpeed;  
             }
-            if (input.left.on) {
+            if (input.runningKeys.contains(input.left.getKeyCode())) {
                 doublexGo -= fullSpeed; 
             }        
-            if (input.right.on) {
+            if (input.runningKeys.contains(input.down.getKeyCode())) {
                 doublexGo += fullSpeed;  
             }    
             
-            if ((input.attack.on)&&(stamina>0)) {
+            if ((input.runningKeys.contains(input.attack.getKeyCode())) && stamina>0) {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.healthColor));
                 }
@@ -80,7 +80,7 @@ public class Player extends MovingEntity {
                 }
             }
 
-            if ((input.defense.on)&&(stamina>0)) {
+            if (input.runningKeys.contains(input.defense.getKeyCode())&&(stamina>0)) {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.defenseColor));                
                 }
@@ -91,16 +91,10 @@ public class Player extends MovingEntity {
                 }
             }
             
-            if (input.inventory.click) {  
+            if ((input.clickedKeys.contains(input.inventory.getKeyCode()))) {  
                 map.setMenu(AbstractInMenu.menuList.get("inventory"));                    
                 input.freeKeys();
-            }
-            
-            if (input.escape.on) {
-                if (map.hasMenu()) {
-                    
-                }
-            }                                    
+            }                                   
     }     
     
     private void recalculatePositions() {               
@@ -148,7 +142,7 @@ public class Player extends MovingEntity {
             
             updateCoordinates();
             
-            if ((activeItem.hpower > 0)&&(!input.attack.on)) {                                        
+            if ((activeItem.hpower > 0)&&(!input.runningKeys.contains(input.attack.getKeyCode()))) {                                        
                                     
                     activeItem.poweringBar.setDeactivated();                    
                     
@@ -158,7 +152,7 @@ public class Player extends MovingEntity {
             }
             
             
-            if ((activeItem.dpower > 0)&&(!input.defense.on)) {
+            if ((activeItem.dpower > 0)&&(!input.runningKeys.contains(input.defense.getKeyCode()))) {
 
                     activeItem.poweringBar.setDeactivated();                    
                     

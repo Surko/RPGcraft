@@ -8,7 +8,6 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Point;
 
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -18,14 +17,13 @@ import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.Cursor;
 import rpgcraft.panels.components.ListModel;
+import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.ListType;
-import rpgcraft.utils.DataUtils;
-import rpgcraft.utils.TextUtils;
 
 /**
  *
@@ -610,25 +608,34 @@ public class SwingImageList extends SwingImagePanel {
     // <editor-fold defaultstate="collapsed" desc=" Eventy ">   
     
     @Override
-    protected void isActionSatisfied(UiResource.Action action, ActionEvent event) {
-        if (event.getClicks() >= action.getClicks()) {
-            switch (action.getClickType()) {   
-                case onListElement : {
-                    if (event.getParam() instanceof Cursor) {
-                        if (selected >= 0) {
-                            Cursor c = (Cursor)event.getParam();
-                            c.moveToPosition(selected);
-                            Listener list = ListenerFactory.getListener(action.getType());
+    protected void fireMouseEvent(Action action, ActionEvent event) {
+        switch (action.getType()) {
+            case MOUSE : {
+                if (event.getClicks() >= action.getClicks()) {
+                    switch (action.getClickType()) {   
+                        case onListElement : {
+                            if (event.getParam() instanceof Cursor) {
+                                if (selected >= 0) {
+                                    Cursor c = (Cursor)event.getParam();
+                                    c.moveToPosition(selected);
+                                    Listener list = ListenerFactory.getListener(action.getAction());
+                                    list.actionPerformed(event);
+                                }
+                            }
+                        } break;
+                        default : {
+                            Listener list = ListenerFactory.getListener(action.getAction());
                             list.actionPerformed(event);
                         }
-                    }
-                } break;
-                default : {
-                    Listener list = ListenerFactory.getListener(action.getType());
-                    list.actionPerformed(event);
+                    }                    
                 }
-            }                    
+            } break;
+            case KEY : {
+                
+            } break;
+            
         }
+        
     }
     
     
@@ -642,12 +649,12 @@ public class SwingImageList extends SwingImagePanel {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        System.out.println(this.getMouseListeners().length);
+        // System.out.println(this.getMouseListeners().length);
         if (selectItem(e.getX(), e.getY())) {              
-            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor()));           
+            isMouseSatisfied(new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor()));           
         }
         else {
-            fireEvent(new ActionEvent(this, 0, e.getClickCount(), null, null));
+            isMouseSatisfied(new ActionEvent(this, 0, e.getClickCount(), null, null));
         }
     }
 

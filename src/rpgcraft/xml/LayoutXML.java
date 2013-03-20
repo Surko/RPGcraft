@@ -55,6 +55,7 @@ public interface LayoutXML {
     public static final String CLICK = "click";
     public static final String TRANSPARENT = "transparent";
     public static final String CLICKTYPE = "clicktype";
+    public static final String CODE = "code";
     public static final String DATA = "data";
     
 }

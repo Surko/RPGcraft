@@ -383,35 +383,45 @@ public class UiResource extends AbstractResource<UiResource> {
                     }                          
                 }   break;
                 case LayoutXML.WEIGHTX : {
-                    switch (type.getLayoutType()) {
-                        case GRIDBAGSWING : {
-                            try {
-                            ((GridBagConstraints)type.getConstraints()).weightx = Integer.parseInt(eNode.getTextContent());
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING,
-                                        StringResource.getResource("_iparam"), "weightx");
-                            }
-                        }   break;
-                        default : {
-                            LOG.log(Level.WARNING,
+                    if (type.getLayoutType() == null) {
+                        LOG.log(Level.WARNING,
                                         StringResource.getResource("_uparam"), "weightx");
-                        }; 
+                    } else {
+                        switch (type.getLayoutType()) {
+                            case GRIDBAGSWING : {
+                                try {
+                                ((GridBagConstraints)type.getConstraints()).weightx = Integer.parseInt(eNode.getTextContent());
+                                } catch (Exception e) {
+                                    LOG.log(Level.WARNING,
+                                            StringResource.getResource("_iparam"), "weightx");
+                                }
+                            }   break;
+                            default : {
+                                LOG.log(Level.WARNING,
+                                            StringResource.getResource("_uparam"), "weightx");
+                            }; 
+                        }
                     }
                 } break;
                 case LayoutXML.WEIGHTY : {
-                    switch (type.getLayoutType()) {
-                        case GRIDBAGSWING : {
-                            try {
-                            ((GridBagConstraints)type.getConstraints()).weighty = Integer.parseInt(eNode.getTextContent());
-                            } catch (Exception e) {
+                    if (type.getLayoutType() == null) {
+                        LOG.log(Level.WARNING,
+                                        StringResource.getResource("_uparam"), "weightx");
+                    } else {
+                        switch (type.getLayoutType()) {
+                            case GRIDBAGSWING : {
+                                try {
+                                ((GridBagConstraints)type.getConstraints()).weighty = Integer.parseInt(eNode.getTextContent());
+                                } catch (Exception e) {
+                                    LOG.log(Level.WARNING,
+                                            StringResource.getResource("_iparam"), "weighty");
+                                }
+                            }   break;
+                            default : {
                                 LOG.log(Level.WARNING,
-                                        StringResource.getResource("_iparam"), "weighty");
-                            }
-                        }   break;
-                        default : {
-                            LOG.log(Level.WARNING,
-                                        StringResource.getResource("_uparam"), "weighty");
-                        }; 
+                                            StringResource.getResource("_uparam"), "weighty");
+                            }; 
+                        }
                     }
                 } break;
                 case LayoutXML.SCROLLING : {

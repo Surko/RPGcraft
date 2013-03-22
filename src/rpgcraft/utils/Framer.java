@@ -4,6 +4,7 @@
  */
 package rpgcraft.utils;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import rpgcraft.graphics.Colors;
 import rpgcraft.panels.AbstractMenu;
@@ -38,9 +39,24 @@ public class Framer {
             g.setColor(textColor);  
             g.setFont(getFont());
             if (title != null) {
-                g.drawString(title, 0, h);
+                g.drawString(title, 0, th);
             }
             updateFPS();
+        }       
+        
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(tw,th);
+        }
+        
+        @Override
+        public Dimension getMinimumSize() {
+           return new Dimension(tw,th); 
+        }
+        
+        @Override
+        public Dimension getSize() {
+           return new Dimension(tw,th); 
         }
         
         private void updateFPS() {
@@ -65,7 +81,7 @@ public class Framer {
         frameLabel.setText("000 FPS");
         frameLabel.setFont(null);
         frameLabel.setColor(Colors.getColor(Colors.fpsColor));        
-        frameLabel.setBounds(0, 0, frameLabel.getW(), frameLabel.getH());    
+        frameLabel.setBounds(0, 0, frameLabel.getTextW(), frameLabel.getTextH());    
     }
     
     

@@ -8,8 +8,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -18,23 +18,19 @@ import javax.swing.JPanel;
 import rpgcraft.GamePane;
 import rpgcraft.errors.MissingFile;
 import rpgcraft.errors.MultiTypeWrn;
-import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.components.template.TemplateButton;
-import rpgcraft.panels.components.template.TemplateText;
 import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
 import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
-import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
+import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.Framer;
-import rpgcraft.utils.ImageUtils;
 import rpgcraft.utils.MathUtils;
 
 /**
@@ -66,6 +62,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     protected boolean changedGr;
     protected Image contImage;
     protected boolean changedInit;
+    protected boolean initialized;
     
     
     public void initialize(Container gameContainer,InputHandle input) {
@@ -158,12 +155,30 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                     recalculate(_res);                    
                 }
         }
-    }    
+    }
+    
+    protected void recalculate(Container cont) {
+        int[] lengths = MathUtils.getLengths(cont.getResource(), cont.getParentContainer());
+                
+        cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
+        if (cont.getChildContainer() != null) {
+            for (Container _cont : cont.getChildContainer()) {
+                    recalculate(_cont);                    
+                }
+        }
+    }
     
     protected void initializeUI() {        
-        recalculate(res);
-        gamePane.add(Framer.frameLabel);
-        paintElement(getContentGraphics(), res, gamePane);  
+                                               
+        if (!initialized) {
+            recalculate(res); 
+            gamePane.add(Framer.frameLabel);
+            reinitialize(getContentGraphics(), res, gameContainer);
+            initialized = true;
+        } else {        
+            recalculate(uiContainers.get(res));
+            refreshElements(getContentGraphics(), uiContainers.get(res), gamePane); 
+        }
         gamePane.updateUI();
         changedUi = false;
     }
@@ -200,136 +215,43 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
     }                                           
     
-    
-    
     /**
      * Ked sa zmenil kontainer alebo ked je potreba preinitializovat tak prekresluje nanovo vsetky
      * komponenty.
      * @param g
      * @param resource 
-     */
-    protected void paintElement(Graphics g, UiResource resource, JPanel comp) {        
-                   
-        Container cont = uiContainers.get(resource);
-        
-        // Vykreslit prvok iba ked sa zmenil
-        if ((cont.isChanged())) {             
-            cont.setChanged(false);
-            switch (resource.getUiType()) {
-                case BUTTON : {                      
-                     switch (resource.getLayoutType()) {
-                        case INGAME : {
-                            // Vytvorenie tlacidla z resource nachadzajuci sa v kontajnery cont a v tomto menu.
-                            SwingImageButton butt = new SwingImageButton(cont, this);
-                            butt.addActionListeners(resource.getMouseActions());
-                            butt.addActionListeners(resource.getKeyActions());
-                            cont.setComponent(butt); 
-                        } break;
-                        default : {                            
-                            if (cont.getComponent() != null) {
-                                comp.remove((SwingCustomButton)cont.getComponent());
-                            }                               
-                            SwingImageButton butt = new SwingImageButton(cont, this);
-                            butt.addActionListeners(resource.getMouseActions());
-                            butt.addActionListeners(resource.getKeyActions());
-                            cont.setComponent(butt);                             
-                            comp.add(butt,resource.getConstraints());                                                        
-                        }
-                    }
-                } break;
-                case PANEL : {
-                    switch (resource.getLayoutType()) {
-                        case INGAME : {                                   
-                        }                 
-                        default : {
-                            if (cont.getComponent() != null) {
-                                comp.remove((SwingImagePanel)cont.getComponent());
-                            }                            
-                            SwingImagePanel component = new SwingImagePanel(cont, this);
-                            component.addActionListeners(resource.getMouseActions());   
-                            component.addActionListeners(resource.getKeyActions()); 
-                            cont.setComponent(component);                             
-                            comp.add(component,resource.getConstraints());                         
-                        } break;
-                    }
-                } break;
-                case TEXT : {                
-                        if (cont.getComponent() != null) {
-                                    comp.remove((SwingText)cont.getComponent());
-                        } 
-                        switch (resource.getLayoutType()) {
-                            case INGAME : {                            
-                                SwingText component = new SwingText(cont, this); 
-                                cont.setComponent(component);
-                                comp.add(component);
-                            } break;
-                            default : {                           
-                                SwingText component = new SwingText(cont, this);
-                                component.addActionListeners(resource.getMouseActions());   
-                                component.addActionListeners(resource.getKeyActions()); 
-                                cont.setComponent(component);
-                                comp.add(component,resource.getConstraints()); 
-                            } break;
-                        }
-                } break;
-                case EDITTEXT : {                
-                        if (cont.getComponent() != null) {
-                                    comp.remove((SwingInputText)cont.getComponent());
-                        } 
-                        switch (resource.getLayoutType()) {
-                            case INGAME : {                            
-                                SwingInputText component = new SwingInputText(cont, this); 
-                                cont.setComponent(component);
-                                comp.add(component);
-                            } break;
-                            default : {                           
-                                SwingInputText component = new SwingInputText(cont, this);
-                                component.addActionListeners(resource.getMouseActions());   
-                                component.addActionListeners(resource.getKeyActions()); 
-                                cont.setComponent(component);
-                                comp.add(component,resource.getConstraints()); 
-                            } break;
-                        }
-                } break;
-                case IMAGE : {
-                
-                } break;
-                case LIST : {
-                    switch (resource.getLayoutType()) {
-                        case INGAME : {                              
-                                 
-                        } break;                    
-                        default : {
-                            if (cont.getComponent() != null) {
-                                comp.remove((SwingImageList)cont.getComponent());
-                            }                            
-                            SwingImageList component = new SwingImageList(cont, this); 
-                            component.addActionListeners(resource.getMouseActions());   
-                            component.addActionListeners(resource.getKeyActions()); 
-                            cont.setComponent(component);                            
-                            comp.add(component,resource.getConstraints());                             
-                        } break;
-                    }
-                }
-                    
-            }
+     */    
+    protected void reinitialize(Graphics g, UiResource resource, Container parent) {
+        Container cont = uiContainers.get(resource);    
+        cont.setChanged(false);
                         
-            
-        }        
-        /* 
-         * Rekurzivne prechadzam metodu paintElement s podelementami resource                        
-         * Ked je resource typu panel tak metoda je volana s tymto panelom ako 
-         * komponentov, inak je volana s parametrom comp. Tymto si zachovavam
-         * kazdy resource ako kontainer pre podelementy.
-         */
-            
+        DataUtils.getComponentFromResource(resource, this, cont, parent);        
+                        
+        /**        
+        Rekurzivne prechadzam metodu paintElement s podelementami resource                        
+        Ked je resource typu panel tak metoda je volana s tymto panelom ako 
+        komponentov, inak je volana s parametrom comp. Tymto si zachovavam
+        kazdy resource ako kontainer pre podelementy.
+        
         if (resource.getType().getElements() != null) {
             for (UiResource _resource : resource.getType().getElements()) {
                 if (cont.getComponent() instanceof JPanel) {
-                    paintElement(g, _resource, (JPanel)cont.getComponent());
+                    reinitialize(g, _resource, (JPanel)cont.getComponent());
                     cont.getComponent().update();
                 } else {
-                    paintElement(g, _resource, comp);
+                    reinitialize(g, _resource, comp);
+                }
+            }
+        }
+        */
+        
+        if (resource.getType().getElements() != null) {
+            for (UiResource _resource : resource.getType().getElements()) {
+                if (cont.getComponent() instanceof JPanel) {
+                    reinitialize(g, _resource, cont);
+                    cont.getComponent().update();
+                } else {
+                    reinitialize(g, _resource, parent);
                 }
             }
         }
@@ -341,11 +263,38 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
          */
         if (cont.getComponent() != null) {
             cont.getComponent().refresh();
-        }
+        }                      
+                        
+    }
+    
+    protected void refreshElements(Graphics g, Container cont, JPanel comp) {                
+        if ((cont.isChanged())) {             
+            cont.setChanged(false);
+            if (cont.getChildContainer() != null) {
+                for (Container _cont : cont.getChildContainer()) {
+                    if (cont.getComponent() instanceof JPanel) {
+                        refreshElements(g, _cont, (JPanel)cont.getComponent());
+                        cont.getComponent().update();
+                    } else {
+                        refreshElements(g, _cont, comp);
+                    }
+                }
+            }            
+            /*
+             * Refresh komponent <=> urcenie vysok a sirok podla ostatnych elementov.
+             * Prebieha postorder aby sme zarucili ze ostatne podelementy tohoto elementu
+             * uz boli refreshnute a tym ziskali spravne velkosti.
+             */
+            if (cont.getComponent() != null) {
+                cont.getComponent().refresh();
+            }
+        } else {
+            cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(),
+                    cont.getParentWidth(), cont.getParentHeight());
+        }                
         
-    }              
-    
-    
+    }
+
     
     /**
      * Metoda loadImage nacita z ImageResource obrazok zadany parametrom iFile.
@@ -422,14 +371,34 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         changedUi = state;
     }
     
-    public Container getContainer(String resource) {
+    public Collection<Container> getContainers() {
+        return uiContainers.values();
+    }
+    
+    public Container getContainer(UiResource resource) {        
         return uiContainers.get(resource);
+    }
+    
+    public boolean hasContainer(UiResource resource) {
+        return uiContainers.containsKey(resource);
+    }
+    
+    public void addContainer(Container cont) {
+        if (!uiContainers.containsKey(cont.getResource())) {
+            uiContainers.put(cont.getResource(), cont);
+            changedUi = true;
+            changedGr = true;
+        }
     }
     
     @Override
     public void setMenu(AbstractMenu menu) {
         gamePane.setMenu(menu);        
     }        
+    
+    public void setInitialized(boolean init) {
+        this.initialized = init;
+    }
     
     @Override
     public void update() {  
@@ -448,8 +417,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
      */
     @Override
     public void inputHandling() {
-        for (Container cont : uiContainers.values())
-            cont.getComponent().processKeyEvents(input);
+        for (Container cont : uiContainers.values()) {
+            if (cont.getComponent().isVisible()) {
+                cont.getComponent().processKeyEvents(input);
+            }
+        }
     }
 
     @Override

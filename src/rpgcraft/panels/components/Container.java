@@ -50,7 +50,8 @@ public class Container {
         // <editor-fold defaultstate="collapsed" desc=" Premenne ">    
         public static Container mainContainer;
     
-        private int x,y,w,h,mw,mh;
+        private Dimension minDimension,prefDimension;
+        private int x,y;
         private boolean autow,autoh;
         private BufferedImage resImage;
         private UiResource resource;
@@ -85,10 +86,8 @@ public class Container {
             this.x = resource == null ? 0 : resource.getX();
             this.y = resource == null ? 0 : resource.getY();
             this.positionslessCont = null;
-            this.mw = mw;
-            this.mh = mh;
-            this.w = w;
-            this.h = h;
+            minDimension = new Dimension(mw, mh);
+            prefDimension = new Dimension(w, h);            
             this.parent = parent;
             this.changed = true;
             this.top = false;
@@ -98,11 +97,9 @@ public class Container {
         public Container(Container srcCont) {
             this.resource = srcCont.resource;
             this.x = srcCont.x;
-            this.y = srcCont.y;            
-            this.mw = srcCont.mw;
-            this.mh = srcCont.mh;
-            this.w = srcCont.w;
-            this.h = srcCont.h;
+            this.y = srcCont.y;    
+            minDimension = new Dimension(srcCont.minDimension);
+            prefDimension = new Dimension(srcCont.prefDimension);  
             this.top = srcCont.top;
             this.parent = srcCont.parent;            
             if (srcCont.childContainers != null) {
@@ -126,25 +123,25 @@ public class Container {
         // <editor-fold defaultstate="collapsed" desc=" Funkcie nad kontajnerom ">
         public void increase(int x, int y) {
             
-            if (this.x + x > parent.w) {
+            if (this.x + x > parent.prefDimension.width) {
                 this.x = 0;
             } else {
                 this.x+=x;
             } 
-            if (this.y + y > parent.h) {
+            if (this.y + y > parent.prefDimension.height) {
                 this.y = 0;
             } else {
                 this.y+=y;
             }
             
             if (c != null) {
-                c.setBounds(this.x, this.y, w, h);
+                c.setBounds(this.x, this.y, prefDimension.width, prefDimension.height);
                 
             }
         }
         
         public void makeBufferedImage() {
-            this.resImage = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+            this.resImage = new BufferedImage(prefDimension.width, prefDimension.height, BufferedImage.TYPE_4BYTE_ABGR);
         }
         
         public void addContainer(Container cont) {
@@ -169,28 +166,36 @@ public class Container {
             return y;        
         }
         
+        public Dimension getPrefDimension() {
+            return prefDimension;
+        }
+        
+        public Dimension getMinDimension() {
+            return minDimension;                    
+        }
+        
         public int getWidth() {
-            return w;            
+            return prefDimension.width;            
         }
         
         public int getHeight() {
-            return h;
+            return prefDimension.height;
         }
         
         public int getMinWidth() {
-            return mw;            
+            return minDimension.width;            
         }
         
         public int getMinHeight() {
-            return mh;
+            return prefDimension.height;
         }
         
-        public int getParentWidth() {
-            return parent.w;            
+        public int getParentWidth() {            
+            return parent == null ? mainContainer.getWidth() : parent.prefDimension.width;            
         }
         
         public int getParentHeight() {
-            return parent.h;
+            return parent == null ? mainContainer.getHeight() : parent.prefDimension.height;
         }
         
         public Component getComponent() {
@@ -248,18 +253,57 @@ public class Container {
         
         // <editor-fold defaultstate="collapsed" desc=" Settery ">
         public void set(int w, int h, int mw, int mh) {
-            if (w == -1 || mw == -1) 
+            if (w == -1 || mw == -1) {
                 autow = true;
-            if (h == -1 || mh == -1)
+                this.changed = true;
+            }
+            if (h == -1 || mh == -1) {
                 autoh = true;
-            this.w = mw > w ? this.w : w;
-            this.h = mh > h ? this.h : h;            
-            this.changed = true;
+                this.changed = true;
+            }
+            if (this.prefDimension.width != w || this.minDimension.width != mw || 
+                    this.prefDimension.height != h || this.minDimension.height != mh) {
+                this.changed = true;
+            } else {                
+                return;
+            }              
+            
+            if (this.prefDimension.width < mw) {
+                this.prefDimension.width = mw;
+                this.minDimension.width = mw;
+            } else {
+                this.prefDimension.width = w;
+                this.minDimension.width = mw;
+            }
+            
+            if (this.prefDimension.height < mh) {
+                this.prefDimension.height = mh;
+                this.minDimension.height = mh;
+            } else {
+                this.prefDimension.height = h;
+                this.minDimension.height = mh;
+            }
+            
         }
         
         public void set(int w, int h) {
-            this.w = w;
-            this.h = h;
+            if (this.prefDimension.width != w || this.prefDimension.height != h) {
+                this.changed = true;
+            } else {                
+                return;
+            } 
+            if (w < this.minDimension.width) {
+                this.prefDimension.width = this.minDimension.width;
+            } else {
+                this.prefDimension.width = w;
+            }
+            
+            if (h < this.minDimension.height) {
+                this.prefDimension.height = this.minDimension.height;
+
+            } else {
+                this.prefDimension.height = h;
+            }
         }
         
         public void clearPositionsless() {
@@ -281,9 +325,9 @@ public class Container {
                 swn.setVisible(visible);
                 setLayout((JPanel)c);   
                                 
-                swn.setMinimumSize(new Dimension(mw, mh));
-                swn.setPreferredSize(new Dimension(w, h));                
-                swn.setSize(new Dimension(w, h));
+                swn.setMinimumSize(minDimension);
+                swn.setPreferredSize(prefDimension);                
+                swn.setSize(prefDimension);
             }
         }
         

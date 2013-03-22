@@ -9,10 +9,22 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.logging.*;
+import rpgcraft.MainGameFrame;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.map.Save;
+import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.components.Component;
+import rpgcraft.panels.components.Container;
+import rpgcraft.panels.components.swing.SwingCustomButton;
+import rpgcraft.panels.components.swing.SwingImageButton;
+import rpgcraft.panels.components.swing.SwingImageList;
+import rpgcraft.panels.components.swing.SwingImagePanel;
+import rpgcraft.panels.components.swing.SwingInputText;
+import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.resource.StringResource;
+import rpgcraft.resource.UiResource;
 
 /**
  *
@@ -268,6 +280,122 @@ public class DataUtils {
         
         return dateFormat.format(calendar.getTime());
         
+    }
+    
+    public static Collection<rpgcraft.panels.components.Container> getPanelContainers() {
+        return MainGameFrame.game.getChildContainers();
+    }
+    
+    public static Component getComponentOfId(String id) {
+        Collection<rpgcraft.panels.components.Container> containers = MainGameFrame.game.getChildContainers();
+        for (rpgcraft.panels.components.Container cont : containers) {
+            if (cont.getResource().getId().equals(id)) {
+                return cont.getComponent();
+            }
+        }
+        return null;
+    }
+    
+    public static Collection<rpgcraft.panels.components.Container> getMenuContainers(AbstractMenu menu) {
+        return menu.getContainers();
+    }
+    
+    public static Container getComponentFromResource(UiResource resource, AbstractMenu menu, Container src, Container parent) {
+        Component c = null;
+        
+        if (src == null) {        
+            src = new Container(resource, 0, 0, 0, 0, parent);
+        } else {
+            if (src.getComponent() != null) {
+                parent.getComponent().removeComponent(src.getComponent());
+            }
+        }
+        switch (resource.getUiType()) {
+            case BUTTON : {                      
+                 switch (resource.getLayoutType()) {
+                    case INGAME : {
+                        // Vytvorenie tlacidla z resource nachadzajuci sa v kontajnery cont a v tomto menu.
+                        c = new SwingImageButton(src, menu);
+                        c.addActionListeners(resource.getMouseActions());
+                        c.addActionListeners(resource.getKeyActions());
+                        src.setComponent(c); 
+                    } break;
+                    default : {                                                          
+                        c = new SwingImageButton(src, menu);
+                        c.addActionListeners(resource.getMouseActions());
+                        c.addActionListeners(resource.getKeyActions());
+                        src.setComponent(c);                             
+                        parent.getComponent().addComponent(c,resource.getConstraints());                                                        
+                    }
+                }
+            } break;
+            case PANEL : {
+                switch (resource.getLayoutType()) {
+                    case INGAME : {                                   
+                    }                 
+                    default : {                           
+                        c = new SwingImagePanel(src, menu);
+                        c.addActionListeners(resource.getMouseActions());   
+                        c.addActionListeners(resource.getKeyActions()); 
+                        src.setComponent(c);                             
+                        parent.getComponent().addComponent(c,resource.getConstraints());                         
+                    } break;
+                }
+            } break;
+            case TEXT : {                
+                    switch (resource.getLayoutType()) {
+                        case INGAME : {                            
+                            c = new SwingText(src, menu); 
+                            src.setComponent(c);
+                            parent.getComponent().addComponent(c);
+                        } break;
+                        default : {                           
+                            c = new SwingText(src, menu);
+                            c.addActionListeners(resource.getMouseActions());   
+                            c.addActionListeners(resource.getKeyActions()); 
+                            src.setComponent(c);
+                            parent.getComponent().addComponent(c,resource.getConstraints()); 
+                        } break;
+                    }
+            } break;
+            case EDITTEXT : {                
+                    switch (resource.getLayoutType()) {
+                        case INGAME : {                            
+                            c = new SwingInputText(src, menu); 
+                            src.setComponent(c);
+                            parent.getComponent().addComponent(c);
+                        } break;
+                        default : {                           
+                            c = new SwingInputText(src, menu);
+                            c.addActionListeners(resource.getMouseActions());   
+                            c.addActionListeners(resource.getKeyActions()); 
+                            src.setComponent(c);
+                            parent.getComponent().addComponent(c,resource.getConstraints()); 
+                        } break;
+                    }
+            } break;
+            case IMAGE : {
+
+            } break;
+            case LIST : {
+                switch (resource.getLayoutType()) {
+                    case INGAME : {                              
+
+                    } break;                    
+                    default : {                        
+                        c = new SwingImageList(src, menu); 
+                        c.addActionListeners(resource.getMouseActions());   
+                        c.addActionListeners(resource.getKeyActions()); 
+                        src.setComponent(c);                            
+                        parent.getComponent().addComponent(c,resource.getConstraints());                             
+                    } break;
+                }
+            }
+        }
+        if (src != null) {
+            parent.addContainer(src);
+        }
+        return src;
     }
     
 }

@@ -47,14 +47,22 @@ public class SwingInputText extends SwingComponent {
             setFont(txType.getFont()); 
             this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
         }                     
-        setBackground(Color.RED);        
         setTextSize();        
-    }
+    }        
     
     public void setTextSize() {
         int[] txtSize = TextUtils.getTextSize(getFont(), text);  
         w = txtSize[0];
         h = txtSize[1];
+    }        
+    
+    @Override
+    public void setBackground(Color color) {
+        if (componentContainer != null) {
+            super.setBackground(backColor);
+        } else {
+            super.setBackground(color);
+        }
     }
     
     @Override
@@ -118,7 +126,7 @@ public class SwingInputText extends SwingComponent {
         _w = componentContainer.isAutoWidth() ? txtSize[0] : componentContainer.getWidth();
         _h = componentContainer.isAutoHeight() ? txtSize[1] : componentContainer.getHeight();
         
-        setSize(_w, _h);
+        //setSize(_w, _h);
         componentContainer.set(w, h);
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
@@ -132,8 +140,8 @@ public class SwingInputText extends SwingComponent {
         
         refreshPositions(_w, _h, componentContainer.getParentWidth(), 
                 componentContainer.getParentHeight());          
-    }
-
+    }       
+    
     @Override
     public void processKeyEvents(InputHandle input) {                
         boolean upper = false;

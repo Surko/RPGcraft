@@ -217,7 +217,7 @@ public class SwingImageList extends SwingImagePanel {
                     ((SwingImageButton)comp).setText(c.getString(index++));                    
                 }
                 if (comp instanceof SwingText) {
-                    ((SwingText)comp).setText(c.getString(index++));                    
+                    ((SwingText)comp).setText(c.getString(index++));  
                 }  
                 
                 if (cont.getChildContainer() != null) {

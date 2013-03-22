@@ -5,6 +5,7 @@
 package rpgcraft.panels.components;
 
 import java.awt.AWTEvent;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.ActionListener;
@@ -62,6 +63,8 @@ public interface Component extends MouseListener, Cloneable {
     
     public boolean isSelected();
     
+    public boolean isVisible();
+    
     public void select();
     
     public void unselect();
@@ -78,5 +81,17 @@ public interface Component extends MouseListener, Cloneable {
     
     public void refreshPositions(int w, int h, int pw, int ph);
     
-    public java.awt.Component getParent();
+    public Component getParentComponent();
+    
+    public void addComponent(Component c);
+    
+    public void addComponent(Component c, Object constraints);
+    
+    public void removeComponent(Component c);
+    
+    public Dimension getPreferredSize();
+    
+    public Dimension getSize();
+    
+    public Container getContainer();
 }

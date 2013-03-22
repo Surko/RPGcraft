@@ -36,8 +36,7 @@ public class SwingText extends SwingComponent{
     private static final Logger LOG = Logger.getLogger(SwingText.class.getName());
     
     protected String title;
-    protected int w = -1;
-    protected int h = -1;
+    protected int tw = 0,th = 0;
     protected Color textColor;
     protected Color backColor;
     protected TextType txType;    
@@ -76,7 +75,7 @@ public class SwingText extends SwingComponent{
         if (title != null) {            
             g.setFont(getFont());
             g.setColor(textColor);
-            g.drawString(title, 0, h);
+            g.drawString(title, 0, th);
         }        
         if (isSelected) {
             g.setColor(Colors.getColor(Colors.selectedColor));
@@ -92,27 +91,39 @@ public class SwingText extends SwingComponent{
     
     public void setTextSize() {
         int[] txtSize = TextUtils.getTextSize(getFont(), title);  
-        w = txtSize[0];
-        h = txtSize[1];
+        tw = txtSize[0];
+        th = txtSize[1];
+    }
+    
+    @Override
+    public void setBackground(Color color) {
+        if (componentContainer != null) {
+            super.setBackground(backColor);
+        } else {
+            super.setBackground(color);
+        }
     }
     
     public void setText(String text) {
         this.title= text;
         this.isNoData = false;
-        setTextSize();
-        
+        if (componentContainer != null) {
+            refresh();
+        } else {
+            setTextSize();       
+        }
     }
     
     public String getText() {
         return title;
     }
     
-    public int getW() {
-        return w;
+    public int getTextW() {
+        return tw;
     }
     
-    public int getH() {
-        return h;
+    public int getTextH() {
+        return th;
     }    
 
     @Override
@@ -166,14 +177,14 @@ public class SwingText extends SwingComponent{
                         
         int[] txtSize = TextUtils.getTextSize(getFont(), title); 
         
-        w = txtSize[0];
-        h = txtSize[1];
+        tw = txtSize[0];
+        th = txtSize[1];
         
-        _w = componentContainer.isAutoWidth() ? txtSize[0] : componentContainer.getWidth();
-        _h = componentContainer.isAutoHeight() ? txtSize[1] : componentContainer.getHeight();
+        _w = componentContainer.isAutoWidth() ? tw : componentContainer.getWidth();
+        _h = componentContainer.isAutoHeight() ? th : componentContainer.getHeight();
         
-        setSize(_w, _h);
-        componentContainer.set(w, h);
+        //setSize(_w, _h);
+        componentContainer.set(_w, _h);
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  

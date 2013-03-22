@@ -152,4 +152,34 @@ public abstract class TemplateComponent extends JPanel implements Component {
         
     }
     
+    @Override
+    public Component getParentComponent() {
+        return cont.getParentContainer().getComponent();
+    }
+    
+    @Override
+    public void addComponent(Component c) {
+        if (c instanceof java.awt.Component) {
+            this.add((java.awt.Component)c);
+        }
+    }
+    
+    @Override
+    public void addComponent(Component c, Object constraints) {
+        if (c instanceof java.awt.Component) {
+            this.add((java.awt.Component)c,constraints);
+        }
+    }
+    
+    @Override
+    public Container getContainer() {
+        return cont;
+    }
+    
+    public void removeComponent(Component c) {
+        if (c instanceof java.awt.Component) {
+            this.remove((java.awt.Component)c);
+        }
+    }
+    
 }

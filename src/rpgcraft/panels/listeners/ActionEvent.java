@@ -14,7 +14,7 @@ public class ActionEvent extends java.awt.event.ActionEvent{
     private Object param;
     
     public ActionEvent(Object source, int id, int clicks, String command, Object param) {
-        super(source, id, command);        
+        super(source, id, command);
         this.clicks = clicks;
         this.param = param;
     }

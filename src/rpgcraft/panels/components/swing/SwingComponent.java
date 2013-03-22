@@ -4,6 +4,8 @@
  */
 package rpgcraft.panels.components.swing;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionListener;
@@ -20,6 +22,7 @@ import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
+import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.AbstractType;
 import rpgcraft.utils.MathUtils;
 
@@ -29,7 +32,6 @@ import rpgcraft.utils.MathUtils;
  */
 public abstract class SwingComponent extends JPanel implements Component {  
     private static final Logger LOG = Logger.getLogger(SwingComponent.class.getName());
-    
     protected Container componentContainer;
     protected AbstractMenu menu;
     protected boolean changed;
@@ -42,15 +44,15 @@ public abstract class SwingComponent extends JPanel implements Component {
     protected SwingComponent() { 
     }
     
-    public SwingComponent(Container container,AbstractMenu menu) {
+    public SwingComponent(Container container, AbstractMenu menu) {
         this.componentContainer = container;
         this.menu = menu;
         if (componentContainer != null) {
             this.type = componentContainer.getResource().getType();
         }
         changed = true;
-    }
-            
+    }                
+    
     public void setChanged(boolean changed) {
         this.changed = changed;
     }
@@ -173,6 +175,21 @@ public abstract class SwingComponent extends JPanel implements Component {
     }            
             
     @Override
+    public Dimension getPreferredSize() {
+        return componentContainer.getPrefDimension();
+    }
+    
+    @Override
+    public Dimension getSize() {
+        return componentContainer.getPrefDimension();
+    }
+    
+    @Override
+    public Container getContainer() {
+        return componentContainer;
+    }
+    
+    @Override
     public boolean isSelected() {
         return isSelected;
     }
@@ -190,12 +207,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public void update() {};
     
-    protected void paintImage(Graphics g, Image dbImage) {}
-        
-    @Override
-    public void setBounds(int x, int y, int width, int height) {
-        super.setBounds(x, y, width, height);
-    }
+    protected void paintImage(Graphics g, Image dbImage) {}        
 
     @Override
     public void updateUI() {
@@ -205,6 +217,11 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public boolean isNoData() {
         return isNoData;
+    }
+    
+    @Override
+    public void setBounds(int x, int y, int w, int h) {       
+        super.setBounds(x, y, w, h);
     }
     
     protected abstract void reconstructComponent();  
@@ -219,8 +236,8 @@ public abstract class SwingComponent extends JPanel implements Component {
     public void refreshPositions(int w, int h, int pw, int ph) {
         int[] _rpos = MathUtils.getStartPositions(componentContainer.getResource().getPosition(),
                       pw, ph, w , h);
-        componentContainer.setPositions(_rpos);
-        setBounds(_rpos[0], _rpos[1], w, h);    
+        componentContainer.setPositions(_rpos);   
+        setBounds(_rpos[0], _rpos[1], w, h);
     }
     
     @Override
@@ -242,4 +259,31 @@ public abstract class SwingComponent extends JPanel implements Component {
             }
         }
     }
+    
+    @Override
+    public Component getParentComponent() {
+        return componentContainer.getParentContainer().getComponent();
+    }
+    
+    @Override
+    public void removeComponent(Component c) {
+        if (c instanceof java.awt.Component) {
+            this.remove((java.awt.Component)c);
+        }
+    }
+    
+    @Override
+    public void addComponent(Component c) {
+        if (c instanceof java.awt.Component) {
+            this.add((java.awt.Component)c);
+        }
+    }
+    
+    @Override
+    public void addComponent(Component c, Object constraints) {
+        if (c instanceof java.awt.Component) {
+            this.add((java.awt.Component)c,constraints);
+        }
+    }
+    
 }

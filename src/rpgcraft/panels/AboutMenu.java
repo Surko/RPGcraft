@@ -55,7 +55,7 @@ public class AboutMenu extends AbstractMenu {
     @Override
     public void inputHandling() {
         super.inputHandling();
-        if (input.runningKeys.contains(input.escape.getKeyCode())) {
+        if (input.clickedKeys.contains(input.escape.getKeyCode())) {
             setMenu(menuMap.get("mainMenu"));
         }                
     }

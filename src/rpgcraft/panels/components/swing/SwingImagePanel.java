@@ -5,6 +5,7 @@
 package rpgcraft.panels.components.swing;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 
@@ -48,8 +49,16 @@ public class SwingImagePanel extends SwingComponent{
     }
     
     @Override
-    protected void reconstructComponent() {
-        this.changed = true;
+    public void setBackground(Color color) {
+        if (componentContainer != null) {
+            super.setBackground(backColor);
+        } else {
+            super.setBackground(color);
+        }
+    }
+    
+    @Override
+    protected void reconstructComponent() {        
         if (componentContainer != null) {
             this.backImage = componentContainer.getResource().getBackgroundTextureId() != null ?
                     ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
@@ -58,6 +67,7 @@ public class SwingImagePanel extends SwingComponent{
                     Colors.getColor(componentContainer.getResource().getBackgroundColorId()) :
                     Color.BLACK;    
         }
+        this.changed = true;
     }
     
     @Override
@@ -148,7 +158,10 @@ public class SwingImagePanel extends SwingComponent{
         h = componentContainer.isAutoHeight() ? ((h > backImage.getHeight(null) ? h :
                 backImage.getHeight(null))) : componentContainer.getHeight();
                 
-        setSize(w, h);
+        //System.out.println("Resizing :" + this);
+        //setSize(w, h);
+        //setPreferredSize(new Dimension(w,h));
+        //System.out.println("Size :" + this);
         componentContainer.set(w, h);
         
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
@@ -159,7 +172,8 @@ public class SwingImagePanel extends SwingComponent{
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
         
-        refreshPositions(w, h, componentContainer.getParentWidth(), componentContainer.getParentHeight()); 
+        refreshPositions(w, h, componentContainer.getParentWidth(), componentContainer.getParentHeight());
+        reconstructComponent();
         
         if (componentContainer.getPositionslessCont() != null) {
             for (Container cont : componentContainer.getPositionslessCont()) {
@@ -167,7 +181,7 @@ public class SwingImagePanel extends SwingComponent{
                 cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(), w, h);
             }
             componentContainer.clearPositionsless();
-        }
+        }        
     }        
 
     

@@ -26,8 +26,8 @@ public abstract class SwingCustomButton extends SwingComponent {
     private static final Logger LOG = Logger.getLogger(SwingCustomButton.class.getName());
     public static final Dimension prefferedDim = new Dimension(300,20);
     
-    String title;        
-    int w,h;
+    String title;     
+    int tw,th;
     boolean hit = false; 
     ButtonType btnType;
    
@@ -56,15 +56,15 @@ public abstract class SwingCustomButton extends SwingComponent {
     @Override
     public void refresh() {
         super.refresh();
-        int _w = 0, _h = 0;
+        int w = 0, h = 0;
         
         Dimension imgDim = prefferedDim;
         
-        _w = componentContainer.isAutoWidth() ? imgDim.width : componentContainer.getWidth();
-        _h = componentContainer.isAutoHeight() ? imgDim.height : componentContainer.getHeight();
+        w = componentContainer.isAutoWidth() ? imgDim.width : componentContainer.getWidth();
+        h = componentContainer.isAutoHeight() ? imgDim.height : componentContainer.getHeight();
         
-        componentContainer.set(_w, _h);
-        setSize(_w, _h);  
+        componentContainer.set(w, h);
+        //setSize(w, h);  
         
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
@@ -74,7 +74,7 @@ public abstract class SwingCustomButton extends SwingComponent {
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
         
-        refreshPositions(_w, _h, componentContainer.getParentWidth(), 
+        refreshPositions(w, h, componentContainer.getParentWidth(), 
                 componentContainer.getParentHeight()); 
     }
     
@@ -83,7 +83,7 @@ public abstract class SwingCustomButton extends SwingComponent {
     }
     
     public void setTextSize() {
-        h = TextUtils.getTextHeight(getFont());          
+        th = TextUtils.getTextHeight(getFont());          
     }
     
     @Override

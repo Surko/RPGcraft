@@ -22,7 +22,8 @@ public class ListenerFactory {
     public enum Commands {
         SETMENU,
         LOAD,
-        CREATE
+        CREATE,
+        COMPOP
     }
     
     private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());
@@ -63,6 +64,9 @@ public class ListenerFactory {
                         }
                         case CREATE : {
                             return new CreateMenuListener(parts[1]);
+                        }
+                        case COMPOP : {
+                            return new ComponentListener(parts[1]);
                         }
                     }
                 } catch (Exception e) {

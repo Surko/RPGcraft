@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.logging.*;
 import javax.swing.*;
 import org.w3c.dom.Element;
@@ -110,11 +110,11 @@ public class GamePane extends SwingImagePanel implements Runnable {
             System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize());
         }
 
-        if (c instanceof SwingImagePanel) {                
-            for (Component _c : ((Container)c).getComponents()) {
+        if (c instanceof SwingImagePanel) {  
+            System.out.println(parString + " -> panel: " + c.getLocation()+ "," + c.getSize());
+            for (Component _c : ((Container)c).getComponents()) {                
                 writeAllComponents(_c, parString + " -> panel:" +c.getLocation()+ "," + c.getSize());
             }
-            return;
         }
     }
     // </editor-fold>
@@ -128,8 +128,8 @@ public class GamePane extends SwingImagePanel implements Runnable {
         logger.log(Level.INFO, StringResource.getResource("initinfo1"));
         logger.log(Level.INFO, StringResource.getResource("initinfo2"),
                 PathManager.getInstance().getRootPath().toString());
-        pWidth=MainGameFrame.Fwidth;
-        pHeight=MainGameFrame.Fheight;  
+        pWidth=MainGameFrame.getContentWidth();
+        pHeight=MainGameFrame.getContentHeight();  
         mFrame = MainGameFrame.getFrame();
         setBounds(0, 0, pWidth, pHeight);
         
@@ -407,6 +407,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
     public void setMenu(AbstractMenu menu) {             
         this.menu = menu;
         if (menu != null) {
+            menu.setInitialized(false);
             removeAll();
             menu.ugChange(true);                   
             //menu.recalculate();
@@ -473,6 +474,14 @@ public class GamePane extends SwingImagePanel implements Runnable {
         return xmlInitialized;
     } 
     
+    /**
+     * 
+     * @param files 
+     */
+    public Collection<rpgcraft.panels.components.Container> getChildContainers() {
+        return menu.getContainers();
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc="Inicializacie">
@@ -531,6 +540,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
     //<editor-fold desc="Eventy" defaultstate="collapsed">
     @Override
     public void mouseClicked(MouseEvent e) {
+        System.out.println("GamePane: " + getLocation()+ "," + getSize());
         for (Component c : getComponents()) {
             writeAllComponents(c, "");
         }

@@ -4,6 +4,7 @@
  */
 package rpgcraft;
 
+import java.awt.Dimension;
 import java.util.logging.Logger;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -54,7 +55,7 @@ public class MainGameFrame {
         game.setLayout(null);
         game.add(Framer.frameLabel);
 
-        mFrame.add(game);
+        mFrame.getContentPane().add(game);
         mFrame.addKeyListener(InputHandle.getInstance());
         mFrame.setVisible(true);
         
@@ -83,6 +84,14 @@ public class MainGameFrame {
         }
     }
     
+    public static int getContentWidth() {
+        return mFrame.getContentPane().getWidth();
+    }
+    
+    public static int getContentHeight() {
+        return mFrame.getContentPane().getHeight();
+    }
+    
     // Triedy        
     /**
      * Staticka trieda implementujuca ComponentListener, 
@@ -99,7 +108,7 @@ public class MainGameFrame {
          */
         @Override
         public void componentResized(ComponentEvent e) {
-            game.setWidthHeight(mFrame.getWidth(), mFrame.getHeight());            
+            game.setWidthHeight(mFrame.getContentPane().getWidth(), mFrame.getContentPane().getHeight());            
         }
 
         @Override

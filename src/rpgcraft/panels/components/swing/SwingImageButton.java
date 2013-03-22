@@ -28,6 +28,7 @@ public class SwingImageButton extends SwingCustomButton {
         io.cropBufferedImage(4,244,300,20);
     }  
    
+    
     @Override
     protected void reconstructComponent() {
         super.reconstructComponent();
@@ -57,7 +58,7 @@ public class SwingImageButton extends SwingCustomButton {
         
         g.setColor(Color.black);
         g.setFont(getFont());
-        g.drawString(title, 100, h);
+        g.drawString(title, 100, th);
     }
 
     @Override

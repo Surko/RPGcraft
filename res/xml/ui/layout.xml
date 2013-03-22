@@ -21,6 +21,20 @@
       <image-position>CENTER</image-position>
     </background>   
   </element>
+  <element>
+        <id>text_ss</id>
+        <type>EDITTEXT</type>
+        <text textcolor="fpsColor">@textabout</text>        
+        <layout>
+          <width>AUTO</width>
+          <height>AUTO</height>               
+        </layout>
+        <background>
+              <background-color>transColor</background-color>
+        </background>
+        <position>TOP</position>
+  </element>
+
 
   <element>
     <id>aboutMenu</id>
@@ -44,8 +58,8 @@
         <type>TEXT</type>
         <text textcolor="fpsColor">@textabout</text>        
         <layout>
-          <width>300</width>
-          <height>20</height>
+          <width>AUTO</width>
+          <height>AUTO</height>
           <scrolling speedy="2"/>          
         </layout>
         <background>
@@ -82,7 +96,7 @@
       <weighty>1</weighty>
     </layout>
     <actions>
-      <action type="KEY" code="VK_W">SETMENU@loadcreateMenu</action>
+      <action type="KEY" code="VK_W">COMPOP@ADD_COMP#text_ss</action>
     </actions>
     <background>
       <background-color>Black</background-color>
@@ -92,7 +106,7 @@
       <image-height>ORIGINAL</image-height>
       <image-position>CENTER</image-position>
     </background>
-    <position>CENTER</position>       
+    <position>CENTER</position>    
   </element>
   
   <element>
@@ -142,7 +156,7 @@
           <x>0</x>      
           <y>0</y>       
         </layout>
-        <position>LEFT</position>   
+        <position>CENTER</position>   
       </element>             
       <element>
         <id>SaveView01</id>
@@ -162,7 +176,7 @@
           <rows-max>AUTOTYPE</rows-max>
           <cols-max>1</cols-max>
         </layout>
-        <position>CENTER</position>
+        <position>TOP</position>
         <background>
           <background-color>selectedColor</background-color>   
         </background> 

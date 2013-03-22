@@ -16,35 +16,30 @@ import rpgcraft.panels.components.Cursor;
  */
 public class LoadCreateListener extends Listener {
     
-    private String save;
+    public enum Operations {
+        LOAD
+    }
+    
+    Operations op;
     
     public LoadCreateListener(String save) {
-        this.save = save;
-        String[] parts = save.split("#");
-        switch (parts.length) {
-            case 2 : {
-                this.param = parts[1];
-                this.type = parts[0];
-            } break;                
+        String[] mainOp = save.split("[(]");
+        this.op = Operations.valueOf(mainOp[0]);
+
+        if (mainOp.length > 1) {            
+            setParams(mainOp[1].substring(0, mainOp[1].length() - 1));        
         }
     }
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (type != null) {
-            switch (type) {
-                case "LIST" : {
-                    Cursor c = (Cursor)e.getParam();
-                    save = c.getString(c.getColumnIndex(param));                        
-                } break;                    
-            }
-        }
+        setRunParams(e);
 
         if (e.getSource() instanceof Component) {
             Component c = (Component)e.getSource();
                         
             GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
-            gameMenu.loadMapInstance(save);
+            gameMenu.loadMapInstance(parsedOp[0]);
             c.getOriginMenu().setMenu(gameMenu);
             
         }

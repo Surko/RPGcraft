@@ -146,7 +146,6 @@ public class SwingInputText extends SwingComponent {
     public void processKeyEvents(InputHandle input) {                
         boolean upper = false;
         char c = '\0';
-        System.out.println(input.clickedKeys);
         for (int keyCode : input.runningKeys) {
             
             switch (keyCode) {

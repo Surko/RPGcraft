@@ -107,7 +107,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
             System.out.println(parString + " -> text: " + c.getLocation()+ "," + c.getSize());
         }
         if (c instanceof SwingInputText) {
-            System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize());
+            System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize() + "," + c.isShowing());
         }
 
         if (c instanceof SwingImagePanel) {  
@@ -304,6 +304,12 @@ public class GamePane extends SwingImagePanel implements Runnable {
     // <editor-fold desc="Public metody" defaultstate="collapsed">    
     
     // <editor-fold defaultstate="collapsed" desc="Settery">
+    
+    @Override
+    public void addComponent(rpgcraft.panels.components.Component c) {
+        super.addComponent(c);        
+    }
+    
     /**
      * Metoda ma za ulohu spustit dalsie vlakno s update funkciami.
      */

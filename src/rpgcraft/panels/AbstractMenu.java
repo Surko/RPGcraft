@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import rpgcraft.GamePane;
 import rpgcraft.errors.MissingFile;
@@ -57,7 +58,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     protected GridBagConstraints c;
     protected ArrayList<UiResource> scrollingResource;
     // Neutriedena Mapa zadana pomocou linkedHashMap.
-    protected Map<UiResource, Container> uiContainers;
+    protected ConcurrentHashMap<UiResource, Container> uiContainers;
     protected boolean changedUi;
     protected boolean changedGr;
     protected Image contImage;
@@ -76,8 +77,13 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         
         //contImage = new BufferedImage(gameContainer.getWidth(), gameContainer.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         
-        uiContainers = Collections.synchronizedMap(new LinkedHashMap<UiResource,Container>());    
+        //uiContainers = Collections.synchronizedMap(new LinkedHashMap<UiResource,Container>());    
+        uiContainers = new ConcurrentHashMap<>();
         
+        initializeMenuResource();
+    }        
+         
+    private void initializeMenuResource() {
         /*
          * Ked je originalny resource skrolovaci tak ho priradi do pola so 
          * skrolovacimi resource.
@@ -103,10 +109,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         uiContainers.put(res, cont);                
         
         cont.setChildContainers(getUI(res));
-                                
-        initializeImage();        
-    }        
+        
+        initializeImage();
                 
+    }
+    
     /**
      * Metoda getUI ziskava informacie o resource a jeho potomkoch a uklada si ich
      * do HashMapy pre lahsi pristup.
@@ -169,15 +176,20 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     }
     
     protected void initializeUI() {        
-                                               
+        if (uiContainers.isEmpty()) {
+            return;
+        }
+        
         if (!initialized) {
             recalculate(res); 
             gamePane.add(Framer.frameLabel);
             reinitialize(getContentGraphics(), res, gameContainer);
             initialized = true;
         } else {        
-            recalculate(uiContainers.get(res));
-            refreshElements(getContentGraphics(), uiContainers.get(res), gamePane); 
+            for (Container contToCalc : gameContainer.getChildContainer()) {
+                recalculate(contToCalc);
+                refreshElements(getContentGraphics(), contToCalc, gamePane);
+            }
         }
         gamePane.updateUI();
         changedUi = false;
@@ -371,6 +383,12 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         changedUi = state;
     }
     
+    public void reinitializeMenu() {        
+        initializeMenuResource();
+        initialized = false;
+        ugChange(true);
+    }
+    
     public Collection<Container> getContainers() {
         return uiContainers.values();
     }
@@ -389,6 +407,23 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
             changedUi = true;
             changedGr = true;
         }
+    }
+    
+    public void removeContainer(UiResource res) {
+        Container cont = uiContainers.get(res);
+        if (cont != null) {
+            cont.getParentContainer().removeContainer(cont);
+            uiContainers.remove(res);
+            changedUi = true;
+            changedGr = true;
+        }
+    }
+    
+    public void removeAllContainers() {
+        uiContainers.clear();
+        gameContainer.clear(); 
+        changedUi = true;
+        changedGr = true;
     }
     
     @Override

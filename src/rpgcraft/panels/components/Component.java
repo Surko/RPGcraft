@@ -94,4 +94,6 @@ public interface Component extends MouseListener, Cloneable {
     public Dimension getSize();
     
     public Container getContainer();
+    
+    public void removeAll();
 }

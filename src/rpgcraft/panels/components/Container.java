@@ -151,6 +151,19 @@ public class Container {
             childContainers.add(cont);            
         }
         
+        public void removeContainer(Container cont) {
+            if (childContainers != null) {
+                this.c.removeComponent(cont.c);
+                childContainers.remove(cont);
+                changed = true;
+            }
+        }
+        
+        public void clear() {
+            this.childContainers.clear();
+            this.c.removeAll();
+        }
+        
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Gettery ">

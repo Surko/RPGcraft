@@ -16,20 +16,22 @@ import rpgcraft.resource.UiResource;
  * @author kirrie
  */
 public class CreateMenuListener extends Listener {
-    // String s menu na nacitanie
-    String menu;
+    public enum Operations {
+            CREATE
+    }
+    
+    Operations op;
+    
     /**
      * Konstruktor tohoto listeneru s menom menu.
      * @param menu 
      */
     public CreateMenuListener(String menu) {
-        this.menu = menu;
-        String[] parts = menu.split("#");
-        switch (parts.length) {
-            case 2 : {
-                this.param = parts[1];
-                this.type = parts[0];
-            } break;                
+        String[] mainOp = menu.split("[(]");
+        this.op = Operations.valueOf(mainOp[0]);
+        
+        if (mainOp.length > 1) {            
+            setParams(mainOp[1].substring(0, mainOp[1].length() - 1));        
         }
     }
 
@@ -51,22 +53,15 @@ public class CreateMenuListener extends Listener {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (type != null) {
-            switch (type) {
-                case "LIST" : {
-                    Cursor c = (Cursor)e.getParam();
-                    menu = c.getString(c.getColumnIndex(param));                        
-                } break;                    
-            }
-        }
+        setRunParams(e);
 
         if (e.getSource() instanceof Component) {
             Component c = (Component)e.getSource();
-            if (AbstractMenu.getMenuByName(menu)==null) {                
-                FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(menu));
+            if (AbstractMenu.getMenuByName(parsedOp[0])==null) {                
+                FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(parsedOp[0]));
                 ((Menu)c.getOriginMenu()).setMenu(factMenu);  
             } else {
-                ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(menu));                          
+                ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(parsedOp[0]));                          
             }
                           
         }

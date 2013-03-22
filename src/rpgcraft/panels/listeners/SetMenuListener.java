@@ -12,11 +12,7 @@ import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Cursor;
-import rpgcraft.panels.components.swing.SwingCustomButton;
-import rpgcraft.panels.components.swing.SwingImageButton;
-import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.resource.StringResource;
-import rpgcraft.resource.UiResource;
 
 /**
  * SetMenuListener je implementovany ActionListener, ktory ma za ulohu
@@ -25,20 +21,23 @@ import rpgcraft.resource.UiResource;
  * @author Kirrie
  */
 public class SetMenuListener extends Listener {
-        // String s menu na nacitanie
-        String menu;
+    
+        public enum Operations {
+            SETMENU
+        }
+        
+        Operations op;
+        
         /**
          * Konstruktor tohoto listeneru s menom menu.
          * @param menu 
          */
         public SetMenuListener(String menu) {
-            this.menu = menu;
-            String[] parts = menu.split("#");
-            switch (parts.length) {
-                case 2 : {
-                    this.param = parts[1];
-                    this.type = parts[0];
-                } break;                
+            String[] mainOp = menu.split("[(]");
+            this.op = Operations.valueOf(mainOp[0]);
+
+            if (mainOp.length > 1) {            
+                setParams(mainOp[1].substring(0, mainOp[1].length() - 1));        
             }
         }
         
@@ -59,24 +58,17 @@ public class SetMenuListener extends Listener {
         @Override
         public void actionPerformed(ActionEvent e) {
             //System.out.println(Thread.currentThread());
-            if (type != null) {
-                switch (type) {
-                    case "LIST" : {
-                        Cursor c = (Cursor)e.getParam();
-                        menu = c.getString(c.getColumnIndex(param));                        
-                    } break;                    
-                }
-            }
+            setRunParams(e);
             
             if (e.getSource() instanceof Component) {
                 Component c = (Component)e.getSource();
-                Menu newMenu = AbstractMenu.getMenuByName(menu);
+                Menu newMenu = AbstractMenu.getMenuByName(parsedOp[0]);
                 
                 if (newMenu != null) {                                    
                     ((Menu)c.getOriginMenu()).setMenu(newMenu);                
                 } else {
                     new MultiTypeWrn(null, Color.red, StringResource.getResource("_nelistener",
-                            new String[] {menu}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+                            new String[] {parsedOp[0]}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
                 }
                 
             }

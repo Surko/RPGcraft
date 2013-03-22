@@ -96,7 +96,9 @@
       <weighty>1</weighty>
     </layout>
     <actions>
-      <action type="KEY" code="VK_W">COMPOP@ADD_COMP#text_ss</action>
+      <action type="KEY" code="VK_W">COMPOP@REINITIALIZE</action>
+      <action type="KEY" code="VK_A">COMPOP@ADD_COMP_TO(text_edit,MAINCONTAINER)</action>
+      <action type="KEY" code="VK_S">COMPOP@REMOVE_COMP_ALL</action>
     </actions>
     <background>
       <background-color>Black</background-color>
@@ -149,7 +151,7 @@
         <id>CreateWorld1</id>
         <template>abstract_swing_button</template>
         <text size="20.0f">@newgame</text>
-        <action>SETMENU@aboutMenu</action>   
+        <action>MENUOP@SETMENU(aboutMenu)</action>   
         <layout>   
           <weightx>1</weightx>
           <weighty>0</weighty>  
@@ -166,7 +168,7 @@
           <width>400</width>
           <height>FILL_PARENT</height>          
           <actions>
-            <action click="2" clicktype="onListElement">LOAD@LIST#_id</action>
+            <action click="2" clicktype="onListElement">LOAD@LOAD(LIST#_id)</action>
           </actions>
           <weightx>1</weightx>
           <weighty>0</weighty>      
@@ -225,7 +227,7 @@
         <id>btn_newgame</id>
         <template>abstract_swing_button</template>
         <text size="20.0f">@newgame</text>        
-        <action>SETMENU@loadcreateMenu</action>
+        <action>MENUOP@SETMENU(loadcreateMenu)</action>
         <layout>
           <x>0</x>      
           <y>0</y>
@@ -236,7 +238,7 @@
         <id>btn_about</id>
         <template>abstract_swing_button</template>
         <text>@about</text>        
-        <action>SETMENU@aboutMenu</action>
+        <action>MENUOP@SETMENU(aboutMenu)</action>
         <layout>
           <x>0</x>      
           <y>1</y>
@@ -259,7 +261,7 @@
           <cols-max>3</cols-max>
         </layout>
         <actions>
-            <action click="2" clicktype="onListElement">LOAD@LIST#_id</action>
+            <action click="2" clicktype="onListElement">LOAD@LOAD(LIST#_id)</action>
         </actions>
         <background>
           <background-color>fpsColor</background-color>   

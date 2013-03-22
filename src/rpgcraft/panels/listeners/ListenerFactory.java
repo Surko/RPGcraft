@@ -20,7 +20,7 @@ import rpgcraft.resource.StringResource;
 public class ListenerFactory {
     
     public enum Commands {
-        SETMENU,
+        MENUOP,
         LOAD,
         CREATE,
         COMPOP
@@ -56,7 +56,7 @@ public class ListenerFactory {
             case 2 : {
                 try {
                     switch (Commands.valueOf(parts[0])) {
-                        case SETMENU : {
+                        case MENUOP : {
                             return new SetMenuListener(parts[1]);
                         }
                         case LOAD : {

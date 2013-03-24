@@ -124,7 +124,7 @@ public class Save {
             int chunkY = inputStream.readInt();
             
             inputStream.close();
-            state.loadMapAround(chunkX, chunkY);            
+            state.loadMapAround(chunkX, chunkY);                        
             
         } catch (Exception ex) {
             if (ex instanceof FileNotFoundException) {

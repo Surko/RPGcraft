@@ -65,17 +65,18 @@ public abstract class SwingCustomButton extends SwingComponent {
         
         componentContainer.set(w, h);
         //setSize(w, h);  
-        
+             
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
             componentContainer.getParentContainer().addPositionslessCont(componentContainer);
             return;
         }
-        
+
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
-        
         refreshPositions(w, h, componentContainer.getParentWidth(), 
                 componentContainer.getParentHeight()); 
+
+        
     }
     
     public void setText(String text) {

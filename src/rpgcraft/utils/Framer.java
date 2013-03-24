@@ -57,7 +57,7 @@ public class Framer {
         @Override
         public Dimension getSize() {
            return new Dimension(tw,th); 
-        }
+        }       
         
         private void updateFPS() {
         

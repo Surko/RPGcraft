@@ -4,14 +4,8 @@
  */
 package rpgcraft.panels.components.swing;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,12 +14,9 @@ import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.listeners.ActionEvent;
-import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.TextType;
-import rpgcraft.utils.MathUtils;
 import rpgcraft.utils.TextUtils;
-import sun.font.FontDesignMetrics;
 
 /**
  *
@@ -185,17 +176,18 @@ public class SwingText extends SwingComponent{
         
         //setSize(_w, _h);
         componentContainer.set(_w, _h);
-        
+         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
             componentContainer.getParentContainer().addPositionslessCont(componentContainer);
             return;
         }
-        
+
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
-        
+         
         refreshPositions(_w, _h, componentContainer.getParentWidth(), 
-                componentContainer.getParentHeight());   
+            componentContainer.getParentHeight());  
+
     }
 }

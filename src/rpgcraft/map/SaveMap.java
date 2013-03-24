@@ -213,7 +213,7 @@ public class SaveMap  {
         if (menu != null) {
             menu.update();
         }
-        updateLighting();        
+        updateLighting();      
     }        
     
     private void updateAround(Entity e) {
@@ -701,7 +701,7 @@ public class SaveMap  {
                         e.setChunk(save.getChunk());
                         addEntity(e);
                     }
-                }
+                }                
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, StringResource.getResource("_bsaveformat"));
                 new MultiTypeWrn(null, Color.BLACK, StringResource.getResource("_bsaveformat"),null).renderSpecific(

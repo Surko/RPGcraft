@@ -10,7 +10,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.*;
+import rpgcraft.GamePane;
 import rpgcraft.MainGameFrame;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.map.Save;
@@ -40,6 +43,8 @@ public class DataUtils {
     
     private volatile static int depth; 
     private volatile static int cycleCounter;
+    
+    public static ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
     
     public synchronized static Object[][] getDataArrays(String data) {                
         ArrayList<ArrayList<Object>> resultList = new ArrayList<>();
@@ -392,10 +397,21 @@ public class DataUtils {
                 }
             }
         }
+        
+        // Ked je parent nahodou GamePane tak pri kazdej initializacii v AbstractMenu len pridavame
+        // dalsi kontajner => treba sa ich zbavovat po kazdom prehodeni menu => Nastavenie v GamePane#setMenu.
         if (src != null) {
             parent.addContainer(src);
         }
         return src;
+    }
+    
+    public static String getValueOfVariable(String var) {
+        return variables.get(var);
+    }
+    
+    public static void setValueOfVariable(String val, String var) {
+        variables.put(var, val);
     }
     
 }

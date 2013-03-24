@@ -33,6 +33,7 @@ public class ComponentListener extends Listener {
         REMOVE_COMP,
         REMOVE_COMP_ALL,
         REMOVE_CHILDCOMP_FROM,
+        REMOVE_COMP_TEMP,
         REINITIALIZE
     }
     
@@ -51,7 +52,7 @@ public class ComponentListener extends Listener {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        setRunParams(e);
+        super.actionPerformed(e);
         
         switch (op) {
             case SET_VISIBLE : {                                                
@@ -121,6 +122,16 @@ public class ComponentListener extends Listener {
                     Component c = (Component)e.getSource();
                     AbstractMenu menu = c.getOriginMenu();
                     menu.removeAllContainers();         
+                } else {
+                    LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.name()}));
+                }
+            } break;
+            case REMOVE_COMP_TEMP : {
+                if (parsedOp.length == 1) {
+                    Component c = (Component)e.getSource();
+                    AbstractMenu menu = c.getOriginMenu();
+                    UiResource resource = UiResource.getResource(parsedOp[0]);                                       
+                    menu.removeContainerTemp(resource);
                 } else {
                     LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.name()}));
                 }

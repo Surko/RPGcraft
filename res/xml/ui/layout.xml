@@ -98,7 +98,8 @@
     <actions>
       <action type="KEY" code="VK_W">COMPOP@REINITIALIZE</action>
       <action type="KEY" code="VK_A">COMPOP@ADD_COMP_TO(text_edit,MAINCONTAINER)</action>
-      <action type="KEY" code="VK_S">COMPOP@REMOVE_COMP_ALL</action>
+      <action type="KEY" code="VK_S">COMPOP@REMOVE_COMP_ALL
+ASSIGN(ahoj,a)</action>      
     </actions>
     <background>
       <background-color>Black</background-color>
@@ -119,7 +120,6 @@
     </layout>
     <background>
       <background-color>Black</background-color>
-      <background-image>intro</background-image>
       <orientation>0</orientation>
       <image-width>FILL</image-width>
       <image-height>FILL</image-height>
@@ -151,15 +151,50 @@
         <id>CreateWorld1</id>
         <template>abstract_swing_button</template>
         <text size="20.0f">@newgame</text>
-        <action>MENUOP@SETMENU(aboutMenu)</action>   
+        <actions>
+          <action>COMPOP@REMOVE_COMP_TEMP(SaveView01)</action>
+          <action>COMPOP@SET_VISIBLE(GameText1)</action>
+          <action>COMPOP@SET_VISIBLE(btn_createnewgame)</action>
+        </actions>   
         <layout>   
           <weightx>1</weightx>
           <weighty>0</weighty>  
           <x>0</x>      
           <y>0</y>       
-        </layout>
+        </layout>        
         <position>CENTER</position>   
-      </element>             
+      </element> 
+      <element>
+        <id>GameText1</id>
+        <type>EDITTEXT</type>
+        <text textcolor="fpsColor">@blank</text>        
+        <layout>
+          <layout-type>GRIDBAGSWING</layout-type>
+          <width>AUTO</width>
+          <height>AUTO</height>
+          <weightx>1</weightx>
+          <weighty>0</weighty>      
+          <x>1</x>
+          <y>0</y>                   
+        </layout>
+        <background>
+              <background-color>Black</background-color>
+        </background>
+        <visible>false</visible>
+        <position>CENTER</position>
+      </element> 
+      <element>
+        <id>btn_createnewgame</id>
+        <template>abstract_swing_button</template>
+        <text size="20.0f">@create</text>        
+        <action>LOAD@CREATE(TEXT#GameText1)</action>
+        <layout>          
+          <x>1</x>      
+          <y>1</y>
+        </layout>
+        <visible>false</visible>
+        <position>CENTER</position>
+      </element>           
       <element>
         <id>SaveView01</id>
         <type>LIST</type>        

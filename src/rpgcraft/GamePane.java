@@ -28,6 +28,7 @@ import rpgcraft.resource.StringResource;
 import rpgcraft.resource.TileResource;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
+import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.Framer;
 import rpgcraft.xml.EntityXML;
 import rpgcraft.xml.TilesXML;
@@ -94,24 +95,24 @@ public class GamePane extends SwingImagePanel implements Runnable {
     // <editor-fold defaultstate="collapsed" desc="Pomocne + Debugging metody">
     private void writeAllComponents(Component c, String parString) {
         if (c instanceof SwingImageList) {
-            System.out.println(parString + " -> list:" +c.getLocation() + "," + c.getSize());  
+            System.out.println(parString + " -> list:" +c.getLocation() + "," + c.getSize() + "," + c.isVisible());  
             for (Component _c : ((Container)c).getComponents()) {
                 writeAllComponents(_c, parString + " -> list:" +c.getLocation()+ "," + c.getSize());
             }
             return;
         }
         if (c instanceof SwingImageButton) {
-            System.out.println(parString + " -> button: " + c.getLocation()+ "," + c.getSize());
+            System.out.println(parString + " -> button: " + c.getLocation()+ "," + c.getSize() + "," + c.isVisible());
         }
         if (c instanceof SwingText) {
-            System.out.println(parString + " -> text: " + c.getLocation()+ "," + c.getSize());
+            System.out.println(parString + " -> text: " + c.getLocation()+ "," + c.getSize() + "," + c.isVisible());
         }
         if (c instanceof SwingInputText) {
-            System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize() + "," + c.isShowing());
+            System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize() + "," + c.isVisible());
         }
 
         if (c instanceof SwingImagePanel) {  
-            System.out.println(parString + " -> panel: " + c.getLocation()+ "," + c.getSize());
+            System.out.println(parString + " -> panel: " + c.getLocation()+ "," + c.getSize() + "," + c.isVisible());
             for (Component _c : ((Container)c).getComponents()) {                
                 writeAllComponents(_c, parString + " -> panel:" +c.getLocation()+ "," + c.getSize());
             }
@@ -413,9 +414,10 @@ public class GamePane extends SwingImagePanel implements Runnable {
     public void setMenu(AbstractMenu menu) {             
         this.menu = menu;
         if (menu != null) {
-            menu.setInitialized(false);
+            componentContainer.setChildContainers(menu.getMenuContainers());
             removeAll();
-            menu.ugChange(true);                   
+            menu.setInitialized(false);            
+            menu.ugChange(true);                    
             //menu.recalculate();
             //menu.update();                 
             //updateUI();            
@@ -549,6 +551,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
         System.out.println("GamePane: " + getLocation()+ "," + getSize());
         for (Component c : getComponents()) {
             writeAllComponents(c, "");
+        }
+        for (String var : DataUtils.variables.keySet()) {
+            System.out.println(var + " = " + DataUtils.getValueOfVariable(var));
         }
     }
 

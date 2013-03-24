@@ -39,12 +39,13 @@ public class SwingImagePanel extends SwingComponent{
     public SwingImagePanel(Container container, AbstractMenu menu) {
         super(container, menu);
         if (container != null) {
-            this.backImage = container.getResource().getBackgroundTextureId() != null ?
-                    ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
-                    null;        
-            this.backColor = container.getResource().getBackgroundColorId() != null ? 
-                    Colors.getColor(container.getResource().getBackgroundColorId()) :
-                    Color.BLACK;    
+                this.backImage = container.getResource().getBackgroundTextureId() != null ?
+                        ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
+                        null;        
+                this.backColor = container.getResource().getBackgroundColorId() != null ? 
+                        Colors.getColor(container.getResource().getBackgroundColorId()) :
+                        Color.BLACK;    
+            
         }
     }
     
@@ -171,9 +172,10 @@ public class SwingImagePanel extends SwingComponent{
         }
         
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
-        
+            
         refreshPositions(w, h, componentContainer.getParentWidth(), componentContainer.getParentHeight());
         reconstructComponent();
+
         
         if (componentContainer.getPositionslessCont() != null) {
             for (Container cont : componentContainer.getPositionslessCont()) {
@@ -181,7 +183,8 @@ public class SwingImagePanel extends SwingComponent{
                 cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(), w, h);
             }
             componentContainer.clearPositionsless();
-        }        
+        }  
+        
     }        
 
     

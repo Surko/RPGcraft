@@ -95,8 +95,8 @@ public class GameMenu extends AbstractMenu implements Runnable {
             if (hasToRepaint) {
                 if ((saveMap != null)&&(contImage != null)) {
                     if (screenImage == buffImage) {
-                       saveMap.paint(contImage.getGraphics());
-                       screenImage = contImage;
+                        saveMap.paint(contImage.getGraphics());
+                        screenImage = contImage;
                     } else {
                         saveMap.paint(buffImage.getGraphics());
                         screenImage = buffImage;
@@ -142,9 +142,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
         setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
     }
     
-    public synchronized void loadMapInstance(String saveName) {
-        
-        gamePane.setSize(MainGameFrame.Fwidth, MainGameFrame.Fheight); 
+    public synchronized void loadMapInstance(String saveName) {                 
         
         if (!gamePane.hasXmlInitialized()) {                         
             gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                  
@@ -157,10 +155,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         Logger.getLogger(getClass().getName()).log(Level.INFO, "Game map set");
         
         if (save.loadAndStart(saveName)) {
-        
+                                    
             saveMap = save.getSaveMap();
             saveMap.loadMapAround(0,0);  
-            saveMap.initializeTiles();                
+            saveMap.initializeTiles();
+            
+            setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
             
             if (saveMap.player == null) {
                 LOG.log(Level.WARNING, StringResource.getResource("_mplayer"));
@@ -178,11 +178,9 @@ public class GameMenu extends AbstractMenu implements Runnable {
      * Tato metoda zatial zdruzuje aj funkcie nacitania mapy aj vytvorenie novej mapy.
      * Obidve funkcie sucasne su vylucitelne. Preto prepinam vzdy iba jednu.
      */
-    public synchronized void newMapInstance() {
+    public synchronized void newMapInstance(String saveName) {             
         
-        gamePane.setSize(MainGameFrame.Fwidth, MainGameFrame.Fheight);                
-        
-        this.save = new Save("skuska",gamePane, input);        
+        this.save = new Save(saveName,gamePane, input);        
         
         Logger.getLogger(getClass().getName()).log(Level.INFO, "Game map set");
         
@@ -250,20 +248,17 @@ public class GameMenu extends AbstractMenu implements Runnable {
     public void inputHandling() {
         save.inputHandling();
         
-        if (input.clickedKeys.contains(input.escape)) {
+        if (input.clickedKeys.contains(input.escape.getKeyCode())) {
             save.saveAndQuit(ImageUtils.makeThumbnailImage(screenImage));            
             setMenu(AbstractMenu.getMenuByName("mainMenu"));
             save = null;
             saveMap = null;
-            input.clickedKeys.remove(input.escape);
-        }
-        
-        
+        }                
     }
         
     @Override
     public synchronized void update() {
-
+        super.update();
         if (Framer.tick > 2500) {
             if (saveMap.getGameTime()==24) {
                 saveMap.setGameTime(0);
@@ -275,8 +270,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
         input.keyUpdates();
         saveMap.update();
         hasToRepaint = true;
-
-        super.update();
+        
     }
     
     /**
@@ -333,11 +327,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         if (screenImage == null) {  
             return;
         }
+        
         if ((PAINTING_TYPE == 0)&&(screenImage != null)&&(saveMap != null)) {
             saveMap.paint(screenImage.getGraphics());
         }
-        
-        g.drawImage(screenImage, 0, 0, null);
+                        
+        g.drawImage(screenImage, 0, 0, null);        
     }
      
     // </editor-fold>

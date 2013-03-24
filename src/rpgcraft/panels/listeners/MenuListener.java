@@ -10,9 +10,12 @@ import java.awt.event.ActionListener;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.FactoryMenu;
+import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Cursor;
 import rpgcraft.resource.StringResource;
+import rpgcraft.resource.UiResource;
 
 /**
  * SetMenuListener je implementovany ActionListener, ktory ma za ulohu
@@ -20,10 +23,11 @@ import rpgcraft.resource.StringResource;
  * @see ActionListener
  * @author Kirrie
  */
-public class SetMenuListener extends Listener {
+public class MenuListener extends Listener {
     
         public enum Operations {
-            SETMENU
+            SETMENU,
+            CREATEMENU
         }
         
         Operations op;
@@ -32,7 +36,7 @@ public class SetMenuListener extends Listener {
          * Konstruktor tohoto listeneru s menom menu.
          * @param menu 
          */
-        public SetMenuListener(String menu) {
+        public MenuListener(String menu) {
             String[] mainOp = menu.split("[(]");
             this.op = Operations.valueOf(mainOp[0]);
 
@@ -58,20 +62,37 @@ public class SetMenuListener extends Listener {
         @Override
         public void actionPerformed(ActionEvent e) {
             //System.out.println(Thread.currentThread());
-            setRunParams(e);
+            super.actionPerformed(e);
             
-            if (e.getSource() instanceof Component) {
-                Component c = (Component)e.getSource();
-                Menu newMenu = AbstractMenu.getMenuByName(parsedOp[0]);
-                
-                if (newMenu != null) {                                    
-                    ((Menu)c.getOriginMenu()).setMenu(newMenu);                
-                } else {
-                    new MultiTypeWrn(null, Color.red, StringResource.getResource("_nelistener",
-                            new String[] {parsedOp[0]}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
-                }
-                
-            }
+            
+            switch (op) {
+                case SETMENU : {
+                   if (e.getSource() instanceof Component) {
+                        Component c = (Component)e.getSource();
+                        Menu newMenu = AbstractMenu.getMenuByName(parsedOp[0]);
+
+                        if (newMenu != null) {                                    
+                            ((Menu)c.getOriginMenu()).setMenu(newMenu);                
+                        } else {
+                            new MultiTypeWrn(null, Color.red, StringResource.getResource("_nelistener",
+                                    new String[] {parsedOp[0]}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+                        }
+
+                    } 
+                } break;
+                case CREATEMENU : {
+                    if (e.getSource() instanceof Component) {
+                        Component c = (Component)e.getSource();
+                        if (AbstractMenu.getMenuByName(parsedOp[0])==null) {                
+                            FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(parsedOp[0]));
+                            ((Menu)c.getOriginMenu()).setMenu(factMenu);  
+                        } else {
+                            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(parsedOp[0]));                          
+                        }
+
+                    }
+                } break;                
+            }                                                
             
         }
         

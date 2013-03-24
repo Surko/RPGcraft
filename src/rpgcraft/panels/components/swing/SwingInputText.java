@@ -5,7 +5,6 @@
 package rpgcraft.panels.components.swing;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -13,15 +12,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.handlers.InputHandle.Keys;
 import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.TextType;
-import rpgcraft.utils.MathUtils;
 import rpgcraft.utils.TextUtils;
 
 /**
@@ -46,7 +42,8 @@ public class SwingInputText extends SwingComponent {
             this.textColor = Color.WHITE;            
             setFont(txType.getFont()); 
             this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
-        }                     
+        }
+        setBackground(backColor);
         setTextSize();        
     }        
     
@@ -75,6 +72,9 @@ public class SwingInputText extends SwingComponent {
         }                     
     } 
     
+    public String getText() {
+        return text;
+    }
     
     @Override
     public Component copy(Container cont, AbstractMenu menu) {
@@ -127,19 +127,22 @@ public class SwingInputText extends SwingComponent {
         _h = componentContainer.isAutoHeight() ? txtSize[1] : componentContainer.getHeight();
         
         //setSize(_w, _h);
-        componentContainer.set(w, h);
+        componentContainer.set(_w, _h);
         
+        if (componentContainer.getParentContainer().getComponent().getLayout() == null) { 
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
             LOG.log(Level.INFO, StringResource.getResource("_rshabort"));
             componentContainer.getParentContainer().addPositionslessCont(componentContainer);
             return;
         }
-        
+
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
-        
+
         refreshPositions(_w, _h, componentContainer.getParentWidth(), 
-                componentContainer.getParentHeight());          
+            componentContainer.getParentHeight());  
+
+        }
     }       
     
     @Override
@@ -170,7 +173,8 @@ public class SwingInputText extends SwingComponent {
         if (c != '\0')
             text += (upper == true ? Character.toUpperCase(c) : c);
         
-        refresh(); 
+        refresh();
+        updateUI();
     }
             
 }

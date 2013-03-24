@@ -57,6 +57,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     protected InputHandle input;
     protected GridBagConstraints c;
     protected ArrayList<UiResource> scrollingResource;
+    protected ArrayList<Container> containers;
     // Neutriedena Mapa zadana pomocou linkedHashMap.
     protected ConcurrentHashMap<UiResource, Container> uiContainers;
     protected boolean changedUi;
@@ -111,6 +112,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         cont.setChildContainers(getUI(res));
         
         initializeImage();
+        
+        containers = gameContainer.getChildContainer();
                 
     }
     
@@ -397,6 +400,10 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return uiContainers.get(resource);
     }
     
+    public ArrayList<Container> getMenuContainers() {
+        return containers;
+    }
+    
     public boolean hasContainer(UiResource resource) {
         return uiContainers.containsKey(resource);
     }
@@ -414,6 +421,15 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         if (cont != null) {
             cont.getParentContainer().removeContainer(cont);
             uiContainers.remove(res);
+            changedUi = true;
+            changedGr = true;
+        }
+    }
+    
+    public void removeContainerTemp(UiResource res) {
+        Container cont = uiContainers.get(res);
+        if (cont != null) {
+            cont.getParentContainer().removeContainer(cont);
             changedUi = true;
             changedGr = true;
         }

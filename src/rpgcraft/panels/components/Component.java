@@ -7,6 +7,7 @@ package rpgcraft.panels.components;
 import java.awt.AWTEvent;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.LayoutManager;
 import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -92,6 +93,8 @@ public interface Component extends MouseListener, Cloneable {
     public Dimension getPreferredSize();
     
     public Dimension getSize();
+    
+    public LayoutManager getLayout();
     
     public Container getContainer();
     

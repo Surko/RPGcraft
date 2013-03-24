@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.LayoutManager;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -220,7 +221,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     }
     
     @Override
-    public void setBounds(int x, int y, int w, int h) {       
+    public void setBounds(int x, int y, int w, int h) {  
         super.setBounds(x, y, w, h);
     }
     
@@ -236,8 +237,10 @@ public abstract class SwingComponent extends JPanel implements Component {
     public void refreshPositions(int w, int h, int pw, int ph) {
         int[] _rpos = MathUtils.getStartPositions(componentContainer.getResource().getPosition(),
                       pw, ph, w , h);
-        componentContainer.setPositions(_rpos);   
-        setBounds(_rpos[0], _rpos[1], w, h);
+        componentContainer.setPositions(_rpos);
+        if (componentContainer.getParentContainer().getComponent().getLayout() == null) {
+            setBounds(_rpos[0], _rpos[1], w, h);
+        }
     }
     
     @Override
@@ -284,6 +287,11 @@ public abstract class SwingComponent extends JPanel implements Component {
         if (c instanceof java.awt.Component) {
             this.add((java.awt.Component)c,constraints);
         }
+    }
+    
+    @Override
+    public LayoutManager getLayout() {
+        return super.getLayout();
     }
     
 }

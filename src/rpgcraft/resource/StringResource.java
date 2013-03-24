@@ -28,6 +28,7 @@ public class StringResource {
     private static final String init = "String Resource initialising";
     private static final String done = "DONE";
     private static final String missing = "String Resource is missing";
+    private static final String nores = "MRES";
     
     private static HashMap<String, String> stringResources;
     
@@ -68,11 +69,19 @@ public class StringResource {
     }
     
     public static String getResource(Object name) {
-        return String.format(stringResources.get(name), null);
+        if (stringResources.containsKey(name)) {
+            return String.format(stringResources.get(name), null);
+        } else {
+            return nores;
+        }
     }
     
     public static String getResource(String name, Object[] param) {
-        return String.format(stringResources.get(name), param);            
+        if (stringResources.containsKey(name)) {
+            return String.format(stringResources.get(name), param);
+        } else {
+            return nores;
+        }           
     }
     
     private static HashMap<String, String> convertBundleToMap(ResourceBundle res) throws Exception {

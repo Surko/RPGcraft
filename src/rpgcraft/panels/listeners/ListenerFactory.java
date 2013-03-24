@@ -5,12 +5,9 @@
 package rpgcraft.panels.listeners;
 
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rpgcraft.GamePane;
 import rpgcraft.resource.StringResource;
 
 /**
@@ -22,7 +19,6 @@ public class ListenerFactory {
     public enum Commands {
         MENUOP,
         LOAD,
-        CREATE,
         COMPOP
     }
     
@@ -36,14 +32,35 @@ public class ListenerFactory {
             return null;
         }
         
+        String[] actionParts = command.split("\n");
+        
+        switch (actionParts.length) {               
+            case 1 : {
+                return getListenerFromString(actionParts[0]);
+            }
+            default : {
+                Listener[] _listeners = new Listener[actionParts.length];
+                for (int i = 0; i < actionParts.length; i++) {
+                    _listeners[i] = getListenerFromString(actionParts[i]);
+                }
+                return new CombinatedListener(_listeners);
+            }
+                
+        }
+                    
+    }
+    
+    private static Listener getListenerFromString(String command) {
         if (listeners.containsKey(command)) {
             return listeners.get(command);
         } else {
             Listener output = madeListener(command);
-            listeners.put(command, output);
+            if (!(output instanceof DataListener)) {
+                listeners.put(command, output);
+            }
             return output;
         }
-    }        
+    }
     
     private static Listener madeListener(String command) {        
         String[] parts = command.split("@");
@@ -52,21 +69,22 @@ public class ListenerFactory {
                 //Prazdny listener
                 LOG.log(Level.INFO, StringResource.getResource("_blistener"));
                 return blankListener;
+                
             }
+            case 1 : {
+                return new DataListener(parts[0]);                
+            }                
             case 2 : {
                 try {
                     switch (Commands.valueOf(parts[0])) {
                         case MENUOP : {
-                            return new SetMenuListener(parts[1]);
+                            return new MenuListener(parts[1]);                            
                         }
                         case LOAD : {
-                            return new LoadCreateListener(parts[1]);
-                        }
-                        case CREATE : {
-                            return new CreateMenuListener(parts[1]);
+                            return new LoadCreateListener(parts[1]);                            
                         }
                         case COMPOP : {
-                            return new ComponentListener(parts[1]);
+                            return new ComponentListener(parts[1]);                           
                         }
                     }
                 } catch (Exception e) {
@@ -78,6 +96,7 @@ public class ListenerFactory {
                 //Nedefinovany listener
                 LOG.log(Level.INFO, StringResource.getResource("_ndlistener"));
                 return blankListener;
+                
             }
         }
     }

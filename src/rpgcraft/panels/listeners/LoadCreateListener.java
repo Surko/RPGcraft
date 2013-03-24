@@ -9,6 +9,7 @@ import rpgcraft.panels.AbstractMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Cursor;
+import rpgcraft.utils.DataUtils;
 
 /**
  *
@@ -17,7 +18,8 @@ import rpgcraft.panels.components.Cursor;
 public class LoadCreateListener extends Listener {
     
     public enum Operations {
-        LOAD
+        LOAD,
+        CREATE
     }
     
     Operations op;
@@ -33,15 +35,24 @@ public class LoadCreateListener extends Listener {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        setRunParams(e);
+        super.actionPerformed(e);
 
-        if (e.getSource() instanceof Component) {
-            Component c = (Component)e.getSource();
-                        
-            GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
-            gameMenu.loadMapInstance(parsedOp[0]);
-            c.getOriginMenu().setMenu(gameMenu);
-            
+        
+        switch (op) {
+            case LOAD : {                                                
+                Component c = (Component)e.getSource();
+
+                GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
+                gameMenu.loadMapInstance(parsedOp[0]);
+                c.getOriginMenu().setMenu(gameMenu);
+            } break;
+            case CREATE : {
+                Component c = (Component)e.getSource();
+
+                GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
+                gameMenu.newMapInstance(parsedOp[0]);
+                c.getOriginMenu().setMenu(gameMenu);
+            }
         }
 
     }

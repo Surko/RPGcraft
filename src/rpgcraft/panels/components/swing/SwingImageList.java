@@ -24,6 +24,7 @@ import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.types.ListType;
+import rpgcraft.utils.DataUtils;
 
 /**
  *
@@ -103,7 +104,8 @@ public class SwingImageList extends SwingImagePanel {
         ArrayList<String> columns = new ArrayList<>();
         getColumns(container.getResource(), columns);        
         columns.add(0, "_id");
-        setModel(lType.getData(), columns.toArray(new String[0]));
+        
+        setModel(DataUtils.getDataArrays(lType.getData()), columns.toArray(new String[0]));
         
         addMouseListener(this);
         // Mouse listeners length

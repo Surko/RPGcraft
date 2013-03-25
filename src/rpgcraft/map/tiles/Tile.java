@@ -20,7 +20,7 @@ public class Tile {
     
     protected boolean swimable;
     protected boolean destroyable;
-    protected ItemLevelType materialType;
+    protected int materialType;
     
     protected ArrayList<Sprite> _sprites;
     protected Integer id;
@@ -35,6 +35,7 @@ public class Tile {
     public Tile(Integer id, TileResource res) {
         this.id = id;
         this._sprites = res.getTileSprites();
+        this.materialType = -1;
     }
     
     public void setName(String name) {

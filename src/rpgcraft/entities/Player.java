@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import rpgcraft.entities.types.ArmorType;
+import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.inmenu.AbstractInMenu;
 import rpgcraft.graphics.particles.BarParticle;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
+import rpgcraft.map.tiles.AttackedTile;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StatResource.Stat;
 /**
@@ -33,6 +35,7 @@ public class Player extends MovingEntity {
         super(name, map, res);
         System.out.println("Player constructor called");
         this.poweringBar = new BarParticle();
+        this.levelType = ItemLevelType.HAND;
         map.addParticle(poweringBar);
     }
     
@@ -65,7 +68,7 @@ public class Player extends MovingEntity {
             if (input.runningKeys.contains(input.left.getKeyCode())) {
                 doublexGo -= fullSpeed; 
             }        
-            if (input.runningKeys.contains(input.down.getKeyCode())) {
+            if (input.runningKeys.contains(input.right.getKeyCode())) {
                 doublexGo += fullSpeed;  
             }    
             
@@ -140,7 +143,8 @@ public class Player extends MovingEntity {
             }
             
             
-            updateCoordinates();
+            if (updateCoordinates())
+                recalculatePositions();
             
             if ((activeItem.hpower > 0)&&(!input.runningKeys.contains(input.attack.getKeyCode()))) {                                        
                                     
@@ -163,7 +167,7 @@ public class Player extends MovingEntity {
             
             
             }
-        recalculatePositions();
+        
         return true;
     }
 
@@ -208,6 +212,20 @@ public class Player extends MovingEntity {
             }
         }
     }
+
+    @Override
+    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {        
+        if ((levelType.getValue() & tile.getMaterialType()) > 0) {
+            if (tile.hit(damage * modifier) <= 0) {
+                chunk.destroyTile(level, tile.getX(), tile.getY());
+                return true;
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    
     
     @Override
     public void use(Entity item) {

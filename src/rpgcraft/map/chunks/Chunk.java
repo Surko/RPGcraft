@@ -10,6 +10,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
 import rpgcraft.entities.Entity;
+import rpgcraft.map.tiles.DefaultTiles;
 
 /**
  *
@@ -70,7 +71,7 @@ public class Chunk implements Externalizable {
         }
         
         public void destroyTile(int layer, int x, int y) {
-            blocks.setIntOnPosition(layer, x & 15, x & 15, -1);
+            blocks.setIntOnPosition(layer, x & 15, y & 15, DefaultTiles.BLANK_ID);
         }
         
         public boolean getLoaded() {

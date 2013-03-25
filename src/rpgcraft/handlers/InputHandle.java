@@ -38,7 +38,11 @@ public class InputHandle implements KeyListener {
         VK_SPACE(KeyEvent.VK_SPACE, ' '),
         VK_BACK_SPACE(KeyEvent.VK_BACK_SPACE, '\0'),
         VK_SHIFT(KeyEvent.VK_SHIFT, '\0'),
-        VK_ENTER(KeyEvent.VK_ENTER, '\n');
+        VK_ENTER(KeyEvent.VK_ENTER, '\n'),
+        VK_PAGE_UP(KeyEvent.VK_PAGE_UP, '\0'),
+        VK_PAGE_DOWN(KeyEvent.VK_PAGE_DOWN, '\0'),
+        VK_F3(KeyEvent.VK_F3, '\0');
+        
         
         private final int keyCode;        
         
@@ -104,6 +108,8 @@ public class InputHandle implements KeyListener {
     public static Key scaling = new Key(KeyEvent.VK_F12);
     public static Key defense = new Key(KeyEvent.VK_CONTROL);
     public static Key print = new Key(KeyEvent.VK_PRINTSCREEN);
+    public static Key levelUp = new Key(KeyEvent.VK_PAGE_UP);
+    public static Key levelDown = new Key(KeyEvent.VK_PAGE_DOWN);
 
     
     @Override

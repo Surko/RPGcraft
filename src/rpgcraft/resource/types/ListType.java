@@ -40,7 +40,6 @@ public class ListType extends PanelType{
     protected int colsMax;
     protected int rowLayout = -3;
     protected String sData;
-    protected Object[][] data;
     protected ArrayList<UiResource> elements;
     
     public ListType(UiType uiType) {
@@ -49,12 +48,8 @@ public class ListType extends PanelType{
 
     public void setData(String data) {
         this.sData = data;
-        this.data = DataUtils.getDataArrays(data);
     }
-    
-    public void setData(Object[][] data) {
-        this.data = data;
-    }
+
     
     public void setRowsMax(String rowsMax) {
         this.rowsMax = TextUtils.getRowCount(rowsMax);
@@ -80,14 +75,13 @@ public class ListType extends PanelType{
         return colsMax;
     }
     
-    public Object[][] getData() {
-        return data;
+    public String getData() {
+        return sData;
     }
     
     @Override
     public Object clone() throws CloneNotSupportedException {
         ListType clone = (ListType)super.clone();
-        clone.data = data;
         clone.rowLayout = rowLayout;
         clone.rowsMax = rowsMax;
         clone.colsMax = colsMax;                

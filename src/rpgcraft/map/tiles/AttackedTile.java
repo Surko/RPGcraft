@@ -28,7 +28,7 @@ public class AttackedTile {
         return this.health;
     }
 
-    public ItemLevelType getMaterialType() {
+    public int getMaterialType() {
         return tile.materialType;
     }       
     
@@ -50,5 +50,5 @@ public class AttackedTile {
     
     public int getY() {
         return y;
-    }
+    }        
 }

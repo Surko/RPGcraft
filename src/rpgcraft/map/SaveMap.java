@@ -225,8 +225,7 @@ public class SaveMap  {
                 _lcurrent = 0; 
             } else {
                 _xcurrent = e.getRegX();
-                _ycurrent = e.getRegY();
-                _lcurrent = e.getLevel();
+                _ycurrent = e.getRegY();                
             }
             
             for (int i = 0; i < numberOfChunks; i++) {
@@ -250,8 +249,8 @@ public class SaveMap  {
             yPixels = e.getYPix() & 511;
 
             if (stat) {            
-                xCoor = ""+e.getXPix();
-                yCoor = ""+e.getYPix();
+                xCoor =""+e.getXPix();
+                yCoor =""+e.getYPix();
             }  
         }
         
@@ -269,7 +268,9 @@ public class SaveMap  {
             }
         }
         
-        if (!entityRemove.isEmpty()) entities.remove(entityRemove.pop());
+        if (!entityRemove.isEmpty()) {
+            entities.remove(entityRemove.pop());
+        }
     }
     
     private void updateLighting() {
@@ -292,7 +293,9 @@ public class SaveMap  {
                 }            
         }
             
-        if (!partRemove.isEmpty()) particles.remove(partRemove.pop());
+        if (!partRemove.isEmpty()) {
+            particles.remove(partRemove.pop());
+        }
     }
     
     
@@ -328,12 +331,17 @@ public class SaveMap  {
     
     private void paintEntitiesParticles(Graphics g) {  
         g.translate(width /2, height/2);
-        for (Entity e : entities) {
-           if (e instanceof Player) {
-                g.drawImage(e.getTypeImage(), 0, 0, null);
-                continue;
-            }       
-           g.drawImage(e.getTypeImage(), e.getXPix()- player.getXPix(), e.getYPix() - player.getYPix(),  null);
+        for (Entity e : entities) {   
+           if (e.getLevel() == _lcurrent) {
+               if (e instanceof Player) {                
+                    g.drawImage(e.getTypeImage(), 0, 0, null);
+                    continue;
+               }
+               int x = e.getXPix() - player.getXPix();
+               int y = e.getYPix() - player.getYPix();
+               if (Math.abs(x) < (player.getLightRadius() << 5) && (Math.abs(y) < (player.getLightRadius() << 5)))
+                   g.drawImage(e.getTypeImage(), x, y,  null);
+           }
         }
         
         try {
@@ -358,7 +366,8 @@ public class SaveMap  {
         if  (xCoor == null) {
             g.drawString(StringResource.getResource("_mplayer"), 0, height-50);
         } else {
-            g.drawString("x : " + xCoor + "\n y : " + yCoor , width-100, height-50);
+            g.drawString("x : " + xCoor + " y : " + yCoor , width-125, height-50);
+            g.drawString("ViewZ : " + _lcurrent + " PlayerZ : " + player.getLevel(), width - 125, height - 25);
         }
     }    
     
@@ -380,7 +389,7 @@ public class SaveMap  {
         
         for (int i = 0 ; i< numberOfChunks; i++) {
             for (int j = 0; j< numberOfChunks; j++) {
-                if (_chunks[i][j]==null) {
+                if (_chunks[j][i]==null) {
                     continue;
                 }                                
                 
@@ -409,9 +418,10 @@ public class SaveMap  {
                     continue;
                 }
                 
-                _layer = _chunks[i][j].getLayer(_lcurrent);      
+                _layer = _chunks[j][i].getLayer(_lcurrent);                 
                 for (int _i = startX; _i< endX; _i++) {
                     for (int _j = startY; _j< endY; _j++) {  
+                        //System.out.print(_layer[_i][_j]);
                         toDraw = tiles.get(_layer[_i][_j]);
                         if (toDraw == null) {
                             continue;
@@ -540,6 +550,7 @@ public class SaveMap  {
             this.player = (Player) e;                 
             this.player.setHandling(input);
             entities.add(e);
+            _lcurrent = e.getLevel();
             return true;            
         }
         
@@ -577,7 +588,7 @@ public class SaveMap  {
         for (int k=0;k<Chunk.getDepth();k++) {
             for (int i=0;i<Chunk.getSize();i++) {
                 for (int j=0;j<Chunk.getSize();j++) {
-                    if (j % 2 == 0){
+                    if (j >8){
                         sk[k][i][j] = 2;
                     } else {
                         sk[k][i][j] = 1;
@@ -600,19 +611,23 @@ public class SaveMap  {
         }
         
         if (input.clickedKeys.contains(input.stat.getKeyCode())) {
-            stat = !stat;
-            input.clickedKeys.remove(input.stat.getKeyCode());
+            stat = !stat;            
         }        
         
         if (input.clickedKeys.contains(input.particles.getKeyCode())) {
-            particle = !particle;
-            input.clickedKeys.remove(input.particles.getKeyCode());
+            particle = !particle;            
         }
         
         if (input.clickedKeys.contains(input.scaling.getKeyCode())) {
             scaleable = !scaleable;
-            setWidthHeight(game.getWidth(), game.getHeight());
-            input.clickedKeys.remove(input.scaling.getKeyCode());
+            setWidthHeight(game.getWidth(), game.getHeight());            
+        }
+        
+        if (input.clickedKeys.contains(input.levelUp.getKeyCode())) {
+            _lcurrent++;
+        }
+        if (input.clickedKeys.contains(input.levelDown.getKeyCode())) {
+            _lcurrent--;
         }
     }
 

@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import rpgcraft.effects.Effect;
+import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.graphics.particles.BarParticle;
 import rpgcraft.graphics.particles.TextParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
@@ -171,13 +172,19 @@ public class MovingEntity extends Entity {
     }
     
     private void reinitialize() {
-        movingEntitySprites = res.getEntitySprites();
+        this.movingEntitySprites = res.getEntitySprites();
         this.id = res.getId();
         this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
         this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
         this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
         this.maxPower = new Double(24);
         this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));
+        
+        if (activeItem == this) {
+            levelType = ItemLevelType.HAND;
+        } else if (activeItem != null) {
+            levelType = activeItem.levelType;
+        }
     }
     
     /**
@@ -434,19 +441,19 @@ public class MovingEntity extends Entity {
         
             if ((activeItem == this)||(activeItem.canAttack())) {
                 if (spriteType == Type.UP) {
-                    interactWith(xPix - 8, yPix, xPix + 24, yPix-activeItem.attackRadius, modifier);                
+                    interactWith(xPix , yPix, xPix, yPix-activeItem.attackRadius, modifier);                
                     return;                    
                 }
                 if (spriteType == Type.DOWN) {
-                    interactWith(xPix - 8, yPix + activeItem.attackRadius, xPix + 24, yPix, modifier);                
+                    interactWith(xPix, yPix + activeItem.attackRadius, xPix, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.RIGHT) {
-                    interactWith(xPix, yPix + 24, xPix + activeItem.attackRadius, yPix, modifier);                
+                    interactWith(xPix, yPix, xPix + activeItem.attackRadius, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.LEFT) {
-                    interactWith(xPix-activeItem.attackRadius, yPix + 24, xPix, yPix, modifier);  
+                    interactWith(xPix-activeItem.attackRadius, yPix, xPix, yPix, modifier);  
                     return;
                 }
             }
@@ -495,12 +502,16 @@ public class MovingEntity extends Entity {
         
         Chunk chunk = map.chunkPixExist(xTile, yTile);
         int x = xTile >> 5, y = yTile >> 5;
+        if (x < 0) 
+            x = Chunk.getSize() + x;
+        if (y < 0)
+            y = Chunk.getSize() + y;
         Tile tile = map.tiles.get(chunk.getTile(level, x, y));            
         
         if (targetedTile == null) {                    
             targetedTile = new AttackedTile(tile, x, y);            
         } else {
-            if (targetedTile.getOriginTile().equals(tile)) {
+            if (targetedTile.getX() != x || targetedTile.getY() != y) {
                 targetedTile = new AttackedTile(tile, x, y);
             }           
         }
@@ -523,17 +534,8 @@ public class MovingEntity extends Entity {
         }
     }
     
-    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {                
-        
-        if ((levelType.getValue() & tile.getMaterialType().getValue()) > 0) {
-            if (tile.hit(damage * modifier) <= 0) {
-                chunk.destroyTile(level, tile.getX(), tile.getY());
-                return true;
-            }
-            return true;
-        } 
-        return false;
-        
+    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {                        
+        return false;        
     }
     
     

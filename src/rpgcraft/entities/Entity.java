@@ -370,8 +370,8 @@ public abstract class Entity implements Externalizable {
         if (yGo > 0) {
             ydirModifier = 24;
         }
-        int x0 = xPix + xGo + xdirModifier;
-        int y0 = yPix + yGo + ydirModifier;
+        int x0 = xPix + xGo;
+        int y0 = yPix + yGo;
         
         // ziskanie regionalnej pozicie x a y(chunk v smere pohybe) 
         int regX = x0 >> 9;
@@ -381,6 +381,7 @@ public abstract class Entity implements Externalizable {
             reload = true;
             Chunk chunk = map.chunkPixExist(regX, regY);
             if (chunk != null) {
+                System.out.println(actualChunk);
                 actualChunk = chunk;
             } else {
                 return false;
@@ -415,7 +416,7 @@ public abstract class Entity implements Externalizable {
             }
         }
 
-        calibratePix(x0 - xdirModifier, y0 - ydirModifier);
+        calibratePix(x0, y0);
         return true;                
     }
     

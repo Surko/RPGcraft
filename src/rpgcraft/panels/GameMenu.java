@@ -216,7 +216,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
         
         // DEBUG PRE PRIDANIE HRACA, vylucitelne s nacitanim mapy
         saveMap.addEntity(player);
-        //map.addEntity(entity); 
+        saveMap.addEntity(entity); 
         //map.addEntity(entity2);
         
         InventoryMenu inventory = new InventoryMenu(player, input, saveMap);

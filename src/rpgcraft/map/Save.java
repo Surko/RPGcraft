@@ -188,7 +188,8 @@ public class Save {
                                                 
                 resultRecords.add(record);
             } catch (IOException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, StringResource.getResource("_msaveinfo"), ex);
+                        
             }
             
         }

@@ -13,16 +13,15 @@ import rpgcraft.resource.TileResource;
  */
 public class BlankTile extends Tile {
 
-    boolean up;
     
-    public BlankTile(Integer id, TileResource res, boolean up) {
+    public BlankTile(Integer id, TileResource res) {
         super(id, res);
-        this.up = up;
     }
 
     @Override
     public void moveInto(Entity e) {
-        
+        e.decLevel();
+        e.updateHeight();
     }
     
     

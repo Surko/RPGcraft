@@ -34,7 +34,9 @@ public class Tile {
  
     public Tile(Integer id, TileResource res) {
         this.id = id;
-        this._sprites = res.getTileSprites();
+        if (res != null) {
+            this._sprites = res.getTileSprites();
+        }
         this.materialType = -1;
     }
     
@@ -79,7 +81,7 @@ public class Tile {
     
     
     public Image getImage() {
-        return _sprites.get(0).getSprite();
+        return _sprites == null ? null : _sprites.get(0).getSprite();
     }
 
     public void moveInto(Entity e) {

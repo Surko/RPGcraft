@@ -21,6 +21,7 @@ import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
+import rpgcraft.map.tiles.BlankTile;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource.EffectEvent;
 import rpgcraft.resource.EntityResource;
@@ -304,6 +305,14 @@ public abstract class Entity implements Externalizable {
         this.actualChunk = chunk;
     }
     
+    public void decLevel() {
+        this.level--;
+    }
+    
+    public void incLevel() {
+        this.level++;
+    }
+    
     public double getHealth() {
         return health;
     }
@@ -376,30 +385,36 @@ public abstract class Entity implements Externalizable {
         // ziskanie regionalnej pozicie x a y(chunk v smere pohybe) 
         int regX = x0 >> 9;
         int regY = y0 >> 9;
-        if (actualChunk == null) return false;
-        if ((actualChunk.getX() != regX)||(actualChunk.getY() != regY)) {  
-            reload = true;
-            Chunk chunk = map.chunkPixExist(regX, regY);
-            if (chunk != null) {
-                System.out.println(actualChunk);
-                actualChunk = chunk;
-            } else {
-                return false;
-            }
+        if (actualChunk == null) return false;                        
+        
+        Chunk chunk = actualChunk;
+        if ((actualChunk.getX() != regX)||(actualChunk.getY() != regY)) {              
+            actualChunk = map.chunkPixExist(regX, regY);
         }
-        
-                       
-        Tile tile = map.tiles.get(actualChunk.getTile(level, x0 >> 5, y0 >> 5));
-        
-        //debugCoordinateswithTiles(x0, y0, tile);        
-        //debugCoordinateswithTiles(xx, yy, tile);
-        
-        // skusa pohyb do prislusnej strany a vykona taku akciu 
-        // ktora je definovana pri dlazdici
-        tile.moveInto(this);        
-        // ked hrac alebo entita obsahuje dlazdicu na prislusnej strany 
-        // v nepriechodnych dlazdiciach tak sa nepohne
-        if (impassableTiles.contains(tile.getId())) { return false; }
+        if (actualChunk != null) {            
+            Tile tile = map.tiles.get(actualChunk.getTile(level, x0 >> 5, y0 >> 5));
+
+            //debugCoordinateswithTiles(x0, y0, tile);        
+            //debugCoordinateswithTiles(xx, yy, tile);
+
+            // ked hrac alebo entita obsahuje dlazdicu na prislusnej strany 
+            // v nepriechodnych dlazdiciach tak sa nepohne
+            System.out.println(tile);
+            if (impassableTiles.contains(tile.getId())) { 
+                actualChunk = chunk;
+                return false; 
+            }
+
+            // skusa pohyb do prislusnej strany a vykona taku akciu 
+            // ktora je definovana pri dlazdici
+            tile.moveInto(this);
+
+            reload = true;
+
+        } else {
+            return false;
+        }        
+                                       
         
         for (Entity e : map.getEntities()) {
             
@@ -418,6 +433,12 @@ public abstract class Entity implements Externalizable {
 
         calibratePix(x0, y0);
         return true;                
+    }
+    
+    public void updateHeight() {
+        Tile tile = map.tiles.get(actualChunk.getTile(level, xPix >> 5, yPix >> 5));
+        
+        tile.moveInto(this);
     }
     
     /**
@@ -516,6 +537,8 @@ public abstract class Entity implements Externalizable {
         if (activeItem == this) {
             out.writeInt(-1);
         }
+        out.writeInt(group);
+        out.writeInt(level);
         out.writeDouble(health);        
         out.writeObject(intStats);
         out.writeObject(doubleStats);
@@ -540,7 +563,8 @@ public abstract class Entity implements Externalizable {
         } else {
             this.activeItem = inventory.get(activeitem);
         }
-        
+        this.group = in.readInt();
+        this.level = in.readInt();
         this.health = in.readDouble();
         this.intStats = (HashMap<Stat, Integer>) in.readObject();
         this.doubleStats = (HashMap<Stat, Double>) in.readObject();

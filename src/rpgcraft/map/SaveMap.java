@@ -68,7 +68,7 @@ public class SaveMap  {
     
     private final Logger LOG = Logger.getLogger(getClass().getName());
     
-    public HashMap<Integer,Tile> tiles = new HashMap<>();
+    public HashMap<Integer,Tile> tiles;
     
     protected String saveName;
     

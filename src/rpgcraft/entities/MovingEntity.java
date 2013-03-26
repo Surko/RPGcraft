@@ -24,6 +24,7 @@ import rpgcraft.handlers.InputHandle;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.AttackedTile;
+import rpgcraft.map.tiles.BlankTile;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.EffectResource;
 import rpgcraft.resource.EffectResource.EffectEvent;
@@ -294,6 +295,7 @@ public class MovingEntity extends Entity {
     
     public void trySpawn() {
         this.actualChunk = map.chunkXYExist(xPix >> 9, yPix >> 9);
+        this.level = 64;
     }
     
     @Override
@@ -508,6 +510,8 @@ public class MovingEntity extends Entity {
             y = Chunk.getSize() + y;
         Tile tile = map.tiles.get(chunk.getTile(level, x, y));            
         
+        if (tile instanceof BlankTile) return 0;
+        
         if (targetedTile == null) {                    
             targetedTile = new AttackedTile(tile, x, y);            
         } else {
@@ -572,7 +576,9 @@ public class MovingEntity extends Entity {
     protected boolean updateCoordinates() {                
         
         knockMove();
-                                
+        
+        
+        
         if ((doublexGo != 0d)||(doubleyGo != 0d)) {
             int ixGo = 0;
             int iyGo = 0;

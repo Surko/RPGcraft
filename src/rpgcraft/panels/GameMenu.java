@@ -119,6 +119,10 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return saveMap;
     }
     
+    public Image getGameImage() {
+        return screenImage;
+    }
+    
     // </editor-fold>     
     
     // <editor-fold defaultstate="collapsed" desc=" Settery ">

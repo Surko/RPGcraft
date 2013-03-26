@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
@@ -32,6 +33,7 @@ public class SwingImagePanel extends SwingComponent{
     protected Color backColor;
     protected int[] rpos;
     protected PanelType pType;
+    protected boolean gamePanel;
     
     protected SwingImagePanel() {
     }
@@ -39,12 +41,20 @@ public class SwingImagePanel extends SwingComponent{
     public SwingImagePanel(Container container, AbstractMenu menu) {
         super(container, menu);
         if (container != null) {
-                this.backImage = container.getResource().getBackgroundTextureId() != null ?
-                        ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
-                        null;        
-                this.backColor = container.getResource().getBackgroundColorId() != null ? 
-                        Colors.getColor(container.getResource().getBackgroundColorId()) :
-                        Color.BLACK;    
+            String sbackImage = container.getResource().getBackgroundTextureId();
+            if (sbackImage != null && sbackImage.equals("GAME")) {
+                if (menu instanceof GameMenu) {
+                    this.backImage=  null;
+                    this.gamePanel = true;
+                }
+            } else {
+            this.backImage = sbackImage != null ?
+                    ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
+                    null;        
+            }
+            this.backColor = container.getResource().getBackgroundColorId() != null ? 
+                    Colors.getColor(container.getResource().getBackgroundColorId()) :
+                    Colors.getColor(Colors.transparentColor);    
             
         }
     }
@@ -54,23 +64,50 @@ public class SwingImagePanel extends SwingComponent{
         if (componentContainer != null) {
             super.setBackground(backColor);
         } else {
-            super.setBackground(color);
+            super.setBackground(color);            
         }
     }
     
+    /**
+     * Metoda reconstructComponent ma za ulohu zrekonstruovat komponentu podla 
+     * resource z ktoreho komponenta cerpa. Na ziskanie resource potrebujeme aby
+     * componentContainer nebol null. Ostatne casti su rovnake ako v konstruktore
+     * @see SwingImagePanel#SwingImagePanel(rpgcraft.panels.components.Container, rpgcraft.panels.AbstractMenu) 
+     */
     @Override
     protected void reconstructComponent() {        
         if (componentContainer != null) {
-            this.backImage = componentContainer.getResource().getBackgroundTextureId() != null ?
+            String sbackImage = componentContainer.getResource().getBackgroundTextureId();
+            if (sbackImage != null && sbackImage.equals("GAME")) {
+                if (menu instanceof GameMenu) {
+                    this.gamePanel = true;                    
+                }
+                this.backImage=  null;
+            } else {
+            this.backImage = sbackImage != null ?
                     ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
                     null;        
+            }
             this.backColor = componentContainer.getResource().getBackgroundColorId() != null ? 
                     Colors.getColor(componentContainer.getResource().getBackgroundColorId()) :
-                    Color.BLACK;    
+                    Colors.getColor(Colors.transparentColor);    
+            
         }
         this.changed = true;
     }
     
+    /**
+     * Override metoda paintComponent s parametrom <b>Graphics</b> (graficky kontext pre komponentu)
+     * prekresluje komponentu tak ze najprv vyplni celu komponentu farbou <b>backColor</b> zadanou
+     * pri konstrukcii komponenty. Nasledne skontroluje ci je <b>backImage</b> prazdny kontajner s obrazkom. <br>
+     * - Ked nie tak bol obrazok zadany v xml subore s resource. Ked doslo k zmene komponenty
+     * tak prepocitame pozicie obrazku a vykreslime obrazok podla tychto pozicii. <br>
+     * - Ked ano tak neexistuje bud ziadny obrazok => cierne pole, alebo doslo k pripadu,
+     * ze vykreslujeme samotnu hru (viz. Konstruktor). Na vykreslenie hry pouzivame 
+     * metodu paintMenu definovanu v menu v ktorom sa komponent nachadza. <br>
+     * Pri oznaceni komponenty bude cely graficky kontext prekresleny tmavsim odstienom farby.
+     * @param g Graficky kontext komponenty
+     */
     @Override
     public void paintComponent(Graphics g) {       
         // Kontrola Threadu !!
@@ -87,6 +124,9 @@ public class SwingImagePanel extends SwingComponent{
             }
         
             g.drawImage(backImage, rpos[0], rpos[1], null); 
+        } else {
+            if (gamePanel)
+                menu.paintMenu(g);
         }
         
         if (isSelected) {

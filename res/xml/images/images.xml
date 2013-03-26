@@ -52,7 +52,7 @@
 		  <id>player-stat</id>
 		  <globalw>382</globalw>
 		  <globalh>132</globalh>  
-			<back-texture>uiblank.png</back-texture>
+			<back-texture>game/uiblank.png</back-texture>
       <trans-x></trans-x>
       <trans-y></trans-y>		
 			<x>0</x>

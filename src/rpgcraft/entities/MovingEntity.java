@@ -169,7 +169,8 @@ public class MovingEntity extends Entity {
         this.attackRadius = intStats.get(Stat.ATKRADIUS);
         this.concentration = 0d;
         this.health = maxHealth;
-        this.group = 1;        
+        this.group = 1;  
+        this.damage = 5;
     }
     
     private void reinitialize() {
@@ -532,6 +533,7 @@ public class MovingEntity extends Entity {
             map.addParticle(new TextParticle("Miss", 24, -24));
             return true;
         } else {
+            System.out.println(modifier);
             e.hit(damage * modifier - e.defenseP, spriteType);            
             e.addAfterEffectsFrom(this, activeItem);
             return true;

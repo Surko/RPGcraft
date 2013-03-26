@@ -113,18 +113,40 @@ ASSIGN(ahoj,a)</action>
   </element>
   
   <element>
-    <id>gameMenu</id>
+  <id>gameMenu</id>
     <type>PANEL</type>
     <layout>
       <layout-type>INGAME</layout-type>
-    </layout>
+      <width>FILL_PARENT</width>
+      <height>FILL_PARENT</height>
+    </layout>   
     <background>
-      <background-color>Black</background-color>
-      <orientation>0</orientation>
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
-      <image-position>CENTER</image-position>
-    </background>    
+      <background-image>GAME</background-image>
+    </background>     
+    <elements>
+      <element>
+      <id>playerstats</id>
+      <type>PANEL</type>      
+      <background>
+        <background-image>player-stat</background-image>
+        <image-width>FILL</image-width>
+        <image-height>FILL</image-height>
+      </background>
+      </element>
+      <element>
+      <id>playerh</id>
+      <type>BAR</type>
+      <layout>        
+        <width>100</width>
+        <height>20</height>
+      </layout>    
+      <background>
+        <background-color>healthColor</background-color>
+      </background>
+      <data>HEALTH/MAXHEALTH</data>
+      <position>BOTTOM</position>
+      </element>
+    </elements>        
   </element>
   
   <element>

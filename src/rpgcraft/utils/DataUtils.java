@@ -16,10 +16,13 @@ import java.util.logging.*;
 import rpgcraft.GamePane;
 import rpgcraft.MainGameFrame;
 import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.graphics.inmenu.Menu;
 import rpgcraft.map.Save;
 import rpgcraft.panels.AbstractMenu;
+import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
+import rpgcraft.panels.components.swing.SwingBar;
 import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
@@ -37,6 +40,12 @@ public class DataUtils {
     
     public enum Data {
         SAVE
+    }        
+    
+    public enum DataValues {
+        HEALTH,
+        MAXHEALTH,
+        STRENGTH
     }
     
     private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());
@@ -315,95 +324,67 @@ public class DataUtils {
                 parent.getComponent().removeComponent(src.getComponent());
             }
         }
+        
         switch (resource.getUiType()) {
-            case BUTTON : {                      
-                 switch (resource.getLayoutType()) {
-                    case INGAME : {
-                        // Vytvorenie tlacidla z resource nachadzajuci sa v kontajnery cont a v tomto menu.
-                        c = new SwingImageButton(src, menu);
-                        c.addActionListeners(resource.getMouseActions());
-                        c.addActionListeners(resource.getKeyActions());
-                        src.setComponent(c); 
-                    } break;
-                    default : {                                                          
-                        c = new SwingImageButton(src, menu);
-                        c.addActionListeners(resource.getMouseActions());
-                        c.addActionListeners(resource.getKeyActions());
-                        src.setComponent(c);                             
-                        parent.getComponent().addComponent(c,resource.getConstraints());                                                        
-                    }
-                }
-            } break;
-            case PANEL : {
-                switch (resource.getLayoutType()) {
-                    case INGAME : {                                   
-                    }                 
-                    default : {                           
-                        c = new SwingImagePanel(src, menu);
-                        c.addActionListeners(resource.getMouseActions());   
-                        c.addActionListeners(resource.getKeyActions()); 
-                        src.setComponent(c);                             
-                        parent.getComponent().addComponent(c,resource.getConstraints());                         
-                    } break;
-                }
-            } break;
-            case TEXT : {                
-                    switch (resource.getLayoutType()) {
-                        case INGAME : {                            
-                            c = new SwingText(src, menu); 
-                            src.setComponent(c);
-                            parent.getComponent().addComponent(c);
-                        } break;
-                        default : {                           
-                            c = new SwingText(src, menu);
-                            c.addActionListeners(resource.getMouseActions());   
-                            c.addActionListeners(resource.getKeyActions()); 
-                            src.setComponent(c);
-                            parent.getComponent().addComponent(c,resource.getConstraints()); 
-                        } break;
-                    }
-            } break;
-            case EDITTEXT : {                
-                    switch (resource.getLayoutType()) {
-                        case INGAME : {                            
-                            c = new SwingInputText(src, menu); 
-                            src.setComponent(c);
-                            parent.getComponent().addComponent(c);
-                        } break;
-                        default : {                           
-                            c = new SwingInputText(src, menu);
-                            c.addActionListeners(resource.getMouseActions());   
-                            c.addActionListeners(resource.getKeyActions()); 
-                            src.setComponent(c);
-                            parent.getComponent().addComponent(c,resource.getConstraints()); 
-                        } break;
-                    }
-            } break;
-            case IMAGE : {
-
-            } break;
-            case LIST : {
-                switch (resource.getLayoutType()) {
-                    case INGAME : {                              
-
-                    } break;                    
-                    default : {                        
-                        c = new SwingImageList(src, menu); 
-                        c.addActionListeners(resource.getMouseActions());   
-                        c.addActionListeners(resource.getKeyActions()); 
-                        src.setComponent(c);                            
-                        parent.getComponent().addComponent(c,resource.getConstraints());                             
-                    } break;
-                }
-            }
+            case BAR : c = new SwingBar(src, menu);
+                break;
+            case BUTTON : c = new SwingImageButton(src, menu);
+                break;
+            case EDITTEXT : c = new SwingInputText(src, menu);
+                break;
+            case LIST : c = new SwingImageList(src, menu);
+                break;
+            case PANEL : c = new SwingImagePanel(src, menu);
+                break;
+            case TEXT : c = new SwingText(src, menu);
+                break;                        
         }
         
+        if (c != null) {            
+            c.addActionListeners(resource.getMouseActions());   
+            c.addActionListeners(resource.getKeyActions()); 
+            src.setComponent(c);
+            
+            switch (resource.getLayoutType()) {
+                case INGAME : parent.getComponent().addComponent(c);
+                    break;
+                default : parent.getComponent().addComponent(c,resource.getConstraints());  
+                    break;                    
+            }
+             
+        }
+        
+        
+                        
         // Ked je parent nahodou GamePane tak pri kazdej initializacii v AbstractMenu len pridavame
         // dalsi kontajner => treba sa ich zbavovat po kazdom prehodeni menu => Nastavenie v GamePane#setMenu.
         if (src != null) {
             parent.addContainer(src);
         }
         return src;
+    }        
+    
+    public static Object getData(Component c, DataValues dataValue) {
+        
+        switch (dataValue) {
+            case HEALTH : {
+                Menu menu = c.getOriginMenu();
+                if (menu instanceof GameMenu) {
+                    return ((GameMenu)menu).getMap().player.getHealth();
+                }
+            } break;
+            case MAXHEALTH : {
+                Menu menu = c.getOriginMenu();
+                if (menu instanceof GameMenu) {
+                    return ((GameMenu)menu).getMap().player.getMaxHealth();
+                }
+            } break;    
+            default : return null;
+                
+        }
+        return null;
+        
+        
     }
     
     public static String getValueOfVariable(String var) {
@@ -412,6 +393,6 @@ public class DataUtils {
     
     public static void setValueOfVariable(String val, String var) {
         variables.put(var, val);
-    }
+    }        
     
 }

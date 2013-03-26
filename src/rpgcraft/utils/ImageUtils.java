@@ -152,10 +152,15 @@ public class ImageUtils {
             resize[0] = MathUtils.getImageWidth(img, container, res.getImageWidth());
 
             resize[1] = MathUtils.getImageHeight(img, container, res.getImageHeight());
-
+            if (resize[0] == 0 || resize[1] == 0) {
+                LOG.log(Level.WARNING, StringResource.getResource("_zimage"));
+                return null;
+            }
         } catch (Exception e) {
             new MultiTypeWrn(e, Color.RED, "Problem to parse image lengths",null).renderSpecific(StringResource.getResource("_label_parsingerror"));
         }
+        
+        
         return operateImage(img, o, resize);
                         
     }

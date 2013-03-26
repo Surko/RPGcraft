@@ -18,6 +18,7 @@ import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.panels.*;   
+import rpgcraft.panels.components.swing.SwingBar;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
 import rpgcraft.panels.components.swing.SwingImagePanel;
@@ -109,6 +110,10 @@ public class GamePane extends SwingImagePanel implements Runnable {
         }
         if (c instanceof SwingInputText) {
             System.out.println(parString + " -> edittext: " + c.getLocation()+ "," + c.getSize() + "," + c.isVisible());
+        }
+        
+        if (c instanceof SwingBar) {
+            System.out.println(parString + " -> bar: " + c.getLocation()+ "," + c.getSize() + "," + c.isVisible());
         }
 
         if (c instanceof SwingImagePanel) {  
@@ -379,7 +384,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
         //mFrame.setSize(w, h);
         super.setSize(w, h);
     } 
-    
+
     /**
      * Dokopy nastavi Width a Height hracieho okna. Hlavne vyuzivane pri aktualizovani
      * komponentu do ktoreho kreslime 
@@ -537,11 +542,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
      * Ma za ulohu prekreslit panel podla menu co je vnom aktivovane.      
      */
     @Override
-    public void paintComponent(Graphics g) {        
-        super.paintComponent(g);
-        if (menu != null) {
-            menu.paintMenu(g);  
-        }
+    public void paintComponent(Graphics g) {  
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, pWidth, pHeight);
     }
     // </editor-fold>
         

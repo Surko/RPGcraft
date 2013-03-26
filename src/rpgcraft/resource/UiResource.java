@@ -21,6 +21,7 @@ import rpgcraft.errors.ErrorWrn;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.resource.types.AbstractType;
+import rpgcraft.resource.types.BarType;
 import rpgcraft.resource.types.ButtonType;
 import rpgcraft.resource.types.ImageType;
 import rpgcraft.resource.types.ListType;
@@ -54,7 +55,8 @@ public class UiResource extends AbstractResource<UiResource> {
         TEXT,
         EDITTEXT,
         IMAGE,
-        LIST
+        LIST,
+        BAR
     }
 
     public enum UiPosition {
@@ -319,7 +321,10 @@ public class UiResource extends AbstractResource<UiResource> {
                             } break;                                
                             case IMAGE : {
                                 type = new ImageType(uitype);                                
-                            } break;                               
+                            } break;
+                            case BAR : {
+                                type = new BarType(uitype);
+                            } break;
                         }
                     } else {
                         LOG.log(Level.INFO, StringResource.getResource("_ui_error"), id + ":type");
@@ -572,7 +577,7 @@ public class UiResource extends AbstractResource<UiResource> {
                         String[] param = new String[] {LayoutXML.ROWSMAX, id};
                         LOG.log(Level.INFO, StringResource.getResource("_uparam",param));
                     }
-                } break;  
+                } break;                    
                 case LayoutXML.COLSMAX : {
                     if (type.getUiType() == UiType.LIST) {                          
                         ((ListType)type).setColsMax(eNode.getTextContent());
@@ -580,7 +585,20 @@ public class UiResource extends AbstractResource<UiResource> {
                         String[] param = new String[] {LayoutXML.COLSMAX, id};
                         LOG.log(Level.INFO, StringResource.getResource("_uparam",param));
                     }
-                } break;     
+                } break;
+                case LayoutXML.DATA : {
+                    if (type.getUiType() == UiType.BAR) {
+                        try {
+                            ((BarType)type).setData(eNode.getTextContent());
+                        } catch (Exception ex) {
+                            LOG.log(Level.INFO, StringResource.getResource("_iparam", 
+                                    new String[] {LayoutXML.DATA, type.getUiType().toString()}));
+                        }
+                    } else {
+                        LOG.log(Level.INFO, StringResource.getResource("_rparam", new String[] {
+                            LayoutXML.DATA, type.getUiType().toString()}));
+                    }
+                }
                 default : break;
             }
         }

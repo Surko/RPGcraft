@@ -317,6 +317,10 @@ public abstract class Entity implements Externalizable {
         return health;
     }
     
+    public double getMaxHealth() {
+        return maxHealth;
+    }
+    
     public ItemType getItemType() {
         return itemType;
     }

@@ -304,6 +304,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 cont.getComponent().refresh();
             }
         } else {
+            if (cont.getComponent()!= null)
             cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(),
                     cont.getParentWidth(), cont.getParentHeight());
         }                

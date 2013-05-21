@@ -1,0 +1,10 @@
+<groups>
+
+<group>
+<id>Greetings</id>
+<label>Greetings</label>
+<msgs>id1,id2</msgs>
+</group>
+
+
+</groups>

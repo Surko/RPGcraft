@@ -4,8 +4,8 @@
  */
 package rpgcraft.panels.listeners;
 
-import rpgcraft.graphics.inmenu.Menu;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.graphics.ui.menu.Menu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Cursor;
@@ -25,11 +25,19 @@ public class LoadCreateListener extends Listener {
     Operations op;
     
     public LoadCreateListener(String save) {
-        String[] mainOp = save.split("[(]");
-        this.op = Operations.valueOf(mainOp[0]);
-
-        if (mainOp.length > 1) {            
-            setParams(mainOp[1].substring(0, mainOp[1].length() - 1));        
+        int fstBracket = save.indexOf('(');
+        
+        String params = null;
+        
+        if (fstBracket == -1) {
+            this.op = LoadCreateListener.Operations.valueOf(save);
+        } else {
+            this.op = LoadCreateListener.Operations.valueOf(save.substring(0, fstBracket));
+            params = save.substring(fstBracket);
+        }
+                        
+        if (params != null) {            
+            setParams(params.substring(1, params.length() - 1));        
         }
     }
     
@@ -43,15 +51,18 @@ public class LoadCreateListener extends Listener {
                 Component c = (Component)e.getSource();
 
                 GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
-                gameMenu.loadMapInstance(parsedOp[0]);
+                gameMenu.loadMapInstance(parsedObjects[0]);
                 c.getOriginMenu().setMenu(gameMenu);
             } break;
             case CREATE : {
                 Component c = (Component)e.getSource();
 
                 GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
-                gameMenu.newMapInstance(parsedOp[0]);
-                c.getOriginMenu().setMenu(gameMenu);
+                if (gameMenu.newMapInstance(parsedObjects[0])) {
+                    c.getOriginMenu().setMenu(gameMenu);
+                }
+                 
+                    
             }
         }
 

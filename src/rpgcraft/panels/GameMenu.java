@@ -4,9 +4,12 @@
  */
 package rpgcraft.panels;
 
+import rpgcraft.plugins.AbstractInMenu;
+import rpgcraft.plugins.AbstractMenu;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,8 +21,8 @@ import rpgcraft.entities.MovingEntity;
 import rpgcraft.entities.Player;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
-import rpgcraft.graphics.inmenu.AbstractInMenu;
-import rpgcraft.graphics.inmenu.InventoryMenu;
+import rpgcraft.graphics.ui.menu.InventoryMenu;
+import rpgcraft.graphics.ui.menu.Journal;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.map.Save;
@@ -28,7 +31,8 @@ import rpgcraft.panels.components.Container;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
-import rpgcraft.utils.Framer;
+import rpgcraft.utils.DataUtils;
+import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.ImageUtils;
 
 /**
@@ -49,13 +53,14 @@ public class GameMenu extends AbstractMenu implements Runnable {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">        
     
-    public static final int PAINTING_TYPE = PaintingTypes.PAINTING_INSIDE_REPAINT;
-    
+    public static final int PAINTING_TYPE = PaintingTypes.PAINTING_INSIDE_REPAINT;   
     private static final Logger LOG = Logger.getLogger(GameMenu.class.getName());
     
     // Objekt pre hraca typu Player zdedeny po Entite    
-    public Player player;
-    private AbstractInMenu menu;
+    public MovingEntity player;
+    
+    private AbstractInMenu inMenu;
+    
     private Save save;
     private SaveMap saveMap;
     private Thread buffThread;
@@ -77,7 +82,8 @@ public class GameMenu extends AbstractMenu implements Runnable {
      * @param res Resource podla ktoreho sa urcuje vyzor Menu.
      */
     public GameMenu(UiResource res) {
-        this.res = res;   
+        this.res = res;
+        menuMap.put(res.getId(), this);
     }    
 
     // </editor-fold>
@@ -119,8 +125,40 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return saveMap;
     }
     
+    /**
+     * Metoda vrati nazov tohoto menu. Pod tymto nazvom je toto menu ulozene v 
+     * hashmape <b>menuMap</b>
+     * @return 
+     */
+    @Override
+    public String getName() {
+        return res.getId();
+    }
+    
+    /**
+     * Metoda getImage vrati obrazok/contentImage do ktoreho sme vykreslovali hru.
+     * @return Obrazok tohoto menu.
+     */
     public Image getGameImage() {
         return screenImage;
+    }
+    
+    /**
+     * Vrati sirku pre toto menu = sirka screenImage.
+     * @return Sirka menu
+     */
+    @Override
+    public int getWidth() {
+        return screenImage.getWidth(null);
+    }
+    
+    /**
+     * Vrati vysku pre toto menu = vysku screenImage.
+     * @return Vyska menu
+     */
+    @Override
+    public int getHeight() {
+        return screenImage.getHeight(null);
     }
     
     // </editor-fold>     
@@ -138,10 +176,17 @@ public class GameMenu extends AbstractMenu implements Runnable {
      */
     @Override
     public void setWidthHeight(int w, int h) {        
-        saveMap.setWidthHeight(w, h);             
-        setImageProperties(w, h);
-    }
+        saveMap.setWidthHeight(w, h); 
+        setImageProperties(w, h);  
+        if (inMenu != null) {
+            inMenu.recalculatePositions();
+        }              
+    }        
     
+    /**
+     * Metoda ktora nastavi vysku menu a ostatnych casti v tomto menu volanim metody
+     * setWidthHeight s velkostami z gamePane.
+     */
     public void recalcWidthHeight() {       
         setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
     }
@@ -161,8 +206,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         if (save.loadAndStart(saveName)) {
                                     
             saveMap = save.getSaveMap();
-            saveMap.loadMapAround(0,0);  
             saveMap.initializeTiles();
+            saveMap.loadMapAround(0,0);              
+            player = saveMap.player;
+            
+            InventoryMenu inventory = new InventoryMenu(player, input, this);
+            Journal journal = new Journal(player, input, this);
             
             setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
             
@@ -178,11 +227,51 @@ public class GameMenu extends AbstractMenu implements Runnable {
         
     }
     
+    @Override
+    public void setInMenu(AbstractInMenu inMenu) {        
+        /*
+        if (jammedMenu > 0) {
+            jammedMenu--;
+        } else {
+        this.menu = menu;
+        jammedMenu = 10;                
+        }*/
+        this.inMenu = inMenu;        
+        if (inMenu != null) {
+            inMenu.activate();            
+            inMenu.setVisible(true);
+            inMenu.recalculatePositions();
+        }    
+    }
+    
+    public AbstractInMenu showInMenu(String sMenu) {
+        AbstractInMenu menu = AbstractInMenu.getMenu(sMenu);
+        setInMenu(menu);
+        return menu;
+    }
+    
+    public Journal showJournal() {
+        Journal journal = Journal.getJournalMenu();
+        setInMenu(journal);
+        return journal;
+    }
+    
+    public InventoryMenu showInventory() {
+        InventoryMenu inventory = InventoryMenu.getInventoryMenu();
+        setInMenu(inventory);
+        return inventory;
+    }
+    
     /**
      * Tato metoda zatial zdruzuje aj funkcie nacitania mapy aj vytvorenie novej mapy.
      * Obidve funkcie sucasne su vylucitelne. Preto prepinam vzdy iba jednu.
      */
-    public synchronized void newMapInstance(String saveName) {             
+    public synchronized boolean newMapInstance(String saveName) {             
+        
+        // Ked existuje save tak nic nevytvori
+        if (Save.saveExist(saveName)) {            
+            return false;
+        }                
         
         this.save = new Save(saveName,gamePane, input);        
         
@@ -196,36 +285,44 @@ public class GameMenu extends AbstractMenu implements Runnable {
         save.createNewSave();
         
         saveMap = save.getSaveMap();
-        saveMap.loadMapAround(0,0);  
         saveMap.initializeTiles();
+        saveMap.loadMapAround(0,0);          
         
-        // Testovacie riadky na vytvorenie dvoch entit.
+        setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
+        
+        // Testovacie riadky na vytvorenie dvoch entit. Tieto prikazy mozu byt v samostatnej metode na inicializaciu. Napriklad pri update
+        // a kontrolovanie ci uz bolo inicializovane. v load map instance taketo prikazy niesu a preto vzdy budu initialized na true pri load.
         MovingEntity entity = new MovingEntity("Zombie", saveMap, EntityResource.getResource("Zombie"));        
         entity.initialize();        
         entity.trySpawn();
         MovingEntity entity2 = new MovingEntity("Zombie", saveMap, EntityResource.getResource("Zombie"));        
-        entity2.initialize(); 
+        entity2.initialize();         
         entity2.trySpawn();
         //entity.setImpassableTile(1); 
-        player = new Player("Surko", saveMap, EntityResource.getResource("_player"));
-        player.initialize();
-        player.trySpawn();
-        player.setHandling(input);
-        player.setLightRadius(6);
-        player.setSound(128);
+        Player _player = new Player("Surko", saveMap, EntityResource.getResource("_player"));
+        _player.initialize();
+        _player.trySpawn();
+        _player.setHandling(input);
+        _player.setLightRadius(6);
+        _player.setSound(128);
+        _player.addQuest("fetch");
+        player = _player;
         //player.setImpassableTile(1);
         
         Item item = new Item("Healing Potion",EntityResource.getResource("healing1"));
-        player.getInventory().add(item);
+        Item item2 = new Item("Healing Potion", EntityResource.getResource("healing1"));                
+        player.addItem(item);
+        player.addItem(item);
+        player.addItem(item);
+        player.addItem(item);
         
         // DEBUG PRE PRIDANIE HRACA, vylucitelne s nacitanim mapy
         saveMap.addEntity(player);
         saveMap.addEntity(entity); 
         //map.addEntity(entity2);
-        
-        InventoryMenu inventory = new InventoryMenu(player, input, saveMap);
-        
-        setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
+                
+        InventoryMenu inventory = new InventoryMenu(player, input, this);
+        Journal journal = new Journal(player, input, this);               
         
         if (saveMap.player == null) {
             LOG.log(Level.WARNING, StringResource.getResource("_mplayer"));
@@ -236,7 +333,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
             buffThread.start();
         }
         
-        
+        return true;
     }
     // </editor-fold>
     
@@ -250,29 +347,53 @@ public class GameMenu extends AbstractMenu implements Runnable {
     
     @Override
     public void inputHandling() {
+        super.inputHandling();
         save.inputHandling();
         
-        if (input.clickedKeys.contains(input.escape.getKeyCode())) {
-            save.saveAndQuit(ImageUtils.makeThumbnailImage(screenImage));            
-            setMenu(AbstractMenu.getMenuByName("mainMenu"));
-            save = null;
-            saveMap = null;
-        }                
+        if (inMenu != null) {
+            inMenu.inputHandling();
+        } else {        
+            if (input.clickedKeys.contains(input.inventory.getKeyCode())) {
+                showInventory();
+            }
+            
+            if (input.clickedKeys.contains(input.quest.getKeyCode())) {
+                showJournal();
+            }
+
+            // Ulozenie hry pri stlaceni ESC
+            if (input.clickedKeys.contains(input.escape.getKeyCode())) {
+                save.saveAndQuit(ImageUtils.makeThumbnailImage(screenImage));            
+                setMenu(AbstractMenu.getMenuByName("mainMenu"));
+                save = null;
+                saveMap = null;
+            } 
+        }
     }
         
     @Override
+    public void mouseHandling(MouseEvent e) {
+        if (inMenu != null) {
+            inMenu.mouseHandling(e);
+        }
+    }
+    
+    @Override
     public synchronized void update() {
         super.update();
-        if (Framer.tick > 2500) {
+        if (MainUtils.TICK > 2500) {
             if (saveMap.getGameTime()==24) {
                 saveMap.setGameTime(0);
             }
             saveMap.increaseGameTime();
             saveMap.setLightState(true);
-            Framer.tick = 0;
+            MainUtils.TICK = 0;
         }          
         input.keyUpdates();
         saveMap.update();
+        if (inMenu != null) {
+            inMenu.update();
+        }
         hasToRepaint = true;
         
     }
@@ -334,6 +455,9 @@ public class GameMenu extends AbstractMenu implements Runnable {
         
         if ((PAINTING_TYPE == 0)&&(screenImage != null)&&(saveMap != null)) {
             saveMap.paint(screenImage.getGraphics());
+            if (inMenu != null) {
+                inMenu.paintMenu(screenImage.getGraphics());
+            }
         }
                         
         g.drawImage(screenImage, 0, 0, null);        

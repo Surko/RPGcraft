@@ -4,21 +4,10 @@
  */
 package rpgcraft.panels;
 
+import rpgcraft.plugins.AbstractMenu;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.JPanel;
-import rpgcraft.GamePane;
-import rpgcraft.graphics.Colors;
-import rpgcraft.graphics.ImageOperation;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.resource.StringResource;
-import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
-import rpgcraft.utils.ImageUtils;
 
 /**
  * Trieda AboutPanel vytvori okno s informaciami o hre
@@ -27,7 +16,6 @@ import rpgcraft.utils.ImageUtils;
  */
 
 public class AboutMenu extends AbstractMenu {
-    private Image img;
     int x;
     int y;
     
@@ -36,15 +24,14 @@ public class AboutMenu extends AbstractMenu {
      * @param iFile 
      */
     public AboutMenu(UiResource res) {
-        this.res = res;
-        img = loadResourceImage(ImageResource.getResource("about"), 
-                StringResource.getResource("_mimage") + getClass().getName());     
+        this.res = res;  
+        menuMap.put(res.getId(), this);
     }  
 
     @Override
     public void initialize(rpgcraft.panels.components.Container gameContainer, InputHandle input) {
         super.initialize(gameContainer, input);
-        menuMap.put("aboutMenu", this);
+        
     }
     
     
@@ -63,10 +50,10 @@ public class AboutMenu extends AbstractMenu {
     @Override
     public void setWidthHeight(int w, int h) {
         this.x = w;
-        this.y = y;
+        this.y = h;
     }   
 
     @Override
     public void paintMenu(Graphics g) {        
-    }
+    }   
 }

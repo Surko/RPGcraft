@@ -10,7 +10,10 @@ package rpgcraft.map.chunks;
  */
 public class ChunkContent {
     
-    private int[][][] chunkArray;
+    private static final int[][] BLANKLAYER = new int[Chunk.getSize()][Chunk.getDepth()];
+
+    
+    private int[][][] chunkArray, metaData;
     private final int size;
 
     
@@ -20,10 +23,12 @@ public class ChunkContent {
         int depth = Chunk.getDepth();
         this.size = width * height * depth;
         chunkArray = new int[depth][width][height];
+        metaData = new int[depth][width][height];
     }
     
-    public ChunkContent(int[][][] chunkArray) {        
+    public ChunkContent(int[][][] chunkArray, int[][][] metaData) {        
         this.chunkArray = chunkArray;
+        this.metaData = metaData;
         this.size = chunkArray.length;
     }
     
@@ -35,8 +40,7 @@ public class ChunkContent {
         return chunkArray;
     }
     
-    public int getIntOnPosition(int d, int w, int h) {
-        
+    public int getIntOnPosition(int d, int w, int h) {        
         return chunkArray[d][w][h];
     }
     
@@ -44,7 +48,25 @@ public class ChunkContent {
         return chunkArray[d][w][h] = value;
     } 
     
-    public int[][] getLayer(int layer) {        
+    public int getMetaData(int d, int w, int h) {        
+        return metaData[d][w][h];
+    }
+    
+    public int setMetaData(int d, int w, int h, int value) {
+        return metaData[d][w][h] = value;
+    }
+    
+    public int[][] getMetaDataLayer(int layer) {
+        if (layer >= Chunk.getDepth() || layer < 0) {
+            return BLANKLAYER;
+        }
+        return metaData[layer];
+    }
+    
+    public int[][] getLayer(int layer) {  
+        if (layer >= Chunk.getDepth() || layer < 0) {
+            return BLANKLAYER;
+        }
         return chunkArray[layer];
     }
 }

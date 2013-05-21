@@ -6,6 +6,7 @@ package rpgcraft.resource;
 
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -17,6 +18,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rpgcraft.errors.MissingFile;
 import rpgcraft.graphics.Colors;
+import rpgcraft.graphics.ImageOperation;
 import rpgcraft.manager.PathManager;
 import rpgcraft.xml.ImagesXML;
 import rpgcraft.xml.XmlReader;
@@ -27,6 +29,10 @@ import rpgcraft.xml.XmlReader;
  */
 public class ImageResource extends AbstractResource<ImageResource>{        
     private static HashMap<String, ImageResource> imageResources = new HashMap<>();
+    
+    public interface ImageLengths {
+        public static final String ORIG = "ORIG";
+    }
     
     private String id;
     
@@ -59,34 +65,67 @@ public class ImageResource extends AbstractResource<ImageResource>{
                     
                 }   break;
                 case ImagesXML.BTEXTURE : {
-                String textureName = eNode.getTextContent();
-                try {
-                        backImage = ImageIO.read(new File(PathManager.getInstance().getUiPath(),textureName));                       
+                    String textureName = eNode.getTextContent();
+                    try {                         
+                        Image img = ImageIO.read(new File(PathManager.getInstance().getImagePath(),textureName));                          
+                        if (globalW == -1 && globalH == -1) {
+                            backImage = img;
+                        } else {
+                            if (globalW == -1) {
+                                globalW = img.getWidth(null);
+                            }
+                            if (globalH == -1) {
+                                globalH = img.getHeight(null);
+                            }
+                            ImageOperation io = new ImageOperation(img);
+
+                            io.createBufferedImages(BufferedImage.TYPE_INT_RGB);        
+                            io.cropBufferedImage(x,y,globalW,globalH);
+                            io.finalizeOp();
+                            backImage = io.getShowImg();
+                            //ImageIO.write(io.getShowImg(), "jpg", new File(id + ".jpg"));
+                        }
                     } catch(Exception e) {
                         Logger.getLogger(getClass().getName()).log(Level.SEVERE, StringResource.getResource("_mimage", new String[] {id}));
                         new MissingFile(e, StringResource.getResource("_mimage", new String[] {id})).render();
                     }
                 } break; 
                 case ImagesXML.TTEXTURE : {
-                String textureName = eNode.getTextContent();
-                try {
-                        topImage = ImageIO.read(new File(PathManager.getInstance().getUiPath(),textureName));                       
+                    String textureName = eNode.getTextContent();
+                    try {                         
+                        Image img = ImageIO.read(new File(PathManager.getInstance().getImagePath(),textureName));  
+                        if (globalW == -1 && globalH == -1) {
+                            topImage = img;
+                        } else {
+                            if (globalW == -1) {
+                                globalW = img.getWidth(null);
+                            }
+                            if (globalH == -1) {
+                                globalH = img.getHeight(null);
+                            }
+                            ImageOperation io = new ImageOperation(img);
+
+                            io.createBufferedImages(BufferedImage.TYPE_INT_RGB);        
+                            io.cropBufferedImage(x,y,globalW,globalH);
+                            io.finalizeOp();
+                            topImage = io.getShowImg();
+                            //ImageIO.write(io.getShowImg(), "jpg", new File(id + ".jpg"));
+                        }
                     } catch(Exception e) {
-                        
                         Logger.getLogger(getClass().getName()).log(Level.SEVERE, StringResource.getResource("_mimage", new String[] {id}));
                         new MissingFile(e, StringResource.getResource("_mimage", new String[] {id})).render();
                     }
                 } break;     
                 case ImagesXML.ID : {
-                    System.out.println(eNode.getTextContent());
+                    //System.out.println(eNode.getTextContent());
                     id = eNode.getTextContent();                    
                 } break;
                 case ImagesXML.X : {                    
-                    System.out.println(eNode.getTextContent());
+                    //System.out.println(eNode.getTextContent());
                     x = (Integer.parseInt(eNode.getTextContent()));
                 } break;
                 case ImagesXML.Y : {
-                    System.out.println(eNode.getTextContent());
+                    //System.out.println(eNode.getTextContent());
                     y = (Integer.parseInt(eNode.getTextContent()));                    
                 } break;
                 case ImagesXML.W : {                    
@@ -96,12 +135,26 @@ public class ImageResource extends AbstractResource<ImageResource>{
                     h = (Integer.parseInt(eNode.getTextContent()));                    
                 } break;
                 case ImagesXML.GLOBALW : {
-                    System.out.println(eNode.getTextContent());
-                    globalW = Integer.parseInt(eNode.getTextContent());
+                    //System.out.println(eNode.getTextContent());
+                    String content = eNode.getTextContent();
+                    switch (content) {
+                        case ImageLengths.ORIG : {
+                            globalW = -1;
+                        } break;
+                        default :
+                            globalW = Integer.parseInt(eNode.getTextContent());
+                    }
                 } break;
                 case ImagesXML.GLOBALH : {
-                    System.out.println(eNode.getTextContent());
-                    globalH = Integer.parseInt(eNode.getTextContent());
+                    //System.out.println(eNode.getTextContent());
+                    String content = eNode.getTextContent();
+                    switch (content) {
+                        case ImageLengths.ORIG : {
+                            globalH = -1;
+                        } break;
+                        default :
+                            globalH = Integer.parseInt(eNode.getTextContent());
+                    }
                 } break;
                 default : break;
             }

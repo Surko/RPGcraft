@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
@@ -38,7 +38,7 @@ public class SwingBar extends SwingComponent {
         
         this.barType = (BarType)container.getResource().getType();                     
         
-        this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
+        this.backColor = container.getResource().getBackgroundColorId();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class SwingBar extends SwingComponent {
         
         this.barType = (BarType)componentContainer.getResource().getType();                     
         
-        this.backColor = Colors.getColor(componentContainer.getResource().getBackgroundColorId());
+        this.backColor = componentContainer.getResource().getBackgroundColorId();
     }
 
     @Override

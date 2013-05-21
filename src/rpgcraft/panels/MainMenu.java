@@ -4,28 +4,10 @@
  */
 package rpgcraft.panels;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.JPanel;
-import rpgcraft.GamePane;
-import rpgcraft.graphics.Colors;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.components.swing.SwingImageButton;
-import rpgcraft.resource.StringResource;
-import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
-import rpgcraft.utils.ImageUtils;
 
 /**
  *
@@ -35,12 +17,12 @@ public class MainMenu extends AbstractMenu{
     
     public MainMenu(UiResource res) {  
         this.res = res;
+        menuMap.put(res.getId(), this);
     }
 
     @Override
     public void initialize(Container gameContainer, InputHandle input) {
-        super.initialize(gameContainer, input);
-        menuMap.put("mainMenu", this);
+        super.initialize(gameContainer, input);        
     }
 
     
@@ -56,7 +38,7 @@ public class MainMenu extends AbstractMenu{
     }         
 
     @Override
-    public void setWidthHeight(int w, int h) {}
+    public void setWidthHeight(int w, int h) {}   
 
     
     

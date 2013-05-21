@@ -14,7 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.listeners.Action;
 
 /**
@@ -23,7 +23,9 @@ import rpgcraft.panels.listeners.Action;
  */
 public interface Component extends MouseListener, Cloneable {
     
-    public void isMouseSatisfied(ActionEvent event);
+    public void fireMouseEvent(Action action, ActionEvent event);
+    
+    public void fireKeyEvent(Action action, ActionEvent event);    
     
     @Override
     public void mouseClicked(MouseEvent e);
@@ -66,9 +68,13 @@ public interface Component extends MouseListener, Cloneable {
     
     public boolean isVisible();
     
-    public void select();
+    public void activate();
     
-    public void unselect();
+    public void deactivate();
+    
+    public boolean select();
+    
+    public boolean unselect();
     
     public void dispatchEvent(AWTEvent event);
     

@@ -8,8 +8,8 @@ import java.awt.Color;
 import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.ActionListener;
 import rpgcraft.errors.MultiTypeWrn;
-import rpgcraft.graphics.inmenu.Menu;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.graphics.ui.menu.Menu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.FactoryMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
@@ -37,11 +37,19 @@ public class MenuListener extends Listener {
          * @param menu 
          */
         public MenuListener(String menu) {
-            String[] mainOp = menu.split("[(]");
-            this.op = Operations.valueOf(mainOp[0]);
+            int fstBracket = menu.indexOf('(');
+        
+            String params = null;
 
-            if (mainOp.length > 1) {            
-                setParams(mainOp[1].substring(0, mainOp[1].length() - 1));        
+            if (fstBracket == -1) {
+                this.op = MenuListener.Operations.valueOf(menu);
+            } else {
+                this.op = MenuListener.Operations.valueOf(menu.substring(0, fstBracket));
+                params = menu.substring(fstBracket);
+            }
+
+            if (params != null) {            
+                setParams(params.substring(1, params.length() - 1));        
             }
         }
         
@@ -69,13 +77,13 @@ public class MenuListener extends Listener {
                 case SETMENU : {
                    if (e.getSource() instanceof Component) {
                         Component c = (Component)e.getSource();
-                        Menu newMenu = AbstractMenu.getMenuByName(parsedOp[0]);
+                        Menu newMenu = AbstractMenu.getMenuByName(parsedObjects[0]);
 
                         if (newMenu != null) {                                    
                             ((Menu)c.getOriginMenu()).setMenu(newMenu);                
                         } else {
                             new MultiTypeWrn(null, Color.red, StringResource.getResource("_nelistener",
-                                    new String[] {parsedOp[0]}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+                                    new String[] {parsedObjects[0]}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
                         }
 
                     } 
@@ -83,11 +91,11 @@ public class MenuListener extends Listener {
                 case CREATEMENU : {
                     if (e.getSource() instanceof Component) {
                         Component c = (Component)e.getSource();
-                        if (AbstractMenu.getMenuByName(parsedOp[0])==null) {                
-                            FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(parsedOp[0]));
+                        if (AbstractMenu.getMenuByName(parsedObjects[0])==null) {                
+                            FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(parsedObjects[0]));
                             ((Menu)c.getOriginMenu()).setMenu(factMenu);  
                         } else {
-                            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(parsedOp[0]));                          
+                            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(parsedObjects[0]));                          
                         }
 
                     }

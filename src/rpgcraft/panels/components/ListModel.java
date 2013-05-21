@@ -69,6 +69,14 @@ public class ListModel {
         data.add(i, objects);
     }
     
+    public void remove(int i) {
+        data.remove(i);
+    }
+    
+    public int getSize() {
+        return data.size();
+    }
+    
     public Cursor getCursor() {
         return c;
     }

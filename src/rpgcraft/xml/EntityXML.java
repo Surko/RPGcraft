@@ -23,6 +23,7 @@ public interface EntityXML {
     public static final String W = "w";
     public static final String H = "h";
     public static final String ANIM = "anim";
+    public static final String IMAGE = "image";
     public static final String GLOBALW = "globalw";
     public static final String GLOBALH = "globalh";
     public static final String HEALTH = "basehealth";

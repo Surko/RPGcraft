@@ -17,7 +17,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ImageObserver;
 import java.awt.image.RescaleOp;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.resource.StringResource;
 import rpgcraft.utils.MathUtils;
 
 /**
@@ -25,6 +32,8 @@ import rpgcraft.utils.MathUtils;
  * @author Kirrie
  */
 public class ImageOperation { 
+    private static final Logger LOG = Logger.getLogger(ImageOperation.class.getName());
+    
     // Vseobecne : hocijaky obrazok ktory dedi od Image
     private Image origImage; 
     
@@ -32,7 +41,7 @@ public class ImageOperation {
     // showImage : Vysledky obrazok po operaciach
     private BufferedImage destImage,showImage; 
     private static ImageOperation io;
-        
+    private static int index;    
     private RescaleOp rescale; 
             
     /**
@@ -87,7 +96,7 @@ public class ImageOperation {
         destImage = new BufferedImage(origImage.getWidth(null),
                                   origImage.getHeight(null),
                                   type);
-        destImage.getGraphics().drawImage(origImage, 0, 0, null);
+        destImage.getGraphics().drawImage(origImage, 0, 0, null);        
         showImage = destImage;
     }
     
@@ -106,7 +115,7 @@ public class ImageOperation {
      */
     public void setOrigImage(Image img) {
         this.origImage = img;
-    }
+    }        
     
     /**
      * Metoda ktora vykona transformaciu podla parametru xForm, co je 
@@ -200,6 +209,13 @@ public class ImageOperation {
       showImage = op.filter(destImage, null);
     }
     
+    /**
+     * Metoda ktora sfinalizuje operacie nad obrazkom tym ze priradi showImage (obrazok na ukazanie)
+     * obrazok s ktorym sme pracovali (destImage)
+     */
+    public void finalizeOp() {
+        showImage = destImage;
+    }
     
     /**
      * 
@@ -258,18 +274,39 @@ public class ImageOperation {
     }
     
     /**
-     * Metoda ktora zmensi aj originalny aj zmeneny obrazok podla zadanych parametrov
+     * Metoda ktora zmensi obrazok podla zadanych parametrov
      * , kde po uskutocneni zmeny zostanu obrazky s dlzkou constx a vyskou (consty - begy).
+     * Novo vytvoreny image bude ulozeny v showImage a pre vykonanie dalsich operacii musi byt zavolana
+     * metoda nextOp.
      * Obrazok musi byt vacsi ako begx + constx a begy + consty, kedze metoda vybera
      * tento kusok z originalneho obrazku.
      * @param begx Zaciatok suradnice x odkial vyrezavame obrazok
      * @param begy Zaciatok suradnice y odkial vyrezavame obrazok
-     * @param constx Dlzka,po suradnici x, vyrezavanej casti
-     * @param consty Dlzka,po suradnici y, vyrezavanej casti
+     * @param constx Dlzka vyrezavanej casti
+     * @param consty Vyska vyrezavanej casti
      */
     public void cropBufferedImage(int begx,int begy, int constx, int consty) {
-        destImage = destImage.getSubimage(begx, begy, constx, consty);
+        
+        if (begx == -1 || begy == -1 || constx == -1 || consty == -1) {
+            LOG.log(Level.SEVERE, StringResource.getResource("_erasteroper"));
+            new MultiTypeWrn(null, Color.red, StringResource.getResource("_erasteroper"),
+                    null).renderSpecific(StringResource.getResource("_label_imageoperation"));
+        }
+        
+        if (begx + constx > destImage.getWidth() || begy + consty > destImage.getHeight()) {
+            Image toDraw = destImage.getSubimage(begx, begy, destImage.getWidth() - begx, destImage.getHeight() - begy);
+            destImage = new BufferedImage(constx, consty, destImage.getType());
+            destImage.getGraphics().drawImage(toDraw, 0, 0, null);            
+            return;
+        }
+        
+        if (constx < destImage.getWidth() || consty < destImage.getHeight()) {
+            destImage = destImage.getSubimage(begx, begy, constx, consty);            
+            return;
+        } 
+        
         showImage = new BufferedImage(constx, consty, destImage.getType());
+                                        
     }
     
     

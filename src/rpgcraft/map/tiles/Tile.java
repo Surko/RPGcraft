@@ -6,10 +6,12 @@ package rpgcraft.map.tiles;
 
 import java.awt.Image;
 import java.util.ArrayList;
+import java.util.HashMap;
 import rpgcraft.entities.Entity;
 import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.SpriteSheet;
+import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.TileResource;
 
 /**
@@ -18,11 +20,15 @@ import rpgcraft.resource.TileResource;
  */
 public class Tile {    
     
+    public static HashMap<Integer,Tile> tiles;
+    private static final String IMPASS = "_cross";
+       
+    private Image upperImage;
+    
     protected boolean swimable;
     protected boolean destroyable;
-    protected int materialType;
     
-    protected ArrayList<Sprite> _sprites;
+    protected HashMap<Integer,Sprite> _sprites;
     protected Integer id;
     protected String name;       
     protected SpriteSheet sheet;
@@ -30,14 +36,24 @@ public class Tile {
     protected int health;
     protected int tileStrength;        
     
+    protected int sprNum;
+    protected long waypointTime;
+    protected long currentTime;
+    protected long maxTime;
+    
     // PUBLIC METHODS
  
     public Tile(Integer id, TileResource res) {
         this.id = id;
+        this.upperImage = ImageResource.getResource(IMPASS).getBackImage();
         if (res != null) {
-            this._sprites = res.getTileSprites();
+            this.tileStrength = res.getTileStrength();
+            this._sprites = res.getTileSprites();            
+            this.tileStrength = res.getTileStrength();
+            this.health = res.getHealth();
+            this.damage = res.getDamage();    
+            this.name = res.getName();
         }
-        this.materialType = -1;
     }
     
     public void setName(String name) {
@@ -69,19 +85,36 @@ public class Tile {
     /**
      * Metoda vracia meno jednej dlazdice
      * @return premenna name [type:STRING]
-     */
-    
+     */    
     public String getName() {
         return name;
-    }        
+    }      
+    
+    public int getHealth() {
+        return health;
+    }
+    
+    public int getDamage() {
+        return damage;                       
+    }
+    
+    public int getTileStrength() {
+        return tileStrength;
+    }
     
     public boolean isDestroyable() {
         return destroyable;
     }
     
     
-    public Image getImage() {
-        return _sprites == null ? null : _sprites.get(0).getSprite();
+    public Image getImage(int meta) {        
+        return _sprites == null ? null : 
+                (_sprites.containsKey(meta) ? _sprites.get(meta).getSprite() : _sprites.get(0).getSprite());
+    }
+    
+    
+    public Image getUpperImage() {
+        return upperImage;
     }
 
     public void moveInto(Entity e) {
@@ -92,6 +125,11 @@ public class Tile {
         return this.id == tile.id ? true : false;
     }
     
+    public static void initializeTiles() {        
+        tiles = DefaultTiles.getInstance().createDefaultTiles();
+        tiles.putAll(LoadedTiles.getInstance().createLoadedTiles(tiles));
+    
+    }
     
     
 }

@@ -17,7 +17,7 @@ public class DefaultTiles {
     private static DefaultTiles instance;
     
     public static final int GRASS_ID = 1;
-    public static final int BLANK_ID = -10;
+    public static final int BLANK_ID = 0;
     public static final int ROCK_ID = 2;
     public static final int RIBBON_ID = 255;
     

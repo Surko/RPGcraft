@@ -10,10 +10,11 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.logging.Level;
 import javax.swing.JFrame;
+import rpgcraft.graphics.ui.components.MsgDialog;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.resource.StringResource;
-import rpgcraft.utils.Framer;
+import rpgcraft.utils.MainUtils;
 
 /**
  * 20.7 1st revision
@@ -49,14 +50,14 @@ public class MainGameFrame {
         
         mFrame.setBounds(0, 0, Fwidth, Fheight);
         mFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mFrame.addComponentListener(new UpdateGameWidthandHeight());
+        mFrame.addComponentListener(new UpdateLengths());
                 
         game = new GamePane();  
         game.setLayout(null);
-        game.add(Framer.frameLabel);
+        game.add(MainUtils.FPSCOUNTER);                                       
 
         mFrame.getContentPane().add(game);
-        mFrame.addKeyListener(InputHandle.getInstance());
+        mFrame.addKeyListener(InputHandle.getInstance());        
         mFrame.setVisible(true);
         
         game.startGame();
@@ -100,7 +101,7 @@ public class MainGameFrame {
      * @see ComponentListener
      * 
      */
-    static class UpdateGameWidthandHeight implements ComponentListener {
+    static class UpdateLengths implements ComponentListener {
 
         /**
          * Pri Zmene okna zmeni velkost frame.

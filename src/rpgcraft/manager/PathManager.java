@@ -17,10 +17,15 @@ import java.util.logging.Logger;
  */
 public final class PathManager {
     public static final String MAPS = File.separator + "maps";
+    public static final String MAPLUG = "map-plugins";
+    public static final String SCRIPTPLUG = "script-plugins";
+    public static final String INMENUPLUG = "inmenu-plugins";
+    public static final String MENUPLUG = "menu-plugins";
     
-    private static final String WORLD = "maps";
+    private static final String SAVE = "saves";
     private static final String LOG = "logs";
     private static final String SCRIPT = "scripts";
+    private static final String PLUGINS = "plugins";        
     private static final String XML = "xml";
     private static final String IMAGE = "images";
     private static final String UI = "ui";
@@ -37,6 +42,7 @@ public final class PathManager {
     private File worldPath;
     private File logPath;
     private File scriptPath;
+    private File pluginPath;
     private File xmlPath;
     private File imagePath;
     private File uiPath;
@@ -98,15 +104,26 @@ public final class PathManager {
         return -1;
     }
     
-    public File getWorldSavePath(String worldTitle) {
-        File result = new File(worldPath, worldTitle);
-        result.mkdirs();
+    public File getWorldSavePath(String worldTitle, boolean create) {
+        File result = new File(worldPath, worldTitle);        
+        if (create)
+            result.mkdirs();
         return result;
     }
     
-    public File getXmlSavePath(String xmlTitle) {
+    public File getXmlSavePath(String xmlTitle, boolean create) {
         File result = new File(xmlPath, xmlTitle);
-        result.mkdirs();
+        if (create) {
+            result.mkdirs();
+        }
+        return result;
+    }
+    
+    public File getScriptSavePath(String scriptTitle, boolean create) {
+        File result = new File(scriptPath, scriptTitle);
+        if (create) {
+            result.mkdirs();
+        }
         return result;
     }
     
@@ -125,6 +142,10 @@ public final class PathManager {
     public File getScriptPath() {
         return scriptPath;
     }
+    
+    public File getPluginsPath() {
+        return pluginPath;
+    }    
     
     public File getXmlPath() {
         return xmlPath;
@@ -146,12 +167,14 @@ public final class PathManager {
     
     private void updateDirs() {
         rootPath.mkdirs();
-        worldPath = new File(rootPath, WORLD);
+        worldPath = new File(rootPath, SAVE);
         worldPath.mkdirs();
         logPath = new File(rootPath, LOG);
         logPath.mkdirs();
         scriptPath = new File(rootPath, SCRIPT);
         scriptPath.mkdirs();
+        pluginPath = new File(rootPath, PLUGINS);
+        pluginPath.mkdirs();
         imagePath = new File(rootPath, IMAGE);
         imagePath.mkdirs();
         uiPath = new File(imagePath, UI);

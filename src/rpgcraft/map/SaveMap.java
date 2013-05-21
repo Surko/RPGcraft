@@ -4,6 +4,7 @@
  */
 package rpgcraft.map;
 
+import rpgcraft.map.generators.MapGenerator;
 import rpgcraft.entities.Player;
 import rpgcraft.entities.MovingEntity;
 import java.awt.AlphaComposite;
@@ -30,22 +31,24 @@ import rpgcraft.MainGameFrame;
 import rpgcraft.entities.*;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.*;
-import rpgcraft.graphics.inmenu.AbstractInMenu;
-import rpgcraft.graphics.particles.Particle;
+import rpgcraft.graphics.spriteoperation.Sprite;
+import rpgcraft.plugins.AbstractInMenu;
+import rpgcraft.graphics.ui.particles.Particle;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.chunks.ChunkContent;
 import rpgcraft.map.tiles.*;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.resource.StringResource;
 /**
  *
  * @author Kirrie
  */
 
-public class SaveMap  {    
+public class SaveMap  {          
+    
     /* 
      * Pre zistenie kam ma zaradit mapu budem pouzivat bitove operacie posunu doprava o 4,
      * 0x0 - 15x15 budu v rovnakom priestore na disku pod menom region0x0
@@ -66,9 +69,7 @@ public class SaveMap  {
      */
     private static final int RENDER_MODE = 1;
     
-    private final Logger LOG = Logger.getLogger(getClass().getName());
-    
-    public HashMap<Integer,Tile> tiles;
+    private final Logger LOG = Logger.getLogger(getClass().getName());       
     
     protected String saveName;
     
@@ -84,19 +85,16 @@ public class SaveMap  {
     protected int x;
     protected int y;
     
-    private final GamePane game;
-    private AbstractInMenu menu;
+    private final GamePane game;    
     private final InputHandle input;
     public static final boolean defineTileself = true;
-    public static final int chunkSize = 25;    
-    
-    private MapGenerator mapGen = new MapGenerator(Chunk.getSize(), Chunk.getDepth());
+    public static final int chunkSize = 25;            
     
     public MovingEntity player;   
     public MovingEntity origPlayer;
     
     private Color fpsColor = Colors.getColor(Colors.fpsColor);
-    
+        
     private boolean lightState = true;
     private boolean chunkState = true;
     private boolean playerState = true;
@@ -106,6 +104,8 @@ public class SaveMap  {
     
     protected volatile ArrayList<Entity> entities = new ArrayList<>();
     protected volatile ArrayList<Particle> particles = new ArrayList<>();
+    
+    protected volatile HashMap<Integer,Entity> tileEntities = new HashMap<>();
     
     private Graphics2D g2d;
     
@@ -162,12 +162,10 @@ public class SaveMap  {
     
     public void initializeTiles() {
         // nacita zakladne dlazdice potrebne k fungovaniu hry      
-        tiles = DefaultTiles.getInstance().createDefaultTiles();
-        tiles.putAll(LoadedTiles.getInstance().createLoadedTiles(tiles));
+        Tile.initializeTiles();
         //debuggingTiles(tiles.values());
     }    
-        
-    
+            
     /**
      * Metoda ktora posunie Chunk vo fronte Chunkov (ak sa tam nachadza) na posledne miesto takym sposobom
      * ze vymaze aktualne miesto a prida ho nakoniec. Ked je parameter chunk rovny null tak vrati false.
@@ -190,11 +188,7 @@ public class SaveMap  {
             paintBackground(g);
             //paintFlora(g);
             paintEntitiesParticles(g);        
-            paintLighting(g);
-            
-            if (menu != null) {
-                menu.paintMenu(g);
-            }
+            paintLighting(g);                        
             
             if (stat) {
                 paintStrings(g);
@@ -209,10 +203,7 @@ public class SaveMap  {
         updateEntities();
         if (particle) {
             updateParticles();
-        }          
-        if (menu != null) {
-            menu.update();
-        }
+        }                  
         updateLighting();      
     }        
     
@@ -297,12 +288,9 @@ public class SaveMap  {
             particles.remove(partRemove.pop());
         }
     }
-    
-    
-    
-    private void paintBackground(Graphics g) throws InterruptedException {
-        try {
             
+    private void paintBackground(Graphics g) throws InterruptedException {
+        try {            
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, width, height);
             lastX = screenX - xPixels + 12;
@@ -318,7 +306,7 @@ public class SaveMap  {
             g.translate(-lastX, -lastY);
         } catch (Exception e) {
             g.translate(-lastX, -lastY);
-            Thread.sleep(delayThread);            
+            //Thread.sleep(delayThread);            
         }
 
     }
@@ -377,15 +365,14 @@ public class SaveMap  {
     }
     
     private void playerChunkPainting(Chunk[][] _chunks, Graphics g) {
-        int[][] _layer;
+        int[][] upperLayer, upperMeta, lowerLayer, lowerMeta;
         int _chunkX, _chunkY;
         Tile toDraw;
         
         int Pminx = player.getTileX() - player.getLightRadius();
         int Pminy = player.getTileY() - player.getLightRadius();
         int Pmaxx = player.getTileX() + player.getLightRadius();
-        int Pmaxy = player.getTileY() + player.getLightRadius();                
-        
+        int Pmaxy = player.getTileY() + player.getLightRadius();                        
         
         for (int i = 0 ; i< numberOfChunks; i++) {
             for (int j = 0; j< numberOfChunks; j++) {
@@ -418,24 +405,34 @@ public class SaveMap  {
                     continue;
                 }
                 
-                _layer = _chunks[j][i].getLayer(_lcurrent);                 
+                lowerLayer = _chunks[j][i].getLayer(_lcurrent - 1);                 
+                lowerMeta = _chunks[j][i].getMetaDataLayer(_lcurrent - 1);
+                upperLayer = _chunks[j][i].getLayer(_lcurrent);
+                upperMeta = _chunks[j][i].getMetaDataLayer(_lcurrent);
+                
                 for (int _i = startX; _i< endX; _i++) {
                     for (int _j = startY; _j< endY; _j++) {  
-                        //System.out.print(_layer[_i][_j]);
-                        toDraw = tiles.get(_layer[_i][_j]);
-                        if (toDraw == null) {
-                            continue;
-                        }
-
-                        g.drawImage(toDraw.getImage(), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
+                        //System.out.print(_layer[_i][_j]);                                                
+                        
+                        if (upperLayer[_i][_j] != DefaultTiles.BLANK_ID) {
+                            toDraw = Tile.tiles.get(upperLayer[_i][_j]); 
+                            if (toDraw != null) {
+                                g.drawImage(toDraw.getUpperImage(), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
+                            }
+                        } else {                            
+                            toDraw = Tile.tiles.get(lowerLayer[_i][_j]);
+                            if (toDraw != null) {                      
+                                g.drawImage(toDraw.getImage(lowerMeta[_i][_j]), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
+                            }                                                        
+                        }                                                
                     }
                 }   
             }
         }
-    }
+    }        
     
     private void simpleChunkPainting(Chunk[][] _chunks, Graphics g) {  
-        int[][] _layer;
+        int[][] upperLayer,upperMeta,lowerLayer,lowerMeta;
         int _chunkX, _chunkY;
         Tile toDraw;
         
@@ -447,62 +444,69 @@ public class SaveMap  {
                 _chunkX = i << 9;
                 _chunkY = j << 9;
                                 
-                _layer = _chunks[i][j].getLayer(_lcurrent);
+                upperLayer = _chunks[i][j].getLayer(_lcurrent);
+                upperMeta = _chunks[i][j].getMetaDataLayer(_lcurrent);
+                lowerLayer = _chunks[i][j].getLayer(_lcurrent - 1);
+                lowerMeta = _chunks[i][j].getMetaDataLayer(_lcurrent - 1);
                 for (int _i = 0; _i< Chunk.getSize(); _i++) {
                     for (int _j = 0; _j< Chunk.getSize(); _j++) {  
-                        toDraw = tiles.get(_layer[_i][_j]);
-                        if (toDraw == null) {
-                            continue;
+                        if (upperMeta[_i][_j] != Sprite.Type.TILEDESTROYED.getValue()) {
+                            toDraw = Tile.tiles.get(upperLayer[_i][_j]); 
+                            if (toDraw == null) {
+                                continue;
+                            } else {                        
+                                g.drawImage(toDraw.getImage(upperMeta[_i][_j]), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
+                            }
+                        } else {
+                            toDraw = Tile.tiles.get(lowerLayer[_i][_j]);
+                            if (toDraw == null) {
+                                continue;
+                            } else {                        
+                                g.drawImage(toDraw.getImage(lowerMeta[_i][_j]), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
+                            }
                         }
-
-                        g.drawImage(toDraw.getImage(), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
                     }
                 }
             }
         }
     }
-    
-                                            
+                                                
     public void setWidthHeight(Integer width, Integer height) {
-        this.scaleParamX = width.doubleValue()/MainGameFrame.Fwidth;
-        this.scaleParamY = height.doubleValue()/MainGameFrame.Fheight;        
+        this.scaleParamX = width.doubleValue()/MainGameFrame.getContentWidth();
+        this.scaleParamY = height.doubleValue()/MainGameFrame.getContentHeight();        
         
         if (!scaleable) {            
             this.width = width;
-            this.height = height;
+            this.height = height;            
             lightingMap = new BufferedImage(width, height, BufferedImage.TRANSLUCENT); 
             timeLighting();
         } else {
-            this.width = MainGameFrame.Fwidth;
-            this.height = MainGameFrame.Fheight;
+            this.width = MainGameFrame.getContentWidth();
+            this.height = MainGameFrame.getContentHeight();
             lightingMap = new BufferedImage(MainGameFrame.Fwidth, MainGameFrame.Fheight, BufferedImage.TRANSLUCENT); 
             timeLighting();
         }
         //
-    }    
+    }                
     
-    public void setMenu(AbstractInMenu menu) {
-        /*
-        if (jammedMenu > 0) {
-            jammedMenu--;
-        } else {
-        this.menu = menu;
-        jammedMenu = 10;                
-        }*/
-        this.menu = menu;
+    public void setLevel(int level) {
+        if (level < Chunk.getDepth())
+            this._lcurrent = level;
     }
     
-    public boolean hasMenu() {
-        return menu != null ? true : false;
+    public void incLevel() {
+        this._lcurrent++;
+    }
+    
+    public void decLevel() {
+        this._lcurrent--;
     }
     
     public void paintFPS(Graphics g,int framer) {        
         g.setColor(fpsColor);
         g.drawString(String.valueOf(framer)+ " FPS", 0, 10);
     }
-    
-    
-    
+            
     public boolean chunkExist(Chunk chunk) {
         return chunkQueue.contains(chunk);
     }
@@ -543,8 +547,6 @@ public class SaveMap  {
         return null;
     }
 
-    //
-    
     public boolean addEntity(Entity e) {
         if (e instanceof Player) {
             this.player = (Player) e;                 
@@ -577,37 +579,13 @@ public class SaveMap  {
             }
         }
         chunkState = true;
-    }
+    }        
     
-    /*
-     * Testovacia funkcia pre generovanie map
-     */    
-    private int[][][] test() {
-        int[][][] sk = new int[Chunk.getDepth()][Chunk.getSize()][Chunk.getSize()];
+    
+    public void inputHandling() {        
         
-        for (int k=0;k<Chunk.getDepth();k++) {
-            for (int i=0;i<Chunk.getSize();i++) {
-                for (int j=0;j<Chunk.getSize();j++) {
-                    if (j >8){
-                        sk[k][i][j] = 2;
-                    } else {
-                        sk[k][i][j] = 1;
-                    }
-                }
-            }  
-        }
-        
-        return sk;
-    }
-    
-    
-    public void inputHandling() {
-        if (menu != null) {
-            menu.inputHandling();
-        } else {
-            if (player != null) {
-                player.inputHandling();
-            }
+        if (player != null) {
+            player.inputHandling();
         }
         
         if (input.clickedKeys.contains(input.stat.getKeyCode())) {
@@ -635,7 +613,13 @@ public class SaveMap  {
         this.lightState = state;
     }
     
+    public int getWidth() {
+        return width;
+    }
     
+    public int getHeight() {
+        return height;
+    }
     
     public ArrayList<Entity> getEntities() {
         return entities;
@@ -691,6 +675,12 @@ public class SaveMap  {
         g2d.fillRect(0, 0, width, height);
         
     }
+    
+    public ChunkContent generateMap() {
+        MapGenerator map = new MapGenerator(Chunk.getSize(), Chunk.getDepth());
+        return map.generate();
+    }
+    
     /**
      * 
      * @param x
@@ -702,12 +692,12 @@ public class SaveMap  {
         }
         try {
             inputStream = new ObjectInputStream(new FileInputStream(
-                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS) + File.separator
+                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS, false) + File.separator
                     + "region["+x+","+y+"].m")); 
             try {
                 SaveChunk save = (SaveChunk) inputStream.readObject();
 
-                saveOld(save.getChunk());
+                addChunk(save.getChunk());
                 ArrayList<Entity> entLoad = save.getEntities();
                 if (entLoad != null) {
                     for (Entity e : entLoad) {                    
@@ -724,14 +714,19 @@ public class SaveMap  {
             }
 
         } catch(Exception e) { 
-            saveOld(new Chunk(new ChunkContent(test()), x, y));  
-            
+            addChunk(new Chunk(generateMap(), x, y));              
         }
     }
     
     // Ukladacie a nacitacie operacie s mapou (Chunk save/load)
     
-    private void saveOld(Chunk chunk) {
+    /**
+     * Metoda prida chunk predany parametrom <b>chunk</b> do nacitanych chunkov.
+     * Ked je fronta nacitanych chunkov vacsia ako maximalne povolena, tak ulozi
+     * prvy a prida novy na koniec fronty.
+     * @param chunk Chunk do nacitanych chunkov.
+     */
+    private void addChunk(Chunk chunk) {
         if (chunkQueue.size() > chunkSize) {
             saveMap(chunkQueue.poll());
             chunkQueue.add(chunk);
@@ -743,7 +738,7 @@ public class SaveMap  {
     public void saveMap(int x, int y) {      
         try {
             outputStream = new ObjectOutputStream(new FileOutputStream(
-                            PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS)
+                            PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS, true)
                     + "region["+x+","+y+"].m")); 
             for (Chunk chunk : chunkQueue) {
                 if ((chunk.getX() == x)&&(chunk.getY() == y)) {                                        
@@ -771,7 +766,7 @@ public class SaveMap  {
             int chunkY = chunkToSave.getY();
             
             outputStream = new ObjectOutputStream(new FileOutputStream(
-                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS) + File.separator
+                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS, true) + File.separator
                     + "region["+chunkX+","+chunkY+"].m"));
             //outputStream.writeObject(chunkToSave);
             
@@ -812,7 +807,7 @@ public class SaveMap  {
         
         for (Tile tile: tiles) {
             try {
-                ImageIO.write((BufferedImage)tile.getImage(), "jpg", new File("./"+tile.getName()+".jpg"));
+                ImageIO.write((BufferedImage)tile.getImage(0), "jpg", new File("./"+tile.getName()+".jpg"));
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }

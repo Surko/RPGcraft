@@ -13,12 +13,13 @@ import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.PanelType;
+import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.ImageUtils;
 import rpgcraft.utils.MathUtils;
 
@@ -31,6 +32,7 @@ public class SwingImagePanel extends SwingComponent{
     
     protected Image backImage;
     protected Color backColor;
+    protected Color topColor;
     protected int[] rpos;
     protected PanelType pType;
     protected boolean gamePanel;
@@ -52,13 +54,20 @@ public class SwingImagePanel extends SwingComponent{
                     ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
                     null;        
             }
+            this.topColor = container.getResource().getTopColorId();
             this.backColor = container.getResource().getBackgroundColorId() != null ? 
-                    Colors.getColor(container.getResource().getBackgroundColorId()) :
-                    Colors.getColor(Colors.transparentColor);    
+                    componentContainer.getResource().getBackgroundColorId() :
+                    Colors.getColor(Colors.transparentColor);   
             
         }
     }
     
+    /**
+     * Override metoda zo AWT ktora nastavi pozadie komponenty podla farby.
+     * Ked ma komponenta definovany kontajner tak zoberie farbu z neho, inak 
+     * pouzije metodu z predka.
+     * @param color Farba ako sa ma zafarbit pozadie
+     */
     @Override
     public void setBackground(Color color) {
         if (componentContainer != null) {
@@ -88,8 +97,9 @@ public class SwingImagePanel extends SwingComponent{
                     ImageUtils.operateImage(componentContainer, componentContainer.getResource()) :
                     null;        
             }
+            this.topColor = componentContainer.getResource().getTopColorId();
             this.backColor = componentContainer.getResource().getBackgroundColorId() != null ? 
-                    Colors.getColor(componentContainer.getResource().getBackgroundColorId()) :
+                    componentContainer.getResource().getBackgroundColorId() :
                     Colors.getColor(Colors.transparentColor);    
             
         }
@@ -112,9 +122,14 @@ public class SwingImagePanel extends SwingComponent{
     public void paintComponent(Graphics g) {       
         // Kontrola Threadu !!
         //System.out.println(Thread.currentThread().getName());
-        
+        //System.out.println("panel " + Framer.debugint);
         g.setColor(backColor);          
         g.fillRect(0, 0, getWidth(), getHeight());        
+        
+        if (topColor != null) {
+            g.setColor(topColor);            
+            g.fillRect(5, 5, getWidth(), getHeight());        
+        }
         
         if (backImage != null) {
             if (changed) {
@@ -125,8 +140,9 @@ public class SwingImagePanel extends SwingComponent{
         
             g.drawImage(backImage, rpos[0], rpos[1], null); 
         } else {
-            if (gamePanel)
+            if (gamePanel) {
                 menu.paintMenu(g);
+            }
         }
         
         if (isSelected) {
@@ -134,33 +150,8 @@ public class SwingImagePanel extends SwingComponent{
             g.fillRect(0, 0, getWidth(), getHeight());
         }
         
-    }  
+    }          
     
-    @Override
-    public void mouseClicked(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {           
-        
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
-    }
-
     @Override
     public Component copy(Container cont, AbstractMenu menu) {
         SwingImagePanel result = new SwingImagePanel();          
@@ -225,8 +216,6 @@ public class SwingImagePanel extends SwingComponent{
             componentContainer.clearPositionsless();
         }  
         
-    }        
-
-    
+    }            
     
 }

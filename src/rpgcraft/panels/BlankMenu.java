@@ -4,6 +4,7 @@
  */
 package rpgcraft.panels;
 
+import rpgcraft.plugins.AbstractMenu;
 import java.awt.Graphics;
 import javax.swing.JPanel;
 import rpgcraft.handlers.InputHandle;
@@ -15,6 +16,7 @@ import rpgcraft.resource.UiResource;
  * @author Surko
  */
 public class BlankMenu extends AbstractMenu {
+    private static final String BLANK = "blankMenu";
     
     public BlankMenu() {
         this.changedGr = false;
@@ -23,7 +25,7 @@ public class BlankMenu extends AbstractMenu {
 
     @Override
     public void initialize(Container gameContainer, InputHandle input) {
-        menuMap.put("blank", this);
+        menuMap.put(BLANK, this);
     }           
     
     @Override
@@ -38,6 +40,11 @@ public class BlankMenu extends AbstractMenu {
     @Override
     public void setWidthHeight(int w, int h) {
         
+    }
+    
+    @Override
+    public String getName() {
+        return BLANK;
     }
 
 }

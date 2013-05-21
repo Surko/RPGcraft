@@ -10,7 +10,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.listeners.Action;
@@ -33,6 +33,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
     protected boolean isSelected;
     protected ArrayList _listeners;
     protected boolean isNoData;
+    protected boolean active;
     
     protected TemplateComponent() {}
     
@@ -44,7 +45,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
         cont.makeBufferedImage();
     } 
     
-    @Override
+    @Deprecated
     public void isMouseSatisfied(ActionEvent event) {
         for (int i = 0;i<_listeners.size() ;i++ ){  
             if (_listeners.get(i) instanceof Listener) {
@@ -55,7 +56,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
             if (_listeners.get(i) instanceof Action) {
                 Action action = (Action)_listeners.get(i);
                 if (event.getClicks() > action.getClicks()) {
-                    ListenerFactory.getListener(action.getAction()).actionPerformed(event);
+                    ListenerFactory.getListener(action).actionPerformed(event);
                 }
                 continue;
             }
@@ -82,7 +83,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
     @Override
     public void removeActionListener(ActionListener listener) {
         _listeners.remove(listener);
-    }    
+    }        
     
     @Override
     public abstract void mouseClicked(MouseEvent e);
@@ -138,19 +139,52 @@ public abstract class TemplateComponent extends JPanel implements Component {
     }
     
     @Override
-    public void select() {
-        isSelected = true;
+    public boolean select() {
+        if (!isNoData) {
+            isSelected = true;
+            return true;
+        } else {
+            return false;
+        }
     }
     
     @Override
-    public void unselect() {
-        isSelected = false;
+    public boolean unselect() {
+        return isSelected = false;
+    }
+    
+    /**
+     * Metoda aktivuje komponentu a je schopna reagovat na eventy.
+     */
+    @Override
+    public void activate() {
+        this.active = true;
+    }
+    
+    /**
+     * Metoda deaktivuje komponentu pre vsetky eventy.
+     */
+    @Override
+    public void deactivate() {
+        this.active = false;
     }
     
     @Override
     public void processKeyEvents(InputHandle input) {
-        
+        if (active) {
+            
+        }
     }
+
+    @Override
+    public void fireMouseEvent(Action action, ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void fireKeyEvent(Action action, ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }        
     
     @Override
     public Component getParentComponent() {
@@ -176,6 +210,7 @@ public abstract class TemplateComponent extends JPanel implements Component {
         return cont;
     }
     
+    @Override
     public void removeComponent(Component c) {
         if (c instanceof java.awt.Component) {
             this.remove((java.awt.Component)c);

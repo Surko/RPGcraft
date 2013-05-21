@@ -4,7 +4,9 @@
  */
 package rpgcraft.resource;
 
+import java.awt.Image;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -27,6 +29,7 @@ import rpgcraft.xml.EntityXML;
  * @author doma
  */
 public class EntityResource extends AbstractResource<EntityResource> {
+    private static final Logger LOG = Logger.getLogger(MovingEntity.class.getName());
     
     private static Sprite _sprite = null;
     private static ArrayList<Sprite> _sprites = null;
@@ -90,11 +93,16 @@ public class EntityResource extends AbstractResource<EntityResource> {
     private EntityResource(Element elem) {
         movingEntitySprites = new HashMap<>();
         parse(elem);        
+        validate();
         entityResources.put(id, this);
     }
     
     public static EntityResource newBundledResource(Element elem) {
         return new EntityResource(elem);                
+    }
+    
+    private void validate() {
+        
     }
     
     public String getName() {
@@ -221,8 +229,9 @@ public class EntityResource extends AbstractResource<EntityResource> {
                     
                     // Globalne nastavene vysky a sirky sprite 
                                                       
-                    parse((Element)eNode);
-                    if (sheet != null) {
+                    parse((Element)eNode);                    
+                    
+                    if (sheet != null && _sprite.getSprite() == null) {
                         _sprite.setImagefromSheet(sheet, _globalW, _globalH);
                     }
                     _sprites.add(_sprite);
@@ -243,8 +252,22 @@ public class EntityResource extends AbstractResource<EntityResource> {
                     }
                 } catch (Exception ex) {
                     System.out.println("Error with sheets");
-                    Logger.getLogger(MovingEntity.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                 }
+                } break;
+                case EntityXML.IMAGE : {
+                    if (_sprite == null) {
+                        LOG.log(Level.WARNING, StringResource.getResource("_misplacedparam",
+                                new String[] {EntityResource.class.getName(), id }));                        
+                    } else {
+                        Image img = ImageResource.getResource(eNode.getTextContent()).getBackImage();
+                                                
+                        if (img == null) {
+                            LOG.log(Level.WARNING, StringResource.getResource("_mimage", new String[] {id}));
+                        } else {
+                            _sprite.setSprite(img);
+                        }
+                    }
                 } break;
                 case EntityXML.NAME : {
                     name =eNode.getTextContent();

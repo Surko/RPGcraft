@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -31,6 +32,31 @@ import rpgcraft.xml.TilesXML;
  */
 public class TileResource extends AbstractResource<TileResource> {
  
+    public enum Durability {
+        HAND(1),
+        WOODEN(2),
+        STONE(4),
+        IRON(8),
+        GOLD(16),
+        ORCISH(32),
+        ADAMANTITE(64),
+        DIAMOND(128),
+        DARKDIAMOND(256),
+        PLASMA(512),
+        MATTER(1024);
+           
+        private int value;
+
+        private Durability(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+       
+    }
+    
     private static Sprite _sprite = null;
     private static Sprite.Type _type = null;
     private static int _globalW = 0, _globalH = 0;
@@ -40,7 +66,7 @@ public class TileResource extends AbstractResource<TileResource> {
     private boolean destroyable;
     private ItemLevelType materialType;
     
-    private ArrayList<Sprite> _sprites;
+    private HashMap<Integer,Sprite> _sprites;
     private Integer id;
     private String name;       
     private SpriteSheet sheet;
@@ -61,8 +87,12 @@ public class TileResource extends AbstractResource<TileResource> {
     
     
     private TileResource(Element elem) {
-        _sprites = new ArrayList<>();
+        _sprites = new HashMap();
         parse(elem);
+        validate();
+    }
+    
+    private void validate() {
         if (selfDefining) {
             id = firstMatch();
             tileResources.put(id, this);
@@ -73,6 +103,9 @@ public class TileResource extends AbstractResource<TileResource> {
                 tileResources.put(id, this);
             }
         }
+        
+        this.tileStrength = 1;
+        
     }
     
     public static TileResource newBundledResource(Element elem) {
@@ -94,6 +127,7 @@ public class TileResource extends AbstractResource<TileResource> {
     }  
     
     
+    @Override
     protected void parse(Element elem) {
         
         NodeList nl = elem.getChildNodes(); 
@@ -102,18 +136,49 @@ public class TileResource extends AbstractResource<TileResource> {
             Node eNode = nl.item(i);
             switch (eNode.getNodeName()) {
                 case TilesXML.ANIM : {
-                    _sprite = new Sprite(Sprite.Type.TILE);
+                    String sType = ((Element)eNode).getAttribute(TilesXML.TYPE);
+                    
+                    Sprite.Type type = Sprite.Type.TILE; 
+                    try {
+                        type = Sprite.Type.valueOf(sType);                        
+                    } catch (Exception e) {
+                        
+                    }
+                    
+                    _sprite = new Sprite(type);
                     System.out.println("Loading sprite" + ++iSprite );
-                    
+
                     // Globalne nastavene vysky a sirky sprite 
-                    
+
                     parse((Element)eNode);
                     _sprite.setImagefromSheet(sheet, _globalW, _globalH);
-                    _sprites.add(_sprite);
+                    _sprites.put(type.getValue(), _sprite);
                     System.out.println("Done Loading");
+                    
+                    
                 } break;
                 case TilesXML.NAME : {
                     name = eNode.getTextContent();
+                } break;
+                case TilesXML.HEALTH : {
+                    health = Integer.parseInt(eNode.getTextContent());
+                } break;
+                case TilesXML.DAMAGE : {
+                    damage = Integer.parseInt(eNode.getTextContent());
+                } break;
+                case TilesXML.DURABILITY : {
+                    try {
+                        tileStrength = Durability.valueOf(eNode.getTextContent()).getValue();  
+                        break;
+                    } catch (Exception e) {
+                        
+                    }
+                    try {
+                        tileStrength = Integer.parseInt(eNode.getTextContent());
+                        break;
+                    } catch (DOMException | NumberFormatException e) {
+                        
+                    }
                 } break;
                 case TilesXML.SHEET : {
                 try {
@@ -161,15 +226,31 @@ public class TileResource extends AbstractResource<TileResource> {
                 default : break;
             }
         }
-    }
+    }        
     
     @Override
     protected void copy(TileResource res) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    public ArrayList<Sprite> getTileSprites() {
+    public HashMap<Integer, Sprite> getTileSprites() {
         return _sprites;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public int getHealth() {
+        return health;
+    }
+    
+    public int getDamage() {
+        return damage;
+    }
+    
+    public int getTileStrength() {
+        return tileStrength;
     }
 
     

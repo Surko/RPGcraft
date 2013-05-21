@@ -4,6 +4,7 @@
  */
 package rpgcraft.panels;
 
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.UiResource;
@@ -16,13 +17,13 @@ public final class FactoryMenu extends AbstractMenu {
 
     public FactoryMenu(UiResource res) {
         this.res = res;
-        initialize(Container.mainContainer,InputHandle.getInstance());        
+        initialize(Container.mainContainer,InputHandle.getInstance());
+        menuMap.put(res.getId(), this);        
     }   
     
     @Override
     public void initialize(Container gameContainer, InputHandle input) {
-        super.initialize(gameContainer, input);
-        menuMap.put(res.getId(), this);
+        super.initialize(gameContainer, input);        
     }
     
     @Override
@@ -34,5 +35,5 @@ public final class FactoryMenu extends AbstractMenu {
     public void setWidthHeight(int w, int h) {
         
     }
-    
+     
 }

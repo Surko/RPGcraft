@@ -32,6 +32,23 @@ public class InputHandle implements KeyListener {
         VK_C(KeyEvent.VK_C, 'c'),        
         VK_F(KeyEvent.VK_F, 'f'),
         VK_E(KeyEvent.VK_E, 'e'),
+        VK_I(KeyEvent.VK_I, 'i'),
+        VK_G(KeyEvent.VK_G, 'g'),
+        VK_H(KeyEvent.VK_H, 'h'),        
+        VK_J(KeyEvent.VK_J, 'j'),
+        VK_K(KeyEvent.VK_K, 'k'),
+        VK_L(KeyEvent.VK_L, 'l'),
+        VK_M(KeyEvent.VK_M, 'm'),        
+        VK_N(KeyEvent.VK_N, 'n'),
+        VK_O(KeyEvent.VK_O, 'o'),
+        VK_P(KeyEvent.VK_P, 'p'),
+        VK_R(KeyEvent.VK_R, 'r'),        
+        VK_T(KeyEvent.VK_T, 't'),
+        VK_U(KeyEvent.VK_U, 'u'),
+        VK_V(KeyEvent.VK_V, 'v'),      
+        VK_X(KeyEvent.VK_X, 'x'),
+        VK_Y(KeyEvent.VK_Y, 'y'),
+        VK_Z(KeyEvent.VK_Z, 'z'),
         VK_ESCAPE(KeyEvent.VK_ESCAPE, '\0'),
         VK_CONTROL(KeyEvent.VK_CONTROL, '\0'),        
         VK_ALT(KeyEvent.VK_ALT, '\0'),
@@ -41,7 +58,19 @@ public class InputHandle implements KeyListener {
         VK_ENTER(KeyEvent.VK_ENTER, '\n'),
         VK_PAGE_UP(KeyEvent.VK_PAGE_UP, '\0'),
         VK_PAGE_DOWN(KeyEvent.VK_PAGE_DOWN, '\0'),
-        VK_F3(KeyEvent.VK_F3, '\0');
+        VK_DELETE(KeyEvent.VK_DELETE, '\0'),
+        VK_F3(KeyEvent.VK_F3, '\0'),        
+        VK_Q(KeyEvent.VK_Q, 'q'),
+        VK_1(KeyEvent.VK_1, '1'),
+        VK_2(KeyEvent.VK_2, '2'),        
+        VK_3(KeyEvent.VK_3, '3'),
+        VK_4(KeyEvent.VK_4, '4'),
+        VK_5(KeyEvent.VK_5, '5'),
+        VK_6(KeyEvent.VK_6, '6'),        
+        VK_7(KeyEvent.VK_7, '7'),
+        VK_8(KeyEvent.VK_8, '8'),
+        VK_9(KeyEvent.VK_9, '9'),
+        VK_0(KeyEvent.VK_0, '0');
         
         
         private final int keyCode;        
@@ -58,7 +87,13 @@ public class InputHandle implements KeyListener {
     }
     
     public char getChar(int keyCode) {
+        Character ch = charKeys.get(keyCode);
+        if (ch == null) {
+            return '\0';
+        }
+        
         return charKeys.get(keyCode);
+        
     }
     
     public static class Key {
@@ -110,6 +145,9 @@ public class InputHandle implements KeyListener {
     public static Key print = new Key(KeyEvent.VK_PRINTSCREEN);
     public static Key levelUp = new Key(KeyEvent.VK_PAGE_UP);
     public static Key levelDown = new Key(KeyEvent.VK_PAGE_DOWN);
+    public static Key crafting = new Key(KeyEvent.VK_C);
+    public static Key quest = new Key(KeyEvent.VK_Q);
+    public static Key jump = new Key(KeyEvent.VK_J);
 
     
     @Override

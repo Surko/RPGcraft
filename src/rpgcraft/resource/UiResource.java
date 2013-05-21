@@ -19,6 +19,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rpgcraft.errors.ErrorWrn;
 import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.graphics.Colors;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.resource.types.AbstractType;
 import rpgcraft.resource.types.BarType;
@@ -96,7 +97,7 @@ public class UiResource extends AbstractResource<UiResource> {
         BORDERSWING,
         GRIDSWING,
         INGAME        
-    }
+    }        
     
     public enum ClickType {
             onListElement,
@@ -107,11 +108,9 @@ public class UiResource extends AbstractResource<UiResource> {
     private static HashMap<String, UiResource> uiResources = new HashMap<>();
     
     private String id;    
-    private String font;
     private String bImageId;
     private String bImagew;
     private String bImageh;
-    private String bColorId;
     private String w=UiSize.BLANK,h=UiSize.BLANK,mw=UiSize.BLANK,mh =UiSize.BLANK;
     private int hGap;
     private int vGap;
@@ -124,6 +123,7 @@ public class UiResource extends AbstractResource<UiResource> {
     private String parent;
     private ArrayList<Action> mouseActions;
     private ArrayList<Action> keyActions;
+    private boolean active;
     private boolean visible;
     private UiPosition position;
     private UiPosition imagePosition;
@@ -209,14 +209,44 @@ public class UiResource extends AbstractResource<UiResource> {
             Node eNode = nl.item(i);
             switch (eNode.getNodeName()) {   
                 case LayoutXML.LAYOUT : {
+                    if (type != null) {
+                        parse((Element)eNode);         
+                    }         
+                    else {
+                        LOG.log(Level.SEVERE, StringResource.getResource("_ndtype"));
+                        new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndtype"),
+                                null).renderSpecific("_label_resourcerror");
+                    }
                     parse((Element)eNode);                    
                 }   break;
                 case LayoutXML.BACKGROUND : {
-                    parse((Element)eNode);         
+                    if (type != null) {
+                        parse((Element)eNode);         
+                    }         
+                    else {
+                        LOG.log(Level.SEVERE, StringResource.getResource("_ndtype"));
+                        new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndtype"),
+                                null).renderSpecific("_label_resourcerror");
+                    }
                 }   break;
                 case LayoutXML.BACKGROUNDCOLOR : {
-                    bColorId = eNode.getTextContent();
+                try {
+                    type.setBackColor(eNode.getTextContent());
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, StringResource.getResource("_ecolor",
+                            new String[] {id, ex.getMessage()}));
+                    type.setBackColor(Colors.getColor(Colors.Black));
+                }
                 }   break;
+                case LayoutXML.TOPCOLOR : {
+                try {
+                    type.setTopColor(eNode.getTextContent());
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, StringResource.getResource("_ecolor",
+                            new String[] {id, ex.getMessage()}));
+                    type.setTopColor(Colors.getColor(Colors.Black));
+                }
+                } break;
                 case LayoutXML.BACKGROUNDIMAGE : {
                     bImageId = eNode.getTextContent();
                 }   break;
@@ -240,7 +270,7 @@ public class UiResource extends AbstractResource<UiResource> {
                 }   break;    
                 case LayoutXML.ID : {
                     id = eNode.getTextContent();  
-                    System.out.println(id);
+                    //System.out.println(id);
                 } break;
                 case LayoutXML.TEXT : {
                     switch (type.getUiType()) {
@@ -297,6 +327,9 @@ public class UiResource extends AbstractResource<UiResource> {
                         LOG.log(Level.SEVERE,
                                 StringResource.getResource("_ui_template_error"),e.toString());
                     }
+                } break;
+                case LayoutXML.EVENTACTIVE : {
+                    this.active = Boolean.parseBoolean(eNode.getTextContent());                                
                 } break;
                     /*
                      * Typ Resource (button,panel,image,...). Ked je uz nastaveny bud v template alebo niecim inym tak je 
@@ -397,8 +430,8 @@ public class UiResource extends AbstractResource<UiResource> {
                                 try {
                                 ((GridBagConstraints)type.getConstraints()).weightx = Integer.parseInt(eNode.getTextContent());
                                 } catch (Exception e) {
-                                    LOG.log(Level.WARNING,
-                                            StringResource.getResource("_iparam"), "weightx");
+                                    LOG.log(Level.WARNING, StringResource.getResource("_iparam",
+                                            new String[] {LayoutXML.WEIGHTX, this.getClass().getName(), id}));
                                 }
                             }   break;
                             default : {
@@ -418,8 +451,8 @@ public class UiResource extends AbstractResource<UiResource> {
                                 try {
                                 ((GridBagConstraints)type.getConstraints()).weighty = Integer.parseInt(eNode.getTextContent());
                                 } catch (Exception e) {
-                                    LOG.log(Level.WARNING,
-                                            StringResource.getResource("_iparam"), "weighty");
+                                    LOG.log(Level.WARNING, StringResource.getResource("_iparam",
+                                            new String[] {LayoutXML.WEIGHTY, this.getClass().getName(), id}));
                                 }
                             }   break;
                             default : {
@@ -443,65 +476,103 @@ public class UiResource extends AbstractResource<UiResource> {
                 } break; 
                 case LayoutXML.SPEEDX : {
                     scrollX = Integer.parseInt(eNode.getTextContent());
-                } break;   
+                } break;                   
                 case LayoutXML.ACTION : {                    
                     Action action = new Action();                    
                     action.setAction(eNode.getTextContent());
                     
-                    try {
-                        action.setClicks(Integer.parseInt(((Element)eNode).getAttribute(LayoutXML.CLICK)));
-                    } catch (Exception e) {
-                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"click", "action"}));
-                    }
+                    Element currElem = (Element)eNode;                    
                     
-                    try {
-                        switch (ClickType.valueOf(((Element)eNode).getAttribute(LayoutXML.CLICKTYPE))) {
-                            case onListElement : {
-                                if (!type.getUiType().equals(UiType.LIST)) {
-                                    LOG.log(Level.WARNING, StringResource.getResource("_nuattrib", new String[] {"clicktype", "action"}));
+                    if (currElem.hasAttribute(LayoutXML.SCRIPTYPE)) {
+                        try {
+                            switch (ScriptType.valueOf(currElem.getAttribute(LayoutXML.SCRIPTYPE))) {
+                                case LUA : {                                    
+                                    action.setLua(true);
+                                } break;
+                                case LISTENER : {
+                                    action.setLua(false);
                                 }
-                                action.setClickType(ClickType.onListElement);
+                                default : break;
                             }
-                            default : break;
+                        } catch (Exception e) {
+                            LOG.log(Level.WARNING,StringResource.getResource("_iattrib",
+                                    new String[] {LayoutXML.SCRIPTYPE, LayoutXML.ACTION, toString()}));
                         }
-                    } catch (Exception e) {
-                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"onListElement", "action"}));
-                    }                    
+                    }
                     
-                    try {
-                        action.setActionTransparency(Boolean.parseBoolean(((Element)eNode).getAttribute(LayoutXML.TRANSPARENT)));
-                    } catch (Exception e) {
-                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"transparent", "action"}));
+                    action.setMemorizable(Boolean.parseBoolean((currElem.getAttribute(LayoutXML.MEMORIZE))));
+                    
+                    if (currElem.hasAttribute(LayoutXML.CLICKTYPE)) {
+                        try {
+                            switch (ClickType.valueOf(currElem.getAttribute(LayoutXML.CLICKTYPE))) {
+                                case onListElement : {
+                                    if (!type.getUiType().equals(UiType.LIST)) {
+                                        LOG.log(Level.WARNING, StringResource.getResource("_nuattrib", new String[] {"clicktype", "action"}));
+                                    }
+                                    action.setClickType(ClickType.onListElement);
+                                }
+                                default : break;
+                            }
+                        } catch (Exception e) {
+                            LOG.log(Level.WARNING,StringResource.getResource("_iattrib",
+                                    new String[] {LayoutXML.CLICKTYPE, LayoutXML.ACTION, toString()}));
+                        }                    
                     }
                     
                     try {
-                        action.setType(Action.Type.valueOf(((Element)eNode).getAttribute(LayoutXML.TYPE)));
+                        action.setActionTransparency(Boolean.parseBoolean(currElem.getAttribute(LayoutXML.TRANSPARENT)));
                     } catch (Exception e) {
-                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"action", "action"}));
+                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib",
+                                new String[] {LayoutXML.TRANSPARENT, LayoutXML.ACTION, toString()}));
                     }
                     
                     try {
-                        action.setCode((((Element)eNode).getAttribute(LayoutXML.CODE)));
+                        action.setType(Action.Type.valueOf(currElem.getAttribute(LayoutXML.TYPE)));
                     } catch (Exception e) {
-                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib", new String[] {"action", "action"}));
-                    }
+                        LOG.log(Level.WARNING,StringResource.getResource("_iattrib",
+                                new String[] {LayoutXML.TYPE, LayoutXML.ACTION, toString()}));
+                    }                                                                                                  
                     
                     switch (action.getType()) {
                         case MOUSE : {
+                            
+                            if (currElem.hasAttribute(LayoutXML.CLICK)) {
+                                try {                        
+                                    action.setClicks(Integer.parseInt((currElem.getAttribute(LayoutXML.CLICK))));                        
+                                } catch (Exception e) {
+                                    LOG.log(Level.WARNING,StringResource.getResource("_iattrib",
+                                            new String[] {LayoutXML.CLICK, LayoutXML.ACTION, toString()}));
+                                }
+                            } else {
+                               LOG.log(Level.WARNING,StringResource.getResource("_mattrib",
+                                       new String[] {LayoutXML.CLICK, LayoutXML.ACTION, toString()})); 
+                            }
+                            
                             if (mouseActions == null) {
                                 mouseActions = new ArrayList<>();
                             }
                             mouseActions.add(action);
                         } break;
                         case KEY : {
+                            
+                            if (currElem.hasAttribute(LayoutXML.CODE)) {
+                                try {
+                                    action.setCode((currElem.getAttribute(LayoutXML.CODE)));
+                                } catch (Exception e) {
+                                    LOG.log(Level.WARNING,StringResource.getResource("_iattrib",
+                                            new String[] {LayoutXML.CODE, LayoutXML.ACTION, toString()}));
+                                }
+                            } else {
+                               LOG.log(Level.WARNING,StringResource.getResource("_mattrib",
+                                            new String[] {LayoutXML.CODE, LayoutXML.ACTION, toString()})); 
+                            }
+                            
                             if (keyActions == null) {
                                 keyActions = new ArrayList<>();
                             }
                             keyActions.add(action);
                         }
-                    }
-                    
-                    
+                    }                                        
                 } break; 
                 case LayoutXML.ACTIONS : {
                     mouseActions = new ArrayList<>();
@@ -530,8 +601,7 @@ public class UiResource extends AbstractResource<UiResource> {
                             default :
                                 position = UiPosition.valueOf(eNode.getTextContent());                            
                         }
-                    }
-                    
+                    }                    
                     position = UiPosition.valueOf(eNode.getTextContent());                     
                 } break;     
                 case LayoutXML.LISTDATA : {
@@ -626,12 +696,16 @@ public class UiResource extends AbstractResource<UiResource> {
         this.bImageId = res.bImageId;
         this.bImagew = res.bImagew;
         this.bImageh = res.bImageh;
-        this.bColorId = res.bColorId;
         this.w = res.w;
-        this.h = res.h;
+        this.h = res.h;        
         this.iOrientation = res.iOrientation;        
+        this.active = res.active;
     }
     
+    /**
+     * Metoda vrati id resource.
+     * @return Id resource
+     */
     public String getId() {
         return id;        
     }
@@ -644,119 +718,268 @@ public class UiResource extends AbstractResource<UiResource> {
         return bImageId;
     }
     
-    public String getBackgroundColorId() {
-        return bColorId;
-    }    
+    /**
+     * Metoda vrati farbu ktora sa nachadza uplne v pozadi.
+     * @return Farba pozadia
+     */
+    public Color getBackgroundColorId() {
+        return type.getBackColor();
+    }            
     
+    /**
+     * Metoda vrati farbu vrchneho pozadia.
+     * @return Farba pozadia
+     */
+    public Color getTopColorId() {
+        return type.getTopColor();
+    }
+    
+    /**
+     * Metoda vrati typ resource.
+     * @return Typ Resource
+     */
     public AbstractType getType() {
         return type;
     }
     
+    /**
+     * Metoda vrati UiTyp resource
+     * @return UiTyp Resource.
+     * @see UiType
+     */
     public UiType getUiType() {
         return type.getUiType();
     }
     
+    /**
+     * Metoda ktora vrati typ layoutu resourcu.
+     * @return Layout typ resourcu.
+     */
     public LayoutType getLayoutType() {
         return type.getLayoutType();
     }        
     
+    /**
+     * Metoda vrati x-ovu poziciu komponenty. Vsetky pozicie su ulozene v GridBagConstraints aj ked
+     * resource nema v type zadany GridBagSwing.
+     * @return x-ova pozicia kde bude lezat komponenta
+     */
     public int getX() {
         return type.getConstraints() == null ? 0 : ((GridBagConstraints)type.getConstraints()).gridx;        
     }
     
+    /**
+     * Metoda vrati y-ovu poziciu komponenty. Vsetky pozicie su ulozene v GridBagConstraints aj ked
+     * resource nema v type zadany GridBagSwing.
+     * @return y-ova pozicia kde bude lezat komponenta
+     */
     public int getY() {
         return type.getConstraints() == null ? 0 : ((GridBagConstraints)type.getConstraints()).gridy;
     }
     
+    /**
+     * Metoda ktora vrati true/false podla toho ci komponenta z tohoto resource je skrolovacia.
+     * @return true/false ci sa komponenta bude skrolovat.
+     */
     public boolean isScrolling() {
         return scrolling;
     }        
     
+    /**
+     * Metoda ktora vrati ako rychlo sa bude skrolovat po x-ovej suradnici.
+     * @return Okolko sa za jeden update komponenta posunie.
+     */
     public int getScrollX() {
         return scrollX;        
     }
     
+    /**
+     * Metoda ktora vrati ako rychlo sa bude skrolovat po y-ovej suradnici.
+     * @return Okolko sa za jeden update komponenta posunie.
+     */
     public int getScrollY() {
         return scrollY;
     }
     
+    /**
+     * Metoda vrati sirku resource.
+     * @return Sirka resource v textovej podobe.
+     */
     public String getWidth() {
         return w;
     }
     
+    /**
+     * Metoda vrati vysku resource.
+     * @return Vyska resource v textovej podobe.
+     */
     public String getHeight() {
         return h;
     }
     
+    /**
+     * Metoda vrati minimalnu sirku resource.
+     * @return Vyska resource v textovej podobe.
+     */
     public String getMinWidth() {
         return mw;
     }
     
+    /**
+     * Metoda vrati minimalnu vysku resource.
+     * @return Minimalna vyska resource v textovej podobe.
+     */
     public String getMinHeight() {
         return mh;
     }
     
+    /**
+     * Metoda ktora vrati otcovsky resource. Komponenta ktora bola vytvorena tymto resourcom
+     * bude mat otcovsku komponentu vytvorenu z resource ktory tato metoda vrati.
+     * @return Otcovsky resource pre tento resource.
+     */
     public UiResource getParent() {
         return uiResources.get(parent);
     }
     
+    /**
+     * Metoda ktora vrati sirku obrazku pre tento resource.
+     * @return Sirka obrazku v textovej podobe
+     */
     public String getImageWidth() {
         return bImagew;
     }
-    
+        
+    /**
+     * Metoda ktora vrati vysku obrazku pre tento resource.
+     * @return Vyska obrazku v textovej podobe
+     */
     public String getImageHeight() {
         return bImageh;
     }
     
+    /**
+     * Metoda ktora vrati orientaciu obrazku v stupnoch v tomto resource.
+     * @return Orientacia obrazku v stupnoch.
+     */
     public int getImageOrientation() {
         return iOrientation;
     }
     
+    /**
+     * Metoda ktora vrati horizontalne miesto pri komponente. Zatial nepouzite.
+     * Pouzitie pri definovani FlowLayoutu.
+     * @return Odsadenie komponenty po krajoch.        
+     */
     public int getHGap() {
         return hGap;
     }
     
+    /**
+     * Metoda ktora vrati vertikalne miesto pri komponente. Zatial nepouzite.
+     * Pouzitie pri definovani FlowLayoutu.
+     * @return Odsadenie komponenty po vyske.        
+     */
     public int getVGap() {
         return vGap;
     }
     
+    /**
+     * Metoda ktora vrati do ktorej strany je zarovnana komponenta. Zatial nepouzite.
+     * Pouzitie pri definovani FlowLayoutu.
+     * @return 
+     */
     public int getAlign() {
         return align;
     }
     
+    /**
+     * Metoda ktora vrati poziciu komponenty.
+     * @return Pozicia komponenty v rodicovskej komponente
+     * @see UiPosition
+     */
     public UiPosition getPosition() {
         return position;
     }
     
+    /**
+     * Metoda ktora vrati poziciu obrazku v komponente v ktorej sa nachadza.     
+     * @return Pozicia komponenty v komponente
+     * @see UiPosition
+     */
     public UiPosition getImagePosition() {
         return imagePosition;
     }
     
+    /**
+     * Metoda ktora vrati vykreslovaci mod pre komponentu. Zatial nepouzite
+     * (zatial iba hruby nacrt prekreslovania a normalneho vykreslovania
+     * @return PaintMod pre vykreslovanie
+     * @see UiPaintMode
+     */
     public UiPaintMode getPaintMode() {
         return mode;
     }
     
+    /**
+     * Metoda ktora vrati ci bude komponenta prekreslujuca.
+     * Porovnavanie UiPaintModu s UiPaintMode.Overlap
+     * @return True/False ci je metoda prekreslujuca.
+     * @see UiPaintMode
+     */
     public boolean isOverlapping() {
         return mode.compareTo(UiPaintMode.OVERLAP)==0;
     }       
     
-    public boolean isHardMoving() {
-        return false;
-    }
-    
+    /**
+     * Metoda ktora vrati constraints podla ktorej sa bude riadit rozlozenie komponenty.
+     * @return Constraints pre komponentu.
+     */
     public Object getConstraints() {
         return type.getConstraints();
     }
     
+    /**
+     * Metoda ktora vrati akcie pri stlaceni mysi. Mozne doplnit o Hover,Pressed,Released akcie pre mys.
+     * @return ArrayList s akciami pre mys eventy.
+     */
     public ArrayList<Action> getMouseActions() {
         return mouseActions;
     }
     
+    /**
+     * Metoda ktora vrati akcie pri stlaceni klaves.
+     * @return ArrayList s akciami pre klavesove eventy.
+     * @return 
+     */
     public ArrayList<Action> getKeyActions() {
         return keyActions;
     }
     
+    /**
+     * Metoda ktora vrati true/false podla toho ci bude komponenta aktivna
+     * pre spracovanie eventov. Vykonavanie mys/klavesovych akcii.
+     * @return True/False <=>aktivne/neaktivn na eventy.
+     */
+    public boolean isEventActive() {
+        return active;
+    }
+    
+    /**
+     * Metoda ktora vrati ci bude komponenta viditelna alebo nie.
+     * @return True/false ci je komponenta viditelna.
+     */
     public boolean isVisible() {
         return visible;
+    }
+    
+    /**
+     * Metoda toString vrati text s vypisom/zakladnymi informaciami o tomto resource.
+     * Meno triedy + id.
+     * @return String s popiskom objektu
+     */
+    @Override
+    public String toString() {
+        return this.getClass().getName() + ":" + id;
     }
 }

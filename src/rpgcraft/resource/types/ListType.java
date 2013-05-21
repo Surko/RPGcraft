@@ -38,7 +38,7 @@ public class ListType extends PanelType{
     
     protected int rowsMax;
     protected int colsMax;
-    protected int rowLayout = -3;
+    protected int rowLayout = -2;
     protected String sData;
     protected ArrayList<UiResource> elements;
     

@@ -10,15 +10,16 @@ package rpgcraft.entities.types;
  */
 public enum ItemLevelType implements Type {
            HAND(1),
-           WOODEN(2),
-           STONE(4),
-           IRON(8),
-           GOLD(16),
-           ORCISH(32),
-           ADAMANTITE(64),
-           DIAMOND(128),
-           PLASMA(256),
-           MATTER(512);
+           WOODEN(3),
+           STONE(7),
+           IRON(15),
+           GOLD(31),
+           ORCISH(63),
+           ADAMANTITE(127),
+           DIAMOND(255),
+           DARKDIAMOND(511),
+           PLASMA(1023),
+           MATTER(2047);
            
            int value;
            

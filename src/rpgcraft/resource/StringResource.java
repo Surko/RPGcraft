@@ -26,9 +26,9 @@ import java.util.logging.Logger;
 public class StringResource {
     
     private static final String init = "String Resource initialising";
-    private static final String done = "DONE";
+    private static final String done = "DONE ";
     private static final String missing = "String Resource is missing";
-    private static final String nores = "MRES";
+    private static final String nores = "MRES ";
     
     private static HashMap<String, String> stringResources;
     
@@ -72,7 +72,8 @@ public class StringResource {
         if (stringResources.containsKey(name)) {
             return String.format(stringResources.get(name), null);
         } else {
-            return nores;
+            Logger.getLogger(StringResource.class.getName()).log(Level.WARNING, nores + name);
+            return nores + name;
         }
     }
     
@@ -80,7 +81,8 @@ public class StringResource {
         if (stringResources.containsKey(name)) {
             return String.format(stringResources.get(name), param);
         } else {
-            return nores;
+            Logger.getLogger(StringResource.class.getName()).log(Level.WARNING, nores + name);
+            return nores + name;
         }           
     }
     

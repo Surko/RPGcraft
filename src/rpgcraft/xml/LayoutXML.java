@@ -15,7 +15,7 @@ public interface LayoutXML {
     public static final String TYPE = "type";
     public static final String TEXT = "text";
     public static final String LAYOUT = "layout";    
-    public static final String ACTION = "action";
+    public static final String ACTION = "action";    
     public static final String ACTIONS = "actions";
     public static final String LAYOUTTYPE = "layout-type";    
     public static final String SCROLLING = "scrolling";
@@ -29,6 +29,7 @@ public interface LayoutXML {
     public static final String INSETS = "insets";
     public static final String BACKGROUND = "background";
     public static final String BACKGROUNDCOLOR = "background-color";
+    public static final String TOPCOLOR = "top-color";
     public static final String BACKGROUNDIMAGE = "background-image";
     public static final String IMAGEWIDTH = "image-width";
     public static final String IMAGEHEIGHT = "image-height";
@@ -48,12 +49,15 @@ public interface LayoutXML {
     public static final String ROWLAYOUT = "rows-layout";
     public static final String ROWSMAX = "rows-max";
     public static final String COLSMAX = "cols-max";
+    public static final String EVENTACTIVE = "event-active";
     // ATRIBUTES
     public static final String FONT = "font";
     public static final String TEXTCOLOR = "textcolor";
     public static final String FONTSIZE = "size";
     public static final String CLICK = "click";
+    public static final String MEMORIZE = "memorize";
     public static final String TRANSPARENT = "transparent";
+    public static final String SCRIPTYPE = "script-type";
     public static final String CLICKTYPE = "clicktype";
     public static final String CODE = "code";
     public static final String DATA = "data";

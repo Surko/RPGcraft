@@ -4,6 +4,7 @@
  */
 package rpgcraft.entities;
 
+import rpgcraft.entities.ai.Ai;
 import java.awt.Image;
 import java.io.Externalizable;
 import java.io.IOException;
@@ -12,11 +13,13 @@ import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import rpgcraft.effects.Effect;
 import rpgcraft.entities.types.ArmorType;
 import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.entities.types.ItemType;
-import rpgcraft.graphics.particles.BarParticle;
+import rpgcraft.graphics.ui.particles.BarParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
 import rpgcraft.map.SaveMap;
@@ -34,6 +37,27 @@ import rpgcraft.resource.StatResource.Stat;
  */
 public abstract class Entity implements Externalizable {    
     private static final long serialVersionUID = 912804676578087866L;
+    private static final Logger LOG = Logger.getLogger(Entity.class.getName()); 
+    public enum InventoryIndexes {
+        
+        ID(0),
+        NAME(0),
+        VALUE(1),
+        IMAGE(2);
+        
+        
+        private int index;
+        
+        private InventoryIndexes(int i) {
+            this.index = i;
+        }
+        
+        public int getIndex() {
+            return index;
+        }                        
+    }
+    
+    protected Ai ai;
     
     // Premenna pre vypocty atributov entit.    
     protected Random random = new Random();    
@@ -57,7 +81,9 @@ public abstract class Entity implements Externalizable {
     protected int spriteRadius;
     // Typ aktualneho sprite 
     protected Sprite.Type spriteType;
-    // Id entity
+    // Terajsi Sprite
+    protected Sprite currentSprite;
+    // Id entity    
     protected String id;
     // Stav entity
     private boolean saveInProgress;
@@ -121,8 +147,8 @@ public abstract class Entity implements Externalizable {
     
     protected BarParticle poweringBar;   
     
-    protected double dpower;
-    protected double hpower;
+    protected double acumDefense;
+    protected double acumPower;
     protected double attackPower;
     protected double defensePower;
     protected Double maxPower;
@@ -131,21 +157,55 @@ public abstract class Entity implements Externalizable {
     protected ArmorType armorType;
     protected ItemLevelType levelType;
     
-    protected int currDur;
-    protected int maxDur;
+    protected long waypointTime;
+    protected long currentTime;
+    protected long maxTime;
     
+    
+    // <editor-fold defaultstate="collapsed" desc=" Abstraktne metody ">
     // Abstraktne metody 
     public abstract void unequip(Entity e);    
     public abstract void equip(Entity e);        
     public abstract void setImpassableTile(int tile);
     public abstract void use(Entity item);
-    public abstract void hit(double damage, rpgcraft.graphics.spriteoperation.Sprite.Type type);    
-    protected abstract void pushWith(Entity e);    
-    protected abstract int interactWith(int x0, int y0, int x1, int y1, double modifier);    
-    protected abstract void knockback(rpgcraft.graphics.spriteoperation.Sprite.Type type);    
-    protected abstract boolean updateCoordinates();
+    public abstract void hit(double damage, rpgcraft.graphics.spriteoperation.Sprite.Type type);
+    public abstract boolean updateCoordinates();
+    public abstract void pushWith(Entity e);    
+    public abstract int interactWith(int x0, int y0, int x1, int y1, double modifier);    
+    public abstract void knockback(rpgcraft.graphics.spriteoperation.Sprite.Type type);    
     
-    //
+    // </editor-fold>
+    
+    public static ArrayList<ArrayList<Object>> getInventoryItemsParam(Entity e, ArrayList<String> params) {
+        ArrayList<ArrayList<Object>> resultInf = new ArrayList<>();
+        for (Item item : e.inventory) {
+                ArrayList<Object> record = new ArrayList<>();
+                Object[] saveData = new Object[InventoryIndexes.values().length];
+
+                saveData[InventoryIndexes.NAME.getIndex()] = item.name;
+                saveData[InventoryIndexes.VALUE.getIndex()] = item.getCount();
+                saveData[InventoryIndexes.IMAGE.getIndex()] = item.getTypeImage();
+
+                record.add(saveData[InventoryIndexes.ID.getIndex()]);
+
+                for (String p : params) {
+                    switch (InventoryIndexes.valueOf(p)) {
+                        case NAME : {
+                            record.add(saveData[InventoryIndexes.NAME.getIndex()]);
+                        } break;
+                        case VALUE : {
+                            record.add(saveData[InventoryIndexes.VALUE.getIndex()]);
+                        } break;
+                        case IMAGE : {
+                            record.add(saveData[InventoryIndexes.IMAGE.getIndex()]);
+                        } break;
+                        default : LOG.log(Level.WARNING,p + " is not implemented parameter");
+                    }
+                }
+                resultInf.add(record);            
+        }        
+        return resultInf;          
+    }
     
     public Entity() {
     }
@@ -180,6 +240,20 @@ public abstract class Entity implements Externalizable {
      */
     public void setMap(SaveMap map) {
         this.map = map;        
+    }
+    
+    /**
+     * Metoda ktora navrati id entity ktorej prislucha resource z entity resource.
+     * @return Id entity 
+     * 
+     */
+    
+    public String getId() {
+        return id;
+    }
+    
+    public Entity getTargetEntity() {
+        return targetEntity;
     }
     
     /**
@@ -242,6 +316,94 @@ public abstract class Entity implements Externalizable {
         return yPix;
     }    
 
+    /**
+     * Metoda ktora prida item do inventara na specialne miesto zadane parametrom <b>index</b>
+     * @param index Index kde sa prida item
+     * @param item Item na pridanie
+     */
+    public void addItem(int index, Item item) {
+        
+        while (index >= inventory.size()) {
+            inventory.add(null);
+        }
+        
+        if (inventory.get(index) == null)
+            inventory.add(index, item);
+    }        
+    
+    /**
+     * Metoda ktora prida item do inventara entite. Ked sa tam uz taky predmet nachadza
+     * tak iba zvacsi count/pocet itemov.
+     * @param item Item na pridanie.
+     */
+    public void addItem(Item item) {
+        int index = inventory.indexOf(item);
+        
+        if (index == -1) {
+            inventory.add(item);
+        } else {
+            inventory.get(index).incCount();
+        }                        
+    }
+    
+    public void removeItem(Item item) {                
+        int index = inventory.indexOf(item);        
+        
+        if (item.getCount() <= 1) {
+            inventory.remove(index);
+            return;
+        }
+        
+        if (index != -1) {
+            inventory.get(index).decCount();
+        }
+        
+    }
+    
+    public void removeItem(int index, int value) {
+        if (index < inventory.size()) {
+            if (value < 0) {
+                inventory.remove(index);
+            } else {
+                Item toRem = inventory.get(index);
+                switch (Integer.compare(toRem.getCount(), value)) {
+                    case 0 :                     
+                    case -1 :
+                        inventory.remove(index);
+                        break;
+                    case 1 :
+                        inventory.get(index).decCount(value);
+                        break;
+                }
+            }
+        }
+    }
+    
+    public void removeItem(int index) {
+        if (index < inventory.size() && index >= 0) {            
+            Item toRem = inventory.get(index);
+            
+            if (toRem.getCount() <= 1) {
+                inventory.remove(index);
+            } else {
+                toRem.decCount();
+            }                                    
+        }
+    }
+     
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    
+    public Item getItem(int index) {
+        if (index >= inventory.size())
+            return null;
+        
+        return inventory.get(index);
+    }
+    
+    public SaveMap getMap() {
+        return map;
+    }
+    
     public ArrayList<Item> getInventory() {
         return inventory;
     }
@@ -252,14 +414,14 @@ public abstract class Entity implements Externalizable {
     
     public int getAttackRadius() {
         return attackRadius;        
+    }        
+    
+    public double getAcumPower() {
+        return acumPower;
     }
     
-    public double getBarAttack() {
-        return hpower;
-    }
-    
-    public double getBarDefense() {
-        return dpower;
+    public double getAcumDefense() {
+        return acumDefense;
     }
     
     public double getAttackPower() {
@@ -272,45 +434,6 @@ public abstract class Entity implements Externalizable {
     
     public double getMaxPower() {
         return maxPower;
-    }
-    
-    public void setSound(int sound) {
-        this.sound = sound;
-    }
-    
-    public void setSaved(Boolean saved) {
-        this.saveInProgress = saved;
-    }
-    
-    public void setActiveItem(Entity item) {
-        this.activeItem = item;
-        if (this != item) {
-            this.attackPower += item.attackPower;
-        }
-    }
-    
-    public void setArmorType(ArmorType armorType) {
-           this.armorType = armorType;
-    }
-    
-    public void setItemType(ItemType itemType) {
-        this.itemType = itemType;
-    }
-    
-    public void setItemLevelType(ItemLevelType levelType) {
-        this.levelType = levelType;
-    }
-    
-    public void setChunk(Chunk chunk) {
-        this.actualChunk = chunk;
-    }
-    
-    public void decLevel() {
-        this.level--;
-    }
-    
-    public void incLevel() {
-        this.level++;
     }
     
     public double getHealth() {
@@ -333,6 +456,10 @@ public abstract class Entity implements Externalizable {
         return levelType;
     }
          
+    public Entity getActiveItem() {
+        return activeItem;
+    }
+    
     public boolean isPushable() {
         return pushable;
     }
@@ -345,8 +472,63 @@ public abstract class Entity implements Externalizable {
         return null;
     }
     
+    public int getCount() {
+        return 1;
+    }
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
+    public void setSound(int sound) {
+        this.sound = sound;
+    }
+    
+    public void incAcumPower(double modifier, double value) {
+        acumPower += doubleStats.get(StatResource.Stat.ATKPOWER) * modifier + value;
+    }
+    
+    public void incAcumDefense(double modifier, double value) {
+        acumDefense += doubleStats.get(StatResource.Stat.ATKPOWER) * modifier + value;
+    }
+    
+    public void decLevel() {
+        this.level--;
+    }
+    
+    public void incLevel() {
+        this.level++;
+    }
+    
+    public void setActiveItem(Entity item) {
+        this.activeItem = item;
+        if (this != item) {
+            this.attackPower += item.attackPower;
+        }
+    }
+    
+    public void setSaved(Boolean saved) {
+        this.saveInProgress = saved;
+    }        
+    
+    public void setArmorType(ArmorType armorType) {
+           this.armorType = armorType;
+    }
+    
+    public void setItemType(ItemType itemType) {
+        this.itemType = itemType;
+    }
+    
+    public void setItemLevelType(ItemLevelType levelType) {
+        this.levelType = levelType;
+    }
+    
+    public void setChunk(Chunk chunk) {
+        this.actualChunk = chunk;
+    }               
+    
+    // </editor-fold>
+    
     public boolean update() {
-
         return true;
     }
     
@@ -368,10 +550,10 @@ public abstract class Entity implements Externalizable {
     protected boolean canMove(int xGo, int yGo) {
         if ((xGo == 0)&&(yGo == 0)) {
             return true;
-        }                
-                 
-        currDur++;
+        }
         
+        // Ked je smerovy vektor pohybu nenulovy v nejakom smere tak aktualizuje cas pre entitu
+        currentTime = System.currentTimeMillis() - waypointTime;
         
         int xdirModifier = 0;
         int ydirModifier = 0;
@@ -391,35 +573,6 @@ public abstract class Entity implements Externalizable {
         int regY = y0 >> 9;
         if (actualChunk == null) return false;                        
         
-        Chunk chunk = actualChunk;
-        if ((actualChunk.getX() != regX)||(actualChunk.getY() != regY)) {              
-            actualChunk = map.chunkPixExist(regX, regY);
-        }
-        if (actualChunk != null) {            
-            Tile tile = map.tiles.get(actualChunk.getTile(level, x0 >> 5, y0 >> 5));
-
-            //debugCoordinateswithTiles(x0, y0, tile);        
-            //debugCoordinateswithTiles(xx, yy, tile);
-
-            // ked hrac alebo entita obsahuje dlazdicu na prislusnej strany 
-            // v nepriechodnych dlazdiciach tak sa nepohne
-            System.out.println(tile);
-            if (impassableTiles.contains(tile.getId())) { 
-                actualChunk = chunk;
-                return false; 
-            }
-
-            // skusa pohyb do prislusnej strany a vykona taku akciu 
-            // ktora je definovana pri dlazdici
-            tile.moveInto(this);
-
-            reload = true;
-
-        } else {
-            return false;
-        }        
-                                       
-        
         for (Entity e : map.getEntities()) {
             
             if (e == this) continue;
@@ -430,18 +583,44 @@ public abstract class Entity implements Externalizable {
                 }
             }
             if (e.isPushable()) {
-                entityPush(e);
-                
+                entityPush(e);                
             }
         }
+        
+        Chunk chunk = actualChunk;
+        if ((actualChunk.getX() != regX)||(actualChunk.getY() != regY)) {              
+            actualChunk = map.chunkPixExist(regX, regY);
+        }
+        if (actualChunk != null) {            
+            Tile lTile = Tile.tiles.get(actualChunk.getTile(level - 1, x0 >> 5, y0 >> 5));
+            Tile uTile = Tile.tiles.get(actualChunk.getTile(level, x0 >> 5, y0 >> 5));
+            //debugCoordinateswithTiles(x0, y0, tile);        
+            //debugCoordinateswithTiles(xx, yy, tile);
+
+            // ked hrac alebo entita obsahuje dlazdicu na prislusnej strany 
+            // v nepriechodnych dlazdiciach tak sa nepohne           
+            if (impassableTiles.contains(lTile.getId()) || !(uTile instanceof BlankTile)) { 
+                actualChunk = chunk;
+                return false; 
+            }
+
+            // skusa pohyb do prislusnej strany a vykona taku akciu 
+            // ktora je definovana pri dlazdici
+            lTile.moveInto(this);
+
+            reload = true;
+
+        } else {
+            return false;
+        }                                                               
 
         calibratePix(x0, y0);
         return true;                
     }
     
-    public void updateHeight() {
-        Tile tile = map.tiles.get(actualChunk.getTile(level, xPix >> 5, yPix >> 5));
-        
+    public void updateHeight() {               
+        Tile tile = Tile.tiles.get(actualChunk.getTile(level - 1, xPix >> 5, yPix >> 5));        
+                
         tile.moveInto(this);
     }
     
@@ -502,8 +681,8 @@ public abstract class Entity implements Externalizable {
      */
     protected void addAfterEffectsFrom(Entity entity, Entity item) {
         if (random.nextDouble() < entity.interruptionChance - this.concentration) {
-            this.hpower -= this.hpower < 12 ? this.hpower : 12;
-            this.dpower -= this.dpower < 12 ? this.dpower : 12;
+            this.acumPower -= this.acumPower < 12 ? this.acumPower : 12;
+            this.acumDefense -= this.acumDefense < 12 ? this.acumDefense : 12;
         }
     }
     
@@ -546,7 +725,8 @@ public abstract class Entity implements Externalizable {
         out.writeDouble(health);        
         out.writeObject(intStats);
         out.writeObject(doubleStats);
-        out.writeUTF(spriteType.name());        
+        out.writeUTF(spriteType.name());
+        out.writeInt(sprNum);
         out.writeObject(impassableTiles);
         out.writeObject(activeEffects);
         out.writeObject(inventory);
@@ -573,6 +753,7 @@ public abstract class Entity implements Externalizable {
         this.intStats = (HashMap<Stat, Integer>) in.readObject();
         this.doubleStats = (HashMap<Stat, Double>) in.readObject();
         this.spriteType = Type.valueOf( in.readUTF() );
+        this.sprNum = in.readInt();
         this.impassableTiles = (ArrayList<Integer>)in.readObject();
         this.activeEffects = (HashMap<EffectEvent, ArrayList<Effect>>) in.readObject();
         this.inventory = (ArrayList<Item>)in.readObject();

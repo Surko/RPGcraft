@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.ButtonType;
@@ -26,11 +26,14 @@ public abstract class SwingCustomButton extends SwingComponent {
     private static final Logger LOG = Logger.getLogger(SwingCustomButton.class.getName());
     public static final Dimension prefferedDim = new Dimension(300,20);
     
-    String title;     
-    int tw,th;
-    boolean hit = false; 
-    ButtonType btnType;
+    protected String title;     
+    protected int tw = -1,th = -1;
+    protected boolean hit = false; 
+    protected ButtonType btnType;
    
+    @Override
+    public abstract void paintComponent(Graphics g); 
+    
     protected SwingCustomButton() {
         super();
     } 
@@ -40,8 +43,7 @@ public abstract class SwingCustomButton extends SwingComponent {
         btnType = (ButtonType)container.getResource().getType();
         this.title = TextUtils.getResourceText(btnType.getText());  
         setFont(btnType.getFont());               
-        setTextSize();
-        addMouseListener(this); 
+        setTextSize();        
     }
     
     @Override
@@ -49,9 +51,9 @@ public abstract class SwingCustomButton extends SwingComponent {
         btnType = (ButtonType)componentContainer.getResource().getType();
         this.title = TextUtils.getResourceText(btnType.getText());           
         setFont(btnType.getFont());    
-        setTextSize();
-        addMouseListener(this);
+        setTextSize();        
     }
+        
     
     @Override
     public void refresh() {
@@ -59,9 +61,9 @@ public abstract class SwingCustomButton extends SwingComponent {
         int w = 0, h = 0;
         
         Dimension imgDim = prefferedDim;
-        
-        w = componentContainer.isAutoWidth() ? imgDim.width : componentContainer.getWidth();
-        h = componentContainer.isAutoHeight() ? imgDim.height : componentContainer.getHeight();
+                
+        w = componentContainer.isAutoWidth() ? (tw == -1 ? imgDim.width : tw) : componentContainer.getWidth();
+        h = componentContainer.isAutoHeight() ? (th == -1 ? imgDim.height : th) : componentContainer.getHeight();
         
         componentContainer.set(w, h);
         //setSize(w, h);  
@@ -79,30 +81,64 @@ public abstract class SwingCustomButton extends SwingComponent {
         
     }
     
+    @Override
+    public int getWidth() {
+        if (componentContainer != null) {
+            return componentContainer.getWidth();
+        }
+        
+        if (tw == -1) {
+            return prefferedDim.width;
+        }
+        
+        return tw;
+        
+    }
+    
+    @Override
+    public int getHeight() {
+        if (componentContainer != null) {
+            return componentContainer.getHeight();
+        }
+        
+        if (th == -1) {
+            return prefferedDim.height;
+        }
+        
+        return th;
+    }
+    
     public void setText(String text) {
         this.title = text;
     }
     
     public void setTextSize() {
-        th = TextUtils.getTextHeight(getFont());          
-    }
-    
-    @Override
-    public abstract void paintComponent(Graphics g);
-     
-    
+        int[] sizes = TextUtils.getTextSize(getFont(), title);
+        th = sizes[1];
+        tw = sizes[0];
+    }                
   
+    public void setTextWithSize(String text) {
+        setText(text);
+        setTextSize();
+    }
     @Override
-    public void mousePressed(MouseEvent e){  
-        hit=true;          
-        repaint();  
+    public void mousePressed(MouseEvent e) {  
+        if (active) {
+            hit=true; 
+            repaintBtnContent();
+        }
     }  
    
     @Override
     public void mouseReleased(MouseEvent e){  
-        hit=false;  
-        repaint();  
+        if (active) {
+            hit=false;          
+            repaintBtnContent();
+        }
     }  
+    
+    public abstract void repaintBtnContent();
    
     @Override
     public void mouseEntered(MouseEvent e){
@@ -113,8 +149,9 @@ public abstract class SwingCustomButton extends SwingComponent {
     }
     
     @Override
-    public void mouseClicked(MouseEvent e){  
-        isMouseSatisfied(new ActionEvent(this,0,e.getClickCount(),null, null));  
+    public void mouseClicked(MouseEvent e) {
+        super.mouseClicked(e);
+        //isMouseSatisfied(new ActionEvent(this,0,e.getClickCount(),null, null));  
     }             
     
 } 

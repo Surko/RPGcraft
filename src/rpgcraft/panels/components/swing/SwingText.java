@@ -5,12 +5,13 @@
 package rpgcraft.panels.components.swing;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.listeners.ActionEvent;
@@ -28,11 +29,15 @@ public class SwingText extends SwingComponent{
     
     protected String title;
     protected int tw = 0,th = 0;
+    protected int sx = 0, sy = 0;
     protected Color textColor;
     protected Color backColor;
     protected TextType txType;    
         
-    public SwingText() {}
+    public SwingText() {
+        this.textColor = Color.BLACK;
+        this.backColor = Colors.getColor(Colors.transparentColor);
+    }
     
     public SwingText(Container container,AbstractMenu menu) {
         super(container, menu);        
@@ -41,7 +46,7 @@ public class SwingText extends SwingComponent{
             this.title = TextUtils.getResourceText(txType.getText());     
             this.textColor = Colors.getColor(txType.getTextColor());
             setFont(txType.getFont()); 
-            this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
+            this.backColor = container.getResource().getBackgroundColorId();
         }                     
         setBackground(backColor);        
         setTextSize();        
@@ -54,7 +59,7 @@ public class SwingText extends SwingComponent{
             this.title = TextUtils.getResourceText(txType.getText());  
             this.textColor = Colors.getColor(txType.getTextColor());
             setFont(txType.getFont());            
-            this.backColor = Colors.getColor(componentContainer.getResource().getBackgroundColorId());
+            this.backColor = componentContainer.getResource().getBackgroundColorId();
         }            
         setBackground(backColor);
         setTextSize();
@@ -74,7 +79,10 @@ public class SwingText extends SwingComponent{
         }       
     }   
     
-        
+    public void setTextPositions(int x, int y) {
+        this.sx = x;
+        this.sy = y;
+    }    
     
     public void setColor(Color color) {
         this.textColor = color;
@@ -118,6 +126,46 @@ public class SwingText extends SwingComponent{
     }    
 
     @Override
+    public int getWidth() {
+        if (componentContainer != null) {
+            return componentContainer.getWidth();
+        }
+        return tw;
+    }
+    
+    @Override
+    public int getHeight() {
+        if (componentContainer != null) {
+            return componentContainer.getHeight();
+        }
+        return th;
+    }
+    
+    @Override
+    public Dimension getPreferredSize() {
+        if (componentContainer != null) {
+            return componentContainer.getPrefDimension();
+        }
+        return new Dimension(tw,th);
+    }
+    
+    @Override
+    public Dimension getSize() {
+        if (componentContainer != null) {
+            return componentContainer.getPrefDimension();
+        }
+        return new Dimension(tw,th);
+    }
+    
+    @Override
+    public Dimension getMinimumSize() {
+        if (componentContainer != null) {
+            return componentContainer.getMinDimension();
+        }
+        return new Dimension(tw,th);
+    }
+    
+    @Override
     public Component copy(Container cont, AbstractMenu menu) {        
         SwingText result = new SwingText();
         result.isNoData = true;
@@ -134,6 +182,7 @@ public class SwingText extends SwingComponent{
         
     }
 
+    
     @Override
     public void mouseClicked(MouseEvent e) {  
         if (_mlisteners != null) {

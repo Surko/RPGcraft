@@ -20,7 +20,36 @@ public class XmlReader {
     private Document doc;
     private ArrayList<Element> elements = new ArrayList<Element>();   
     
-
+    /**
+     * Enum XmlSavePriority ktory ma definovane mena xml suborov s priradenymi cislami
+     * ktore predstavuju priority. Priority su radene od najmensieho po najvacsie
+     * kde najmensi znamena najvacia priorita. Priority zvacsujeme po jednom.
+     * Metoda getPriority vrati priority pre enum.
+     * 
+     */
+    public enum XmlSavePriority {
+        data(0),
+        images(1),
+        ui(2),
+        tiles(3),
+        effects(4),
+        items(5),
+        entities(6),
+        recipes(7),        
+        quests(8),
+        conversations(9),
+        groups(10);        
+        
+        private int priority;
+        
+        private XmlSavePriority(int priority) {
+            this.priority = priority;
+        }
+        
+        public int getPriority() {
+            return priority;                    
+        }
+    }
     
     public XmlReader(String file) {
         this.file = new File(file);

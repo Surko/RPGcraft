@@ -26,7 +26,8 @@ public class MathUtils {
      * @param h2 Vyska resource
      * @return Pozicie od ktorych vykreslujeme
      */
-    public static int[] getStartPositions(UiResource.UiPosition position,int w1, int h1, int w2, int h2) {
+    public static int[] getStartPositions(UiResource.UiPosition position, int w1, int h1, int w2, int h2) {
+
         int[] positions = new int[2];
         if (position != null) {
             switch (position) {
@@ -60,11 +61,11 @@ public class MathUtils {
                 } break;
                 case BOTTOM_LEFT : {
                     positions[0] = 0;
-                    positions[1] = h2 - h1;
+                    positions[1] = h1 - h2;
                 } break;
                 case BOTTOM_RIGHT : {
                     positions[0] = w1 - w2;
-                    positions[1] = h2 - h1;
+                    positions[1] = h1 - h2;
                 } break;
                 default : break;
             }

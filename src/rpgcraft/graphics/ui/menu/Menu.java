@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package rpgcraft.graphics.inmenu;
+package rpgcraft.graphics.ui.menu;
 
 import java.awt.Graphics;
-import java.util.HashMap;
+import java.awt.event.MouseEvent;
 
 /**
  *
@@ -14,7 +14,10 @@ import java.util.HashMap;
 public interface Menu<T extends Menu> {    
     
     public void inputHandling();
+    public void mouseHandling(MouseEvent e);
     public void paintMenu(Graphics g);
     public void update();
     public void setMenu(T menu);
+    public int getWidth();
+    public int getHeight();
 }

@@ -5,7 +5,9 @@
 package rpgcraft.graphics;
 
 import java.awt.Color;
+import java.text.ParseException;
 import java.util.HashMap;
+import rpgcraft.resource.StringResource;
 
 /**
  * Trieda Colors ktora definuje vsetky pouzite farby v aplikacii. Farby sa ukladaju 
@@ -16,6 +18,9 @@ import java.util.HashMap;
  */
 public class Colors {    
     private static HashMap<String,Color> colors = new HashMap<>();
+    
+    private static final String RGBSTPOINT = "#";
+    private static final String RGBDELIM = ",";
     
     /**
      * Modra farba indikujuca Error suvisiaci s chybajucim suborom.
@@ -90,11 +95,42 @@ public class Colors {
      * Metoda getColor vrati farbu z mapy <b>colors</b>, ked nenajde v nej
      * tak vyhlada pomocou metody getColor definovanej v triede Color, pomocou parametru clrName,
      * ktory ma v sebe vyssie spominane textove hodnoty pre rozne farby.
-     * @param clrName Kluc v mape ktoremu prislucha farba
+     * @param colName Kluc v mape ktoremu prislucha farba
      * @return Farbu z mapy <b>colors</b>
      */
-    public static Color getColor(String clrName) {
-        return colors.containsKey(clrName) ? colors.get(clrName) : Color.getColor(clrName);        
+    public static Color getColor(String colName) {
+        return colors.containsKey(colName) ? colors.get(colName) : Color.getColor(colName);        
+    }
+    
+    /**
+     * Metoda parseColor rozparsuje farbu zadanu textovym parametrom colName. 
+     * Ked text vyhovuje stavbe ako ma farba v xml vyzerat tak metoda vyda spravnu farbu.
+     * Inak hodi ParseException
+     * @param colName Text s hodnotou farby na rozparsovanie.
+     * @return Farba po rozparsovani textu.
+     * @see ParseException
+     * @throws ParseException 
+     */
+    public static Color parseColor(String colName) throws Exception {
+        
+        if (colName.startsWith(RGBSTPOINT)) {
+            String[] rgb = colName.substring(1).split(RGBDELIM);
+            
+            if (rgb.length != 4) {
+                throw new ParseException(StringResource.getResource("_eparse",
+                        new String[] { "parseColor("+colName+")"}),1);
+            }
+            
+            int r = Integer.parseInt(rgb[0]);
+            int g = Integer.parseInt(rgb[1]);
+            int b = Integer.parseInt(rgb[2]);        
+            int a = Integer.parseInt(rgb[3]);
+            return new Color(r,g,b,a);
+            
+        } else {
+          return colors.containsKey(colName) ? colors.get(colName) : Color.getColor(colName);   
+        }      
+        
     }
 
     

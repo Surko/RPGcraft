@@ -15,9 +15,11 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import rpgcraft.GamePane;
 import rpgcraft.panels.components.swing.SwingComponent;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
+import rpgcraft.utils.MainUtils;
 
  /**
  * <p>Trieda Kontainer zdruzuje informacie pre kazdy resource nachadzajuci sa v tomto menu.
@@ -148,7 +150,20 @@ public class Container {
             if (childContainers == null) {
                 childContainers = new ArrayList<>();                
             }
-            childContainers.add(cont);            
+            childContainers.add(cont); 
+            
+            if (c instanceof GamePane) {
+                //System.out.println(Thread.currentThread());
+                c.addComponent(cont.getComponent(),cont.getResource().getConstraints());
+            } else {
+                switch (resource.getLayoutType()) {
+                    case INGAME : c.addComponent(cont.getComponent());
+                        break;
+                    default : c.addComponent(cont.getComponent(),cont.getResource().getConstraints());  
+                        break;                    
+                }
+            }
+            
         }
         
         public void removeContainer(Container cont) {
@@ -160,8 +175,14 @@ public class Container {
         }
         
         public void clear() {
+            if (childContainers == null) return;
             this.childContainers.clear();
             this.c.removeAll();
+            
+            // Pridanie Frameru - mozne odstranit a nahradit nejakym stlacenim klavesnice
+            if (c instanceof GamePane) {
+                c.addComponent(MainUtils.FPSCOUNTER);
+            }
         }
         
         // </editor-fold>

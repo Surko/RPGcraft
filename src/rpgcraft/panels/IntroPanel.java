@@ -4,6 +4,7 @@
  */
 package rpgcraft.panels;
 
+import rpgcraft.plugins.AbstractMenu;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -22,6 +23,7 @@ public class IntroPanel extends AbstractMenu {
             
     public IntroPanel(UiResource res) { 
         this.res = res;
+        menuMap.put(res.getId(), this);
     }        
     
     public IntroPanel(BufferedImage image) {
@@ -32,11 +34,12 @@ public class IntroPanel extends AbstractMenu {
 
     @Override
     public void initialize(Container gameContainer, InputHandle input) {
-        super.initialize(gameContainer, input);
-        menuMap.put("introMenu", this);
+        super.initialize(gameContainer, input);        
     }
                 
-    
+    public String getName() {
+        return res.getId();
+    }
     
     public Image getIntroImage() {
         return contImage;

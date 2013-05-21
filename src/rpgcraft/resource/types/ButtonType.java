@@ -57,4 +57,13 @@ public class ButtonType extends AbstractType {
         return btnColor;
     }
     
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        ButtonType clone = (ButtonType)super.clone();
+        clone.btnColor = btnColor;
+        clone.btnText = btnText;
+        clone.btnFont = btnFont;
+        return clone;
+    }
+    
 }

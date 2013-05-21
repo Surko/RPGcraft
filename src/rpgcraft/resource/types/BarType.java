@@ -39,4 +39,12 @@ public class BarType extends AbstractType {
         return maxData;                
     }
     
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        BarType clone = (BarType)super.clone();
+        clone.maxData = maxData;
+        clone.minData = minData;
+        return clone;
+    }
+    
 }

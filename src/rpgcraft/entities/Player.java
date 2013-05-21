@@ -7,16 +7,23 @@ package rpgcraft.entities;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import rpgcraft.entities.types.ArmorType;
 import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.Colors;
-import rpgcraft.graphics.inmenu.AbstractInMenu;
-import rpgcraft.graphics.particles.BarParticle;
+import rpgcraft.graphics.spriteoperation.Sprite.Type;
+import rpgcraft.plugins.AbstractInMenu;
+import rpgcraft.graphics.ui.particles.BarParticle;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.AttackedTile;
+import rpgcraft.quests.Quest;
 import rpgcraft.resource.EntityResource;
+import rpgcraft.resource.QuestsResource;
 import rpgcraft.resource.StatResource.Stat;
 /**
  *
@@ -24,17 +31,22 @@ import rpgcraft.resource.StatResource.Stat;
  */
 public class Player extends MovingEntity {        
     private static final long serialVersionUID = 912804676578087866L;
+    
+    private HashMap<String,Quest> activeQuests;
+    private HashMap<String,Quest> completedQuests;
     /**
      * Prazdny konstruktor pre vytvorenie instancie Externalizaciou.
      */
     public Player() {
-        System.out.println("Player constructor called");
+        //System.out.println("Player constructor called");
     }
     
     public Player(String name, SaveMap map, EntityResource res) {
         super(name, map, res);
-        System.out.println("Player constructor called");
+        //System.out.println("Player constructor called");
         this.poweringBar = new BarParticle();
+        this.activeQuests = new HashMap();
+        this.completedQuests = new HashMap();
         this.levelType = ItemLevelType.HAND;
         map.addParticle(poweringBar);
     }
@@ -70,16 +82,16 @@ public class Player extends MovingEntity {
             }        
             if (input.runningKeys.contains(input.right.getKeyCode())) {
                 doublexGo += fullSpeed;  
-            }    
+            }                        
             
             if ((input.runningKeys.contains(input.attack.getKeyCode())) && stamina>0) {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.healthColor));
                 }
-                if (activeItem.hpower < activeItem.maxPower) {
+                if (activeItem.acumPower < activeItem.maxPower) {
                     stamina-=doubleStats.get(Stat.ATKPOWER);
-                    activeItem.hpower += doubleStats.get(Stat.ATKPOWER);
-                    poweringBar.setValue(activeItem.hpower); 
+                    activeItem.acumPower += doubleStats.get(Stat.ATKPOWER);
+                    poweringBar.setValue(activeItem.acumPower); 
                 }
             }
 
@@ -87,17 +99,12 @@ public class Player extends MovingEntity {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.defenseColor));                
                 }
-                if (activeItem.dpower < activeItem.maxPower) {
+                if (activeItem.acumDefense < activeItem.maxPower) {
                     stamina-=doubleStats.get(Stat.DEFPOWER);
-                    activeItem.dpower += doubleStats.get(Stat.DEFPOWER);
-                    poweringBar.setValue(activeItem.dpower); 
+                    activeItem.acumDefense += doubleStats.get(Stat.DEFPOWER);
+                    poweringBar.setValue(activeItem.acumDefense); 
                 }
-            }
-            
-            if ((input.clickedKeys.contains(input.inventory.getKeyCode()))) {  
-                map.setMenu(AbstractInMenu.menuList.get("inventory"));                    
-                input.freeKeys();
-            }                                   
+            }                                                          
     }     
     
     private void recalculatePositions() {               
@@ -116,61 +123,97 @@ public class Player extends MovingEntity {
     
     @Override
     public boolean update() {
-        if (isDestroyed()) return false;
+        if (isDestroyed()) {
+            return false;
+        }
         
         if (!active) {
             
-            if (invulnerability > 0 ) invulnerability--;
+            if (invulnerability > 0 ) {
+                invulnerability--;
+            }
                 
-            if (stamina<maxStamina) {
-                
-                stamina += staminaRegen;
-                
+            if (stamina<maxStamina) {                
+                stamina += staminaRegen;                
             }
             
-            if (isSwimming()) {
-                
-                if (stamina > 0) {
-                    
-                    stamina -= staminaRegen;
-                    
-                } else {
-                    
-                    hit(1, rpgcraft.graphics.spriteoperation.Sprite.Type.TILE);
-                    
+            if (isSwimming()) {                
+                if (stamina > 0) {                    
+                    stamina -= staminaRegen;                    
+                } else {                    
+                    hit(1, rpgcraft.graphics.spriteoperation.Sprite.Type.TILE);                    
                 }
                 
             }
             
+            if ((activeItem.acumPower > 0)&&(!input.runningKeys.contains(input.attack.getKeyCode()))) {                                                                            
+                    activeItem.poweringBar.setDeactivated();                                        
+                    attack(activeItem.acumPower / activeItem.maxPower);                    
+                    activeItem.acumPower = 0;
+            }
+            
+            
+            if ((activeItem.acumDefense > 0)&&(!input.runningKeys.contains(input.defense.getKeyCode()))) {
+                activeItem.poweringBar.setDeactivated();                                        
+                stamina -= defend();                    
+                activeItem.acumDefense = 0;                
+            }
+            
+            if (input.clickedKeys.contains(input.jump.getKeyCode())) {                
+                this.level++;
+                map.setLevel(level);
+                autoMove();
+            }
             
             if (updateCoordinates())
                 recalculatePositions();
             
-            if ((activeItem.hpower > 0)&&(!input.runningKeys.contains(input.attack.getKeyCode()))) {                                        
-                                    
-                    activeItem.poweringBar.setDeactivated();                    
-                    
-                    attack(activeItem.hpower / activeItem.maxPower);
-                    
-                    activeItem.hpower = 0;
-            }
-            
-            
-            if ((activeItem.dpower > 0)&&(!input.runningKeys.contains(input.defense.getKeyCode()))) {
-
-                    activeItem.poweringBar.setDeactivated();                    
-                    
-                    stamina -= defend();
-                    
-                    activeItem.dpower = 0;                
-            }
+            updateQuests();
             
             
             }
         
         return true;
     }
+    
+    /**
+     * Metoda ktora pohne automaticky entitou do prislusnej strany podla premennej
+     * <b>spriteType</b>. Metoda je vacsinou vyuzita pri prechode medzi poschodiami, kde je potrebne automaticky pohnut hracom
+     * aby sa aktualizovali pohyby (mozne je znova skocit do jamy co znamena nasledne spadnutie naspat)
+     */
+    private void autoMove() {
+        if (spriteType == Type.RIGHT) {
+            canMove(2,0);
+        }
+        if (spriteType == Type.LEFT) {
+            canMove(-2,0);
+        }
+        if (spriteType == Type.DOWN) {
+            canMove(0,2);
+        }
+        if (spriteType == Type.UP) {
+            canMove(0,-2);
+        }
+    }
 
+    private void updateQuests() {
+        if (activeQuests != null) {
+            Iterator<Quest> iter = activeQuests.values().iterator();
+            while (iter.hasNext()) {
+                Quest quest = iter.next();
+                quest.update();
+                if (quest.isCompleted()) {
+                    iter.remove();
+                    completedQuests.put(quest.getName(),quest);
+                }
+            }
+        }
+    }
+    
+    public ArrayList<Quest> getActiveQuests() {
+        return new ArrayList(activeQuests.values());
+    }
+    
     
     public void grabItem(Item item) {
         inventory.add(item);        
@@ -214,17 +257,53 @@ public class Player extends MovingEntity {
     }
 
     @Override
-    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {        
-        if ((levelType.getValue() & tile.getMaterialType()) > 0) {
+    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {         
+        if ((levelType.getValue() & tile.getDurability()) > 0) {
             if (tile.hit(damage * modifier) <= 0) {
-                chunk.destroyTile(level, tile.getX(), tile.getY());
-                return true;
-            }
+                addItem(new TileItem(null, tile));
+            }            
             return true;
         }
         return false;
     }
     
+    public boolean completeQuest(String sQuest) {
+        Quest quest = activeQuests.get(sQuest);
+        if (quest != null) {
+            completedQuests.put(sQuest, quest);
+            activeQuests.remove(sQuest);
+            return true;
+        }
+        
+        
+        return false;
+    }
+    
+    public boolean removeQuest(String sQuest) {
+        Iterator<Quest> iter = activeQuests.values().iterator();
+        while (iter.hasNext()) {
+            Quest quest = iter.next();
+            if (quest.getName().equals(sQuest)) {
+                iter.remove();
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void addQuest(String sQuest) {        
+        Quest quest = new Quest(sQuest);        
+        activeQuests.put(sQuest,quest);        
+    }
+    
+    public void addQuest(Quest quest) {
+        activeQuests.put(quest.getName(), quest);
+    }
+    
+    public void addQuest(QuestsResource res) {
+        Quest quest = new Quest(res);        
+        activeQuests.put(res.getId(),quest);
+    }
     
     
     @Override
@@ -237,16 +316,15 @@ public class Player extends MovingEntity {
         super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.
         out.writeInt(lightRadius);
         out.writeInt(sound);
+        out.writeObject(activeQuests);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in); //To change body of generated methods, choose Tools | Templates.
         this.lightRadius = in.readInt();
-        this.sound = in.readInt();        
-    }
-    
-    
-    
+        this.sound = in.readInt();
+        this.activeQuests = (HashMap<String, Quest>) in.readObject();
+    }            
     
 }

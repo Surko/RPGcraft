@@ -15,9 +15,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import rpgcraft.effects.Effect;
+import rpgcraft.entities.ai.DefaultAi;
 import rpgcraft.entities.types.ItemLevelType;
-import rpgcraft.graphics.particles.BarParticle;
-import rpgcraft.graphics.particles.TextParticle;
+import rpgcraft.graphics.ui.particles.BarParticle;
+import rpgcraft.graphics.ui.particles.TextParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
 import rpgcraft.handlers.InputHandle;
@@ -40,8 +41,7 @@ public class MovingEntity extends Entity {
     
     private static final int STATMULT = 5;
     
-    private int randomxDelay;
-    private int randomyDelay;
+    protected double xDelay, yDelay;
     protected int lightRadius;    
 
     protected int originX, originY;
@@ -50,7 +50,7 @@ public class MovingEntity extends Entity {
     protected InputHandle input;    
     public boolean disabled = false;
     public boolean damageDisabled = false;
-    private boolean attackStart = false;
+    private boolean attackStarted = false;
     private double randomValue;
     
     protected boolean swimable;
@@ -171,6 +171,7 @@ public class MovingEntity extends Entity {
         this.health = maxHealth;
         this.group = 1;  
         this.damage = 5;
+        this.attackRadius = 32;
     }
     
     private void reinitialize() {
@@ -180,7 +181,9 @@ public class MovingEntity extends Entity {
         this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
         this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
         this.maxPower = new Double(24);
-        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));
+        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));        
+        this.damage = 5;
+        this.attackRadius = 32;
         
         if (activeItem == this) {
             levelType = ItemLevelType.HAND;
@@ -224,6 +227,34 @@ public class MovingEntity extends Entity {
         this.lightRadius = lightRadius;
     }
     
+    public void setxDelay(double value) {
+        this.xDelay = value;
+    }
+    
+    public void setTarget(Entity e) {
+        this.targetEntity = e;
+    }
+    
+    public void setyDelay(double value) {
+        this.yDelay = value;
+    }
+    
+    public void setxGo(double value) {
+        this.doublexGo = value;
+    }
+    
+    public void setyGo(double value) {
+        this.doubleyGo = value;
+    }
+    
+    public void incxGo(double modifier, double value) {
+        this.doublexGo += fullSpeed * modifier + value;
+    }
+    
+    public void incyGo(double modifier, double value) {
+        this.doubleyGo += fullSpeed * modifier + value;
+    }
+    
     public void setSpeed(int speed) {
         intStats.put(Stat.SPEED, speed);
     }
@@ -232,12 +263,18 @@ public class MovingEntity extends Entity {
         return intStats.get(Stat.SPEED);
     }
 
+    
+    
     public void setStamina(int stamina) {
         this.stamina = stamina;
     }
     
     public double getStamina() {
         return stamina;
+    }
+    
+    public void incStamina(double modifier, double value) {
+        this.stamina += doubleStats.get(StatResource.Stat.ATKPOWER) * modifier + value;
     }
     
     public void setMaxStamina(int maxStamina) {
@@ -252,7 +289,18 @@ public class MovingEntity extends Entity {
     public void setMaxPower(double maxPower) {
         this.maxPower = maxPower;
     }
-        
+     
+    public void setAttackStarted(boolean state) {
+        this.attackStarted = state;
+    }
+    
+    public void incDoublexGo(double modifier, double value) {
+        doublexGo += fullSpeed * xDelay * modifier + value;
+    }
+    
+    public void incDoubleyGo(double modifier, double value) {
+        doubleyGo += fullSpeed * yDelay * modifier + value;
+    }
     
     public boolean canSwim() {
         return swimable;
@@ -260,6 +308,10 @@ public class MovingEntity extends Entity {
     
     public boolean isSwimming() {
         return swimming;
+    }
+    
+    public boolean hasAttacked() {
+        return attackStarted;
     }
     
     public void setGroup(int group) {
@@ -276,13 +328,17 @@ public class MovingEntity extends Entity {
     
     @Override
     public Image getTypeImage() {
-        if (currDur >= maxDur) {
+        if (currentTime >= maxTime) {
             sprNum++;
-            if (movingEntitySprites.get(spriteType).size() <= sprNum) sprNum = 0;        
-            currDur = 0;
-            maxDur = movingEntitySprites.get(spriteType).get(sprNum).getDuration();         
+            if (movingEntitySprites.get(spriteType).size() <= sprNum) {
+                sprNum = 0;
+            } 
+            currentSprite = movingEntitySprites.get(spriteType).get(sprNum);
+            waypointTime = System.currentTimeMillis();
+            currentTime = 0L;
+            maxTime = currentSprite.getDuration();         
         }
-        return movingEntitySprites.get(spriteType).get(sprNum).getSprite();
+        return currentSprite.getSprite();
     }
     
     public int getLightRadius() {
@@ -323,7 +379,7 @@ public class MovingEntity extends Entity {
     }
     
     @Override
-    protected void knockback(Type type) {
+    public void knockback(Type type) {
         if (type == Type.RIGHT) {
             xKnock = 6;
         }
@@ -358,105 +414,43 @@ public class MovingEntity extends Entity {
                 }
             }
             
-            // Kazdym prechodom tejto metody doplni staminu
+            // Kazdym prechodom tejto metody doplni staminu, prerobit na time dependent
             if (stamina<maxStamina) {
                 stamina += staminaRegen;                
+            }      
+            
+            if (ai == null) {
+                ai = DefaultAi.getInstance();
             }
-            
-            if ((targetEntity != null)) {
-                int xP = targetEntity.getXPix() - xPix;
-                int yP = targetEntity.getYPix() - yPix;
-                int circleCoor = xP * xP + yP* yP;
-                if (circleCoor < targetEntity.sound * targetEntity.sound) {                    
-                    if (circleCoor < activeItem.attackRadius * activeItem.attackRadius) {
-                        if (stamina > 0) { 
-                            if (!attackStart) {
-                                randomValue = random.nextDouble();
-                                attackStart = true;                                   
-                            } else {
-                                 stamina -= doubleStats.get(Stat.ATKPOWER);                             
-                                 activeItem.hpower += doubleStats.get(Stat.ATKPOWER);
-                                 //poweringBar.setValue(activeItem.hpower);
-                                 if (activeItem.hpower >= randomValue * activeItem.maxPower) {
-                                     attack(randomValue);
-                                     activeItem.hpower = 0;
-                                     attackStart = false;
-                                 }
-                            }
-                        }
-                        knockMove();
-                        return true;
-                    } else {
-                       attackStart = false;
-                    }
-                    
-                    if (xP > 0) {
-                        doublexGo += fullSpeed;
-                    }
-                    if (xP < 0) {
-                        doublexGo -= fullSpeed;
-                    }
-                    if (yP < 0) {
-                        doubleyGo -= fullSpeed;
-                    }
-                    if (yP > 0) {
-                        doubleyGo += fullSpeed;
-                    }                    
-                } else {
-                    doublexGo = 0d;
-                    doubleyGo = 0d;
-                    targetEntity = null;
-                }
-            } else {
-                if (random.nextInt(50) == 0) {
-                    randomxDelay = (random.nextInt(3) -1); 
-                    randomyDelay = (random.nextInt(3) -1);
-                } 
-                doublexGo +=  randomxDelay * fullSpeed;
-                doubleyGo +=  randomyDelay * fullSpeed;
-            }
-            
-            
-            if ((!updateCoordinates())) {
-                
-                     /* Aby boli zahrnute vsetky moznosti pri pohybe
-                     * tak vygenerujeme nahodne cislo 0-2. Pricitame -1 a 
-                     * potom vynasobime pre moment nahody kedy sa entita nepohne.
-                     */
-               if (random.nextInt(100) == 0) {
-                    randomxDelay = (random.nextInt(3) -1); 
-                    randomyDelay = (random.nextInt(3) -1);
-               } 
-               doublexGo +=  randomxDelay * fullSpeed;
-               doubleyGo +=  randomyDelay * fullSpeed;
-               }
+            ai.aiMove(this);
                 
             return true;
         
 
     }
-    protected void attack(double modifier) {                        
+    
+    public void attack(double modifier) {                        
         
         if (modifier > 0.25) {
         
             // double staminaPen = modifier * staminaDischarger;            
-            double radius = activeItem.attackRadius;
+            int radius = activeItem.attackRadius;
         
             if ((activeItem == this)||(activeItem.canAttack())) {
                 if (spriteType == Type.UP) {
-                    interactWith(xPix , yPix, xPix, yPix-activeItem.attackRadius, modifier);                
+                    interactWith(xPix , yPix, xPix, yPix-radius, modifier);                
                     return;                    
                 }
                 if (spriteType == Type.DOWN) {
-                    interactWith(xPix, yPix + activeItem.attackRadius, xPix, yPix, modifier);                
+                    interactWith(xPix, yPix + radius, xPix, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.RIGHT) {
-                    interactWith(xPix, yPix, xPix + activeItem.attackRadius, yPix, modifier);                
+                    interactWith(xPix, yPix, xPix + radius, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.LEFT) {
-                    interactWith(xPix-activeItem.attackRadius, yPix, xPix, yPix, modifier);  
+                    interactWith(xPix-radius, yPix, xPix, yPix, modifier);  
                     return;
                 }
             }
@@ -485,7 +479,7 @@ public class MovingEntity extends Entity {
      * @return 
      */
     @Override
-    protected int interactWith(int x0, int y0, int x1, int y1, double modifier) {
+    public int interactWith(int x0, int y0, int x1, int y1, double modifier) {
         boolean entInteracted = false;
         for (Entity e : map.getEntities()) {
             if (e != this) {
@@ -505,19 +499,19 @@ public class MovingEntity extends Entity {
         
         Chunk chunk = map.chunkPixExist(xTile, yTile);
         int x = xTile >> 5, y = yTile >> 5;
-        if (x < 0) 
+        if (x < 0) {
             x = Chunk.getSize() + x;
-        if (y < 0)
+        }
+        if (y < 0) {
             y = Chunk.getSize() + y;
-        Tile tile = map.tiles.get(chunk.getTile(level, x, y));            
+        }        
         
-        if (tile instanceof BlankTile) return 0;
         
         if (targetedTile == null) {                    
-            targetedTile = new AttackedTile(tile, x, y);            
+            targetedTile = new AttackedTile(chunk, level - 1, x, y);            
         } else {
             if (targetedTile.getX() != x || targetedTile.getY() != y) {
-                targetedTile = new AttackedTile(tile, x, y);
+                targetedTile = new AttackedTile(chunk, level - 1, x, y);
             }           
         }
         
@@ -527,7 +521,7 @@ public class MovingEntity extends Entity {
     
     protected boolean tryHurt(Entity e, double modifier) {
         double thisModAttack = attack * (modifier * 2);
-        double entityModDefense = e.defenseA * (e.dpower * 2 / e.maxPower);
+        double entityModDefense = e.defenseA * (e.acumDefense * 2 / e.maxPower);
         
         if ((thisModAttack / entityModDefense ) < random.nextDouble()) {
             map.addParticle(new TextParticle("Miss", 24, -24));
@@ -545,7 +539,7 @@ public class MovingEntity extends Entity {
     }
     
     
-    protected void knockMove() {
+    public void knockMove() {
         if (xKnock < 0) {
             canMove(-2, 0);
             xKnock ++;
@@ -562,7 +556,7 @@ public class MovingEntity extends Entity {
             canMove(0, 2); 
             yKnock --;
         }
-    }
+    }        
     
     /**
      * Metoda ktora ma docinenie so zmenou x-ovych a y-ovych suradnic podla parametrov
@@ -575,36 +569,52 @@ public class MovingEntity extends Entity {
      * @return True/False ci sa podarilo aktualizovanie suradnic entity.
      */
     @Override
-    protected boolean updateCoordinates() {                
+    public boolean updateCoordinates() {                
         
         knockMove();
-        
-        
-        
+                        
         if ((doublexGo != 0d)||(doubleyGo != 0d)) {
+            
+            
             int ixGo = 0;
-            int iyGo = 0;
-            
-            
+            int iyGo = 0;                        
             
             if ((doublexGo >= 1d)||((doublexGo <= -1d))) {
                 doubleyGo = 0d;
                 ixGo = doublexGo.intValue();
-                doublexGo -= ixGo;
-                currDur++;
+                doublexGo -= ixGo;                
             }
             if ((doubleyGo >= 1d)||(doubleyGo <= -1d)) {
                 doublexGo = 0d;                
                 iyGo = doubleyGo.intValue();
-                doubleyGo -= iyGo;
-                currDur++;
+                doubleyGo -= iyGo;                
             }
                                                             
             
-            if ((ixGo > 0)) this.spriteType = Sprite.Type.RIGHT;
-            if ((ixGo < 0)) this.spriteType =Sprite.Type.LEFT;
-            if ((iyGo > 0)) this.spriteType = Sprite.Type.DOWN;
-            if ((iyGo < 0)) this.spriteType =Sprite.Type.UP;
+            if ((ixGo > 0)) {
+                if (spriteType != Sprite.Type.RIGHT) {
+                    this.spriteType = Sprite.Type.RIGHT;  
+                    maxTime = 0;
+                }
+            }
+            if ((ixGo < 0)) {
+                if (spriteType != Sprite.Type.LEFT) {
+                    this.spriteType = Sprite.Type.LEFT;  
+                    maxTime = 0;
+                }
+            }
+            if ((iyGo > 0)) {
+                if (spriteType != Sprite.Type.DOWN) {
+                    this.spriteType = Sprite.Type.DOWN;  
+                    maxTime = 0;
+                }
+            }
+            if ((iyGo < 0)) {
+                if (spriteType != Sprite.Type.UP) {
+                    this.spriteType = Sprite.Type.UP;  
+                    maxTime = 0;
+                }
+            }
                         
             
             if (canMove(ixGo, iyGo)) {
@@ -652,7 +662,7 @@ public class MovingEntity extends Entity {
      * @param entity Entita ktoru posuvame
      */
     @Override
-    protected void pushWith(Entity entity) {
+    public void pushWith(Entity entity) {
         entity.knockback(this.spriteType);        
     }
 
@@ -673,7 +683,7 @@ public class MovingEntity extends Entity {
 
     @Override
     public void setImpassableTile(int tile)  {
-        if (map.tiles.containsKey(tile)) {
+        if (Tile.tiles.containsKey(tile)) {
             impassableTiles.add(tile);
         }
     }

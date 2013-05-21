@@ -12,23 +12,32 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.*;
 import rpgcraft.GamePane;
 import rpgcraft.MainGameFrame;
+import rpgcraft.entities.Entity;
+import rpgcraft.entities.Player;
 import rpgcraft.errors.MultiTypeWrn;
-import rpgcraft.graphics.inmenu.Menu;
+import rpgcraft.graphics.ui.menu.Menu;
 import rpgcraft.map.Save;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.swing.SwingBar;
 import rpgcraft.panels.components.swing.SwingCustomButton;
+import rpgcraft.panels.components.swing.SwingImage;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
 import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
+import rpgcraft.panels.listeners.Action;
+import rpgcraft.panels.listeners.ActionEvent;
+import rpgcraft.panels.listeners.Listener;
+import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 
@@ -39,7 +48,8 @@ import rpgcraft.resource.UiResource;
 public class DataUtils {        
     
     public enum Data {
-        SAVE
+        SAVE,
+        PLAYER_ITEMS
     }        
     
     public enum DataValues {
@@ -49,20 +59,40 @@ public class DataUtils {
     }
     
     private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());
+    private static final int N_THREADS = 10;
     
+    private volatile static ExecutorService es = Executors.newFixedThreadPool(N_THREADS);
     private volatile static int depth; 
     private volatile static int cycleCounter;
     
-    public static ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, Object> variables = new ConcurrentHashMap<>();
     
-    public synchronized static Object[][] getDataArrays(String data) {                
+    public static String[] split(String data, char delim) {
+        if (data.equals("")) {
+            return null;
+        }
+        
+        ArrayList<String> retList = new ArrayList<>();
+        int beg = 0;
+        for (int i = 0; i < data.length(); i++) {
+            if (data.charAt(i) == delim) {                
+                retList.add(data.substring(beg,i));
+                beg = i + 1;
+            }
+        }
+        retList.add(data.substring(beg));
+        return retList.toArray(new String[0]);        
+        
+    }
+    
+    public synchronized static Object[][] getDataArrays(String data, Object srcObject) {                
         ArrayList<ArrayList<Object>> resultList = new ArrayList<>();
         
         depth = 0;
         cycleCounter = 0;
         
         // Navratenie dat podla stringu data
-        getDataFromString(data, resultList);   
+        getDataFromString(data, srcObject, resultList);   
         
         if (depth != 0) {
             LOG.log(Level.SEVERE, StringResource.getResource("_dldepth"));
@@ -85,7 +115,7 @@ public class DataUtils {
         return resultArray;
     }    
     
-    private static int getDataFromString(String data, ArrayList<ArrayList<Object>> result) {
+    private static int getDataFromString(String data, Object srcObject, ArrayList<ArrayList<Object>> result) {
         int index = 0;
         
         cycleCounter++;
@@ -106,7 +136,7 @@ public class DataUtils {
                        depth++;
                        index++;
                        ArrayList<Object> row = new ArrayList<>();                       
-                       index += getDataArray(data.substring(index), row);
+                       index += getDataArray(data.substring(index), srcObject, row);
                        result.add(row);
                    }                                       
                 } break; 
@@ -145,7 +175,7 @@ public class DataUtils {
                                 }
                             }                            
                         }
-                        getInfToList(inf, intParams, result, null);                        
+                        getInfToList(inf, intParams, srcObject, result, null);                        
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("reachstate"));
                     }
@@ -156,7 +186,7 @@ public class DataUtils {
         return index;
     }
     
-    private static int getDataArray(String data, ArrayList<Object> result) {
+    private static int getDataArray(String data, Object srcObject, ArrayList<Object> result) {
         int index = 0;
         
         cycleCounter++;
@@ -192,7 +222,7 @@ public class DataUtils {
                     index++;
                     if (depth > 1) {
                         depth++;                    
-                       getDataArray(data.substring(index), result);
+                       getDataArray(data.substring(index), srcObject, result);
                     }
                 } break;
                 case '#' : {
@@ -215,7 +245,7 @@ public class DataUtils {
                                 param += c;
                             }                            
                         }
-                        getInfToList(inf, intParams, null, result);                        
+                        getInfToList(inf, intParams, srcObject, null, result);                        
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("reachstate"));
                     }
@@ -244,47 +274,76 @@ public class DataUtils {
     
     /**
      * Metoda ma za ulohu poskladat do jedneho ArrayListu result informacie podla daneho tagu
-     * SAVE, etc... .
-     * @param data
-     * @param result
-     * @return 
-     */
-    
-    private static void getInfToList(String inf, ArrayList<String> param,ArrayList<ArrayList<Object>> result1, ArrayList<Object> result2) {
+     * SAVE, PLAYER_ITEMS, etc... . Moznost pridat dalsie tagy je len na programatorovi.
+     * Informacie mozme dostat dvoma sposobmi : <br>
+     * - v liste <b>result1</b> je list listov. Tato moznost pouzivana ked volame tuto metodu
+     * z metody getDataFromString. <br>
+     * - v liste <b>result2</b> je list s datami. Tato moznost je pouzivane ked volame tuto metodu
+     * z metody getDataArray. <br>
+     * Dolezite je vediet ze cele data su vzdy predavane ako 2-dimenzionalne pole (rows, cols) a pri metode getDataFromString
+     * mozme pouzivat priamo ziskavanie informacii z tagov. Kedze ale informacie z tagov su tiez uz
+     * v 2-dimenzionalnom poli tak musime pouzivat referenciu na list listov aby sme to vedeli rozpoznat.
+     * V druhom pripade pri volani z metody getDaraArray uz mame vytvorene pole poli a pracujeme
+     * len s jednym riadkom a ked sa tam nachadza nejaky tag tak nevytvarame dalsie pole
+     * ale iba naskladame vsetky informacie ako keby do jedneho riadku.
+     * List s tymto musi ale vediet pracovat, preto je dolezite aby sa nezabudlo
+     * ze keby nahodou list ma podelement dalsi list tak Cursor v liste musi pracovat sekvencne 
+     * aby vyplnil ten podelement.    
+     * Pocitame s tym ze jeden z listov predanych ako parameter je nenulovy.
+     * @param inf Tag podla ktoreho vyberie informacie do listu
+     * @param param Parametre podla ktorych vyplni vysledny list.
+     * @param result1 List listov v ktorom su ulozene informacie po riadkoch.
+     * @param result2 List s informaciami/datami v ktorom su ulozene informacie sekvencne.List sluzi ako jeden riadok
+     * @return V jednom z poli vsetky data
+     */    
+    private static void getInfToList(String inf, ArrayList<String> param, Object srcObject,  
+            ArrayList<ArrayList<Object>> result1, ArrayList<Object> result2) {  
+        
+        ArrayList<ArrayList<Object>> infList = null;
+        try {
+            switch (Data.valueOf(inf)) {
+                case SAVE : {
+                    infList = Save.getGameSavesParam(param);                    
+                } break;                
+                case PLAYER_ITEMS : {
+                    // Tolerovany srcObject - Entity alebo Gamemenu z ktoreho si vytiahneme Playera.
+                    if (srcObject instanceof Entity) {                                                
+                        infList = Player.getInventoryItemsParam((Entity)srcObject, param);
+                        break;
+                    }
+                    if (srcObject instanceof GameMenu) {
+                        infList = Player.getInventoryItemsParam(((GameMenu)srcObject).player, param);
+                        break;
+                    }
+                    LOG.log(Level.SEVERE, StringResource.getResource(null));
+                    new MultiTypeWrn(null, Color.red, StringResource.getResource(null),
+                            null).renderSpecific(StringResource.getResource(null));                    
+                }
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, StringResource.getResource("_ndinfo"));
+            new MultiTypeWrn(e, Color.red, StringResource.getResource("_ndinfo"),
+                null).renderSpecific(StringResource.getResource("_label_parsingerror")); 
+            return;                
+        }
         
         if (result1 != null) {
-            try {
-                switch (Data.valueOf(inf)) {
-                    case SAVE : {
-                        ArrayList<ArrayList<Object>> saveList = Save.getGameSavesParam(param);
-                        for (ArrayList<Object> list : saveList) {
-                            result1.add(list);
-                        }
-                    } break;                
-                }
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, StringResource.getResource("_ndinfo"));
-                new MultiTypeWrn(e, Color.red, StringResource.getResource("_ndinfo"),
-                    null).renderSpecific(StringResource.getResource("_label_parsingerror")); 
-                return;                
+            for (ArrayList<Object> list : infList) {
+                result1.add(list);
             }
-        } else {        
-            try {
-                switch (Data.valueOf(inf)) {
-                    case SAVE : {
-                        ArrayList<ArrayList<Object>> saveList = Save.getGameSavesParam(param);
-                        for (ArrayList<Object> list : saveList) {
-                            result2.addAll(list);
-                        }
-                    } break;
-                }
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, StringResource.getResource("_ndinfo"));
-                new MultiTypeWrn(e, Color.red, StringResource.getResource("_ndinfo"),
-                    null).renderSpecific(StringResource.getResource("_label_parsingerror")); 
-                return; 
+        } else {
+            for (ArrayList<Object> list : infList) {
+                result2.addAll(list);
             }
-        }              
+        }                       
+    }
+    
+    public static String getSpecificDate(String param) {
+        DateFormat dateFormat = new SimpleDateFormat(param);
+        
+        Calendar calendar = Calendar.getInstance();
+        
+        return dateFormat.format(calendar.getTime());
     }
     
     public static String getCurrentDate() {
@@ -322,6 +381,7 @@ public class DataUtils {
         } else {
             if (src.getComponent() != null) {
                 parent.getComponent().removeComponent(src.getComponent());
+                src.setParentContainer(parent);
             }
         }
         
@@ -337,25 +397,17 @@ public class DataUtils {
             case PANEL : c = new SwingImagePanel(src, menu);
                 break;
             case TEXT : c = new SwingText(src, menu);
-                break;                        
+                break;  
+            case IMAGE : c = new SwingImage(src, menu);
+                break;
         }
         
         if (c != null) {            
             c.addActionListeners(resource.getMouseActions());   
             c.addActionListeners(resource.getKeyActions()); 
-            src.setComponent(c);
-            
-            switch (resource.getLayoutType()) {
-                case INGAME : parent.getComponent().addComponent(c);
-                    break;
-                default : parent.getComponent().addComponent(c,resource.getConstraints());  
-                    break;                    
-            }
-             
+            src.setComponent(c);                                                
         }
-        
-        
-                        
+                                        
         // Ked je parent nahodou GamePane tak pri kazdej initializacii v AbstractMenu len pridavame
         // dalsi kontajner => treba sa ich zbavovat po kazdom prehodeni menu => Nastavenie v GamePane#setMenu.
         if (src != null) {
@@ -387,12 +439,66 @@ public class DataUtils {
         
     }
     
-    public static String getValueOfVariable(String var) {
+    
+    public static Object getValueOfVariable(String var) {
         return variables.get(var);
     }
     
-    public static void setValueOfVariable(String val, String var) {
+    public static void setValueOfVariable(Object val, String var) {
         variables.put(var, val);
-    }        
+    }       
+    
+    /**
+     * 
+     * @param parsedOp
+     * @param e
+     * @return 
+     */
+    public static Comparable[] getComparableValues(String[] parsedOp, ActionEvent e) {
+        Comparable[] compValues = new Comparable[2];
+        Listener fst = ListenerFactory.getListener(parsedOp[0],false);
+        if (fst != null) {
+            fst.actionPerformed(e);
+            compValues[0] = (Comparable) e.getReturnValue();
+        } else {
+            try {
+                compValues[0] = Integer.parseInt(parsedOp[0]);
+            } catch (Exception ex) {
+                compValues[0] = parsedOp[0];
+            }
+        }
+
+        Listener snd = ListenerFactory.getListener(parsedOp[1], false);
+        if (snd != null) {
+            snd.actionPerformed(e);
+            compValues[1] = (Comparable) e.getReturnValue();
+        } else {
+            try {
+                compValues[1] = Integer.parseInt(parsedOp[1]);
+            } catch (Exception ex) {
+                compValues[1] = parsedOp[1];
+            }
+        }
+        
+        return compValues;
+        
+    }
+    
+    /**
+     * Metoda ktora vykona akciu zadanu parametrom vytvorenim noveho Threadu s touto akciou.
+     * Z akcie sa zavola metoda run. Je dolezite aby akcia mala definovany ActionEvent. Inak sa nevykona nic.
+     * @param action Akcia na vykonanie
+     */
+    public static void execute(Action action) {        
+        es.execute(new Thread(action));
+    }
+    
+    /**
+     * Metoda ktora vykona Thread zadany parametrom t.     
+     * @param t Thread ktory sa vykona
+     */
+    public static void execute(Thread t) {
+        es.execute(t);           
+    }
     
 }

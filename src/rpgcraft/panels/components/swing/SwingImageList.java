@@ -7,24 +7,28 @@ package rpgcraft.panels.components.swing;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Point;
+import java.awt.event.ActionListener;
 
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.handlers.InputHandle;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.Cursor;
 import rpgcraft.panels.components.ListModel;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
-import rpgcraft.panels.listeners.Listener;
-import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
+import rpgcraft.resource.UiResource.ClickType;
+import rpgcraft.resource.UiResource.LayoutType;
 import rpgcraft.resource.types.ListType;
 import rpgcraft.utils.DataUtils;
+import rpgcraft.utils.MathUtils;
 
 /**
  *
@@ -35,9 +39,10 @@ public class SwingImageList extends SwingImagePanel {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     ListModel model;
     boolean changedList;
-    Container[] containers;    
+    ArrayList<Container> containers;    
     int w,h;
-    int selected = -1;
+    int selected = -1, jump = 0;
+    int rows,cols,table;
     ListType lType;
     // </editor-fold>
     
@@ -105,13 +110,12 @@ public class SwingImageList extends SwingImagePanel {
         getColumns(container.getResource(), columns);        
         columns.add(0, "_id");
         
-        setModel(DataUtils.getDataArrays(lType.getData()), columns.toArray(new String[0]));
+        setModel(DataUtils.getDataArrays(lType.getData(), menu), columns.toArray(new String[0]));
         
         addMouseListener(this);
         // Mouse listeners length
         // System.out.println(this.getMouseListeners().length);
         
-        // Neutriedena Mapa zadana pomocou linkedHashMap.
     }
     // </editor-fold>
     
@@ -170,11 +174,10 @@ public class SwingImageList extends SwingImagePanel {
      * @param rows
      * @return 
      */
-    private Container[] getCopiedContainers(int rows) {
-        Container[] _containers = new Container[rows];
-        int size = componentContainer.getChildContainer().size();
+    private ArrayList<Container> getCopiedContainers(int rows) {
+        ArrayList<Container> _containers = new ArrayList<>();        
         for (int i = 0; i < rows; i++) {
-            _containers[i] = new Container(componentContainer.getChildContainer().get(i % size));
+            _containers.add(new Container(componentContainer.getChildContainer().get(i)));
         }        
         return _containers;
     }
@@ -220,7 +223,10 @@ public class SwingImageList extends SwingImagePanel {
                 }
                 if (comp instanceof SwingText) {
                     ((SwingText)comp).setText(c.getString(index++));  
-                }  
+                }
+                if (comp instanceof SwingImage) {
+                    
+                }
                 
                 if (cont.getChildContainer() != null) {
                     for (Container _cont : cont.getChildContainer()) {
@@ -275,6 +281,9 @@ public class SwingImageList extends SwingImagePanel {
     /**
      * Metoda selectItem ako nazov napoveda oznaci element na pozicii zadanej parametrami
      * x, y. Oznaceny prvok si uklada do parametru znameho v celom liste <b>selected</b>
+     * <p>
+     * <i> Opravena chyba s chybajucou else vetvou a posuvanim oznacenej komponenty </i>
+     * </p>
      * @param x X-ova pozicia pre oznacenie
      * @param y Y-ova pozicia pre oznacenie
      * @return True/False ci oznacilo nejaky prvok
@@ -282,21 +291,24 @@ public class SwingImageList extends SwingImagePanel {
     private boolean selectItem(int x, int y) {
         java.awt.Component c = getComponentAt(x, y);
         if (selected >= 0) {
-            containers[selected].getComponent().unselect();
+            containers.get(selected).getComponent().unselect();
         }
         
-        for (int i = 0; i < containers.length; i++) {
-            if (containers[i].getSwingComponent() == c) {
-                if (containers[i].getComponent().isNoData()) {                             
+        int i = 0;
+        for (Container cont : containers) {
+            if (cont.getSwingComponent() == c) {
+                if (cont.getComponent().isNoData()) {                             
                     selected = -1;
                     changedList = true;
                     return false;
                 }               
                 
                 selected = i;
-                containers[i].getComponent().select();
-                changedList = true;
+                cont.getComponent().select();
+                changedList = true;                
                 return true;
+            } else {
+               i++;
             }
         }
         return false;
@@ -311,8 +323,7 @@ public class SwingImageList extends SwingImagePanel {
     private boolean selectItem(Point p) {
         return selectItem(p.x, p.y);
     }
-        
-    
+            
     /**
      * Metoda oreze pocet riadkov o pocet dat ulozenych v modeli =>
      * minimum z tychto hodnot<br><br>
@@ -363,6 +374,8 @@ public class SwingImageList extends SwingImagePanel {
     
     // <editor-fold defaultstate="collapsed" desc=" Public metody ">
     
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
+    
     // <editor-fold defaultstate="collapsed" desc=" Modelove nastavenia ">
     public void setModel(Object[][] objects, String[] columns) {
         model = new ListModel(objects, columns);
@@ -375,14 +388,102 @@ public class SwingImageList extends SwingImagePanel {
     
     public void setModel(ListModel model) {
         this.model = model;        
-    }
+    }       
+    // </editor-fold>
     
-    public void setColumns(String[] columns) {
+     public void setColumns(String[] columns) {
         model.setColumns(columns);
     }
     
+    public void incSelection() {
+                
+        if (table == 0 || selected + jump + 1 == containers.size()) return;
+        
+        if (selected >= 0)
+            containers.get(selected).getComponent().unselect();
+        
+        if (selected - jump == table) {
+            jump++;        
+            this.removeAll();
+            initializeListElements();            
+        }
+                
+        if (containers.get(selected+1).getComponent().select()) {
+            selected++;
+        }
+    }
+    
+    public void decSelection() {
+        if (table == 0 || (selected <= 0 && jump <= 0))
+            return;
+        
+        if (selected >= 0) {
+            containers.get(selected).getComponent().unselect();
+        }
+        
+        if (jump > 0 && selected % table == 0) {
+            jump--;
+            selected--;
+            this.removeAll();
+            initializeListElements();
+        } else {
+            selected--;
+        }
+        
+        containers.get(selected).getComponent().select();
+        
+    }
+    
+    /**
+     * Metoda vymaze komponentu ktora sa nachadza na pozicii zadanej parametrom <b>pos</b>
+     * @param pos Pozicia komponenty ktoru vymaze
+     */
+    public void removeCompAtPosition(int pos) {
+        if (pos < containers.size()) {                
+            
+            if (containers.get(pos).getComponent().isNoData()) return;
+            
+            if (selected > pos) {
+                selected--;
+                return;
+            } else 
+                if (selected == pos) {
+                    selected = -1;
+                }
+            model.remove(pos);
+            this.removeAll();
+            containers.remove(pos);
+            initializeListElements();
+            
+        }
+    }
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    
+    /**
+     * Metoda vrati z modelu pre list stlpce podla ktorych doplna data do listu.
+     * @return Pole Stringov ako vypis stlpcov
+     */
     public String[] getColumns() {
         return model.getCursor().getColumns();
+    }
+    
+    /**
+     * Metoda vrati oznacenu komponentu v liste
+     * @return Komponenta ktora je oznacena v liste
+     */
+    public Component getSelectedComponent() {
+        return containers.get(selected).getComponent();
+    }
+    
+    /**
+     * Metoda vrati cislo oznaceneho elementu
+     * @return Cislo oznaceneho/selected elementu => premenna selected
+     */
+    public int getSelectedIndex() {
+        return selected;
     }
     // </editor-fold>
     
@@ -396,9 +497,8 @@ public class SwingImageList extends SwingImagePanel {
         
     }
         
-    // </editor-fold>
+    // </editor-fold>              
     
-       
     // <editor-fold defaultstate="collapsed" desc=" Update metody ">
                 
     /**
@@ -418,19 +518,21 @@ public class SwingImageList extends SwingImagePanel {
      */
     @Override
     public void update() {
+        // resetnutie pocitadla oznaceneho elementu
+        selected = -1;
         // Vymazanie doposial vsetkych komponentov vlozenych do listu
         this.removeAll();
         // Vybratie typu a pretypovanie na ListType (musi byt korektne)
         ListType lType = (ListType)type;
         // Pocet riadkov vo formate popisanom v ListType
-        int rows = lType.getMaxRows();  
+        rows = lType.getMaxRows();  
         /*
          * Pocet stlpcov. Pri automatickom type vrati maximalnu moznu hodnotu integeru.
          * Tym padom budeme vzdy urcite zrezavat na velkost kontajneru.
          */
-        int cols = getRCValues(lType.getMaxCols());
+        cols = getRCValues(lType.getMaxCols());
         // Velkost tabulky
-        int table = 0;
+        table = 0;
         // Velkost prvku v liste ziskany z metody getElementsDimensions
         // dim[0] - width, dim[1] - height
         int[] dim = getElementsDimensions(componentContainer);
@@ -510,7 +612,7 @@ public class SwingImageList extends SwingImagePanel {
                 table = cropRowsByCount(cols);
             } break;
             default : {
-                // Vetva default v sebe ma implicitne zadane hodnoty rows.
+                // Vetva default v sebe ma explicitne zadane hodnoty rows.
                 // Cols obmedzi podla poctu prvkov danych na sirku
                 // Takze aj keby cols bolo auto (maxinteger) tak sa obmedzi na maximalny pocet
                 // prvkov na sirku
@@ -531,59 +633,142 @@ public class SwingImageList extends SwingImagePanel {
                 }
                 
             } break;            
-        }      
+        }
         
-        if (table == 0) {
+        initializeListElements();
+    }
+    
+    /**
+     * Metoda initializeListElements ako nazov napoveda zinicializuje vsetky podelementy tohoto listu.
+     * Pri Tabulke velkosti nula vytvori defaultnu tabulku s tym co sa nachadza v xml (napriklad NoData textove pole).
+     * Inak vytvori tabulku velkosti table a podla LayoutType (GridBagSwing) a RowLayoutu elementov 
+     * rozmiestni vsetky podelementy. Vyuzivam GridBagConstraints aj ked podelement nema layout GridBagSwing preto
+     * lebo vyuzivam z neho na akom gride sa nachadzam a kontrolujem ci som nepresiahol
+     * velkost tabulky (rows, cols). Pri layout type INGAME dam do kontajnera pozicie 
+     * podelementu so startovacimi poziciami a zavolam metodu setBounds aby bol tento podelement spravne umiestneny.
+     */
+    public void initializeListElements() {        
+        if (model.getSize() == 0 || table == 0) {
             makeTemplateList(1);
             changedList = true;
             
-            GridBagConstraints gc = new GridBagConstraints();
-            // Implicitne nastavene gridx a gridy aby mi komponenty neutekali
-            // dobokov alebo aby neprekryvala jedna druhu
-            gc.gridx = 0;
-            gc.gridy = 0;
-            for (Container cont : containers)
-                this.add(cont.getSwingComponent(), gc);
-        }
-        
-        if (table > 0) {
-            makeTemplateList(table);
-            changedList = true;
+            GridBagConstraints gc;
+            UiResource res = containers.get(0).getResource();
+            // Pokolko sa zvacsuju x-ova a y-ova pozicia komponent.
+            int xplus, yplus, x = 0, y = 0;
+            // Branie do uvahy aj positioning zadany v xml.
             
-            GridBagConstraints gc = new GridBagConstraints();
+            if (res.getLayoutType() == LayoutType.INGAME) {
+                gc = new GridBagConstraints();
+                int[] cpos = MathUtils.getStartPositions(res.getPosition(),
+                    getWidth(), getHeight(), containers.get(0).getWidth(), containers.get(0).getHeight());
+                // Zaciatocne x-ove a y-ove pozicie nastavime podla tych ziskanych z predchadzajucej metody (kedze positioning je prvorady)
+                x = cpos[0];
+                y = cpos[1];
+            
+            } else {
+                gc = (GridBagConstraints) res.getType().getConstraints();
+            }
             // Implicitne nastavene gridx a gridy aby mi komponenty neutekali
             // dobokov alebo aby neprekryvala jedna druhu
             gc.gridx = 0;
             gc.gridy = 0;
             for (Container cont : containers) {
-                this.add(cont.getSwingComponent(),gc);
+                // Posuvanie x-ovej aj y-ovej pozicie musi byt podla toho aky bol velky kontajner v ktorom je element.
+                xplus = cont.getWidth();
+                yplus = cont.getHeight();
+                // Resource pre kontajner aby sme zistili ci pracujeme s komponentou ktora nema ziadny layout.                
+                
+                if (res.getLayoutType() == LayoutType.INGAME) {
+                    // V tomto pripade mame INGAME layout => nastavujeme pozicie a boundaries.
+                    cont.setPositions(new int[] {x, y});
+                    cont.getComponent().setBounds(x, y, xplus, yplus);
+                }
+                
+                this.add(cont.getSwingComponent(), gc);
+            }            
+        } else {
+            makeTemplateList(table);
+            changedList = true;
+            
+            GridBagConstraints gc;
+            UiResource res = containers.get(0).getResource();
+            // Pokolko sa zvacsuju x-ova a y-ova pozicia komponent.
+            int xplus, yplus, x = 0, y = 0;
+            
+            if (res.getLayoutType() == LayoutType.INGAME) {
+                // Branie do uvahy aj positioning zadany v xml.
+                int[] cpos = MathUtils.getStartPositions(containers.get(0).getResource().getPosition(),
+                        getWidth(), getHeight(), containers.get(0).getWidth(), containers.get(0).getHeight());
+                // Zaciatocne x-ove a y-ove pozicie nastavime podla tych ziskanych z predchadzajucej metody (kedze positioning je prvorady)
+                x = cpos[0];
+                y = cpos[1];                     
+
+                // GridBagSwing layout nemusi byt vsade pouzity. V takom pripade sa ani neberie v uvahu.
+                // Jedine z neho vyuzijem testovanie nato ci sme dosiahli maximum stlpcov alebo riadkov.
+                gc = new GridBagConstraints();            
+            } else {
+                gc = (GridBagConstraints) res.getType().getConstraints();
+            }
+            // Implicitne nastavene gridx a gridy aby mi komponenty neutekali
+            // dobokov alebo aby neprekryvala jedna druhu. Tieto hodnoty urcuju 
+            // Kde v sietovej sustave sa komponenta nachadza. Lahke urcit kolko riadkov a stlpcov mame.
+            gc.gridx = 0;
+            gc.gridy = 0;
+            
+            for (int j = jump; j < containers.size(); j++) {
+                // Posuvanie x-ovej aj y-ovej pozicie musi byt podla toho aky bol velky kontajner v ktorom je element.
+                xplus = containers.get(j).getWidth();
+                yplus = containers.get(j).getHeight();
+                
+                // Zistenie co sa deje pre nas layout (mozne doplnit o dalsie layouty)
+                if (res.getLayoutType() == LayoutType.INGAME) {
+                    // V tomto pripade mame INGAME layout => nastavujeme pozicie a boundaries.
+                    containers.get(j).setPositions(new int[] {x, y});
+                    containers.get(j).getComponent().setBounds(x, y, xplus, yplus);
+                }
+                
+                // Pridame komponentu k listu s GridBagConstraints. Ked nie je gridbagswing tak sa to neberie v uvahu.
+                this.add(containers.get(j).getSwingComponent(),gc);                
+                
                 // Zvysovanie riadku alebo stlpcu  
                 switch (((ListType)type).getLayout()){
                     case ListType.RowLayout.HORIZONTALROWS : {                                                
-                        gc.gridx++;                        
+                        gc.gridx++; 
+                        x += xplus;
                         if (gc.gridx == rows) {
                             gc.gridx = 0;
-                            gc.gridy++;
+                            x = 0;
+                            y += yplus;
+                            gc.gridy ++;                            
                         }                        
                     }
                         break;
                     case ListType.RowLayout.VERTICALROWS : {
-                        gc.gridy++;    
+                        gc.gridy++; 
+                        y += yplus;
                         if (gc.gridy == rows) {
                             gc.gridy = 0;
+                            y = 0;
+                            x += xplus;
                             gc.gridx++;
                         }
                     }
                         break;
                     case ListType.RowLayout.DIAGONALROWS : {
                         gc.gridy++;
+                        y += yplus;
+                        x += xplus;
                         gc.gridx++;
                     } 
                         break;
                     case ListType.RowLayout.HORIZONTALROWSFIT : {
                         gc.gridx++;
+                        x += xplus;
                         if (gc.gridx >= rows) {
                             gc.gridy++;
+                            y += yplus;
+                            x = 0;
                             gc.gridx = 0;
                         }
                     }
@@ -592,6 +777,8 @@ public class SwingImageList extends SwingImagePanel {
                         gc.gridy++;
                         if (gc.gridy  >= rows) {
                             gc.gridx++;
+                            x += xplus;
+                            y = 0;
                             gc.gridy = 0;
                         }
                     }
@@ -601,48 +788,117 @@ public class SwingImageList extends SwingImagePanel {
                         Logger.getLogger(getClass().getName()).log(Level.WARNING, StringResource.getResource("_rparam", param));
                     }
                 }             
-                
-            }            
+
+            }
         }
+        
+        this.updateUI();
     }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Eventy ">   
     
     @Override
-    protected void fireMouseEvent(Action action, ActionEvent event) {
-        switch (action.getType()) {
-            case MOUSE : {
-                if (event.getClicks() >= action.getClicks()) {
-                    switch (action.getClickType()) {   
-                        case onListElement : {
-                            if (event.getParam() instanceof Cursor) {
-                                if (selected >= 0) {
-                                    Cursor c = (Cursor)event.getParam();
-                                    c.moveToPosition(selected);
-                                    Listener list = ListenerFactory.getListener(action.getAction());
-                                    list.actionPerformed(event);
-                                }
-                            }
-                        } break;
-                        default : {
-                            Listener list = ListenerFactory.getListener(action.getAction());
-                            list.actionPerformed(event);
-                        }
-                    }                    
-                }
-            } break;
-            case KEY : {
-                
-            } break;
+    public void fireMouseEvent(Action action, ActionEvent event) {
+        if (event.getClicks() >= action.getClicks()) {
+            if (action.getClickType() == null) {
+                performAction(action, event);
+                return;
+            }
             
+            switch ((ClickType)action.getClickType()) {   
+                case onListElement : {
+                    if (event.getParam() instanceof Cursor) {
+                        if (selected >= 0) {
+                            Cursor c = (Cursor)event.getParam();
+                            c.moveToPosition(selected);
+                            performAction(action, event);
+                        }
+                    }
+                } break;
+                default : {
+                    performAction(action, event);
+                }
+            }                    
+        }                            
+    }
+    
+    /**
+     * Parametre : <br>
+     * <b>onListElement</b>: Vykona akciu s tym ze parametre su na pozicii, ktora bola oznacena/selected =>
+     * posunie poziciu kurzoru na selected poziciu.
+     * <b>default</b>: Vykona sa defaultna akcia bez nejakeho posuvania kurzoru.
+     * 
+     * 
+     * @param action
+     * @param event 
+     */
+    @Override
+    public void fireKeyEvent(Action action, ActionEvent event) {
+        if (action.getClickType() == null) {
+            performAction(action, event);
+            return;
         }
         
+        switch ((ClickType)action.getClickType()) {   
+            case onListElement : {
+                if (event.getParam() instanceof Cursor) {
+                    if (selected >= 0) {
+                        Cursor c = (Cursor)event.getParam();
+                        c.moveToPosition(selected);
+                        performAction(action, event);
+                    }
+                }
+            } break;
+            default : {
+                performAction(action, event);
+            }
+        }                           
     }
     
     
     @Override
-    public void mouseClicked(MouseEvent e) {         
+    public void processKeyEvents(InputHandle input) {     
+        if (active) {
+            if (_klisteners != null && !_klisteners.isEmpty()) {                                   
+                for (Action action : _klisteners) {
+                    if (input.clickedKeys.contains(action.getKey())) {
+                        fireKeyEvent(action, new ActionEvent(this, 0, -1, action.getAction(), model.getCursor()));
+                    }
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void mouseClicked(MouseEvent e) { 
+        // System.out.println(this.getMouseListeners().length);
+        if (active) {
+            if (_mlisteners != null) {  
+                if (selectItem(e.getX(), e.getY())) { 
+                    ActionEvent event = new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor());
+                    for (int i = 0;i<_mlisteners.size() ;i++ ){  
+                        if (_mlisteners.get(i) instanceof ActionListener) {
+                            ActionListener listener = (ActionListener)_mlisteners.get(i);                
+                            listener.actionPerformed(event);  
+                            continue;
+                        }
+                        if (_mlisteners.get(i) instanceof Action) {
+                            Action action = (Action)_mlisteners.get(i);
+
+                            fireMouseEvent(action, event);
+
+                            if (action.isTransparent()) {
+                                ((Component)this.getParent()).mouseClicked(e);
+                            }
+
+                            continue;
+                        }            
+                    }
+                }       
+            }
+        }
     }
 
     @Override
@@ -651,13 +907,7 @@ public class SwingImageList extends SwingImagePanel {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        // System.out.println(this.getMouseListeners().length);
-        if (selectItem(e.getX(), e.getY())) {              
-            isMouseSatisfied(new ActionEvent(this, 0, e.getClickCount(), null, model.getCursor()));           
-        }
-        else {
-            isMouseSatisfied(new ActionEvent(this, 0, e.getClickCount(), null, null));
-        }
+        
     }
 
     @Override

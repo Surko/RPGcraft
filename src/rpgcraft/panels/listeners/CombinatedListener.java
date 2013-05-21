@@ -18,13 +18,14 @@ public class CombinatedListener extends Listener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        for (Listener listener : listeners) {
-            listener.actionPerformed(e);
+        int pos = 0;
+        while (pos >= 0 && pos < listeners.length) {
+            if (e.getAction().done) {
+                return;
+            }
+            listeners[pos].actionPerformed(e);
+            pos += e.getJumpValue();
+            e.setJumpValue(1);
         }
     }
-    
-    
-    
-    
-    
-}
+}                    

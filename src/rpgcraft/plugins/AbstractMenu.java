@@ -2,36 +2,28 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package rpgcraft.panels;
+package rpgcraft.plugins;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Image;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JPanel;
 import rpgcraft.GamePane;
 import rpgcraft.errors.MissingFile;
 import rpgcraft.errors.MultiTypeWrn;
-import rpgcraft.graphics.inmenu.Menu;
+import rpgcraft.graphics.ui.menu.Menu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.components.swing.SwingCustomButton;
-import rpgcraft.panels.components.swing.SwingImageButton;
-import rpgcraft.panels.components.swing.SwingImageList;
-import rpgcraft.panels.components.swing.SwingImagePanel;
-import rpgcraft.panels.components.swing.SwingInputText;
-import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.utils.DataUtils;
-import rpgcraft.utils.Framer;
+import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.MathUtils;
 
 /**
@@ -44,13 +36,9 @@ import rpgcraft.utils.MathUtils;
 
 public abstract class AbstractMenu implements Menu<AbstractMenu> {         
     
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     protected static HashMap<String, AbstractMenu> menuMap = new HashMap<>();
-    
-    // ABSTRACT CLASSES
-    
-    
-    public abstract void setWidthHeight(int w, int h);
-    
+        
     protected Container gameContainer;
     protected GamePane gamePane;
     protected UiResource res;
@@ -66,6 +54,52 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     protected boolean changedInit;
     protected boolean initialized;
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Abstraktne metody ">
+    // ABSTRACT CLASSES        
+    public abstract void setWidthHeight(int w, int h);            
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Update + Init ">
+    
+    /**
+     * Metoda loadImage nacita z ImageResource obrazok zadany parametrom iFile.
+     * Dodatocne parametre urcuju co za farbu pozadia sa pouzije pri chybe a spravu
+     * pre uzivatela.
+     * @param iFile Text s imageresource na nacitanie obrazku
+     * @param msg Sprava pre uzivatela pri chybe
+     * @return Obrazok pre menu
+     */
+    public Image loadImage(String iFile, String msg) {        
+        try {            
+        Image out = ImageResource.getResource(iFile).getBackImage();
+        return out;
+        } catch(Exception e) {                
+             new MissingFile(e, msg).render();  
+             return null;
+        }        
+    }
+    
+    /**
+     * Metoda loadResourceImage je podobna ako loadImage. V tomto pripade ale obrazok
+     * ziskava priamo z resource zadanom parametrom resource. Dodatocne parametre urcuju co za farbu pozadia sa 
+     * pouzije pri chybe a spravu pre uzivatela.
+     * @param resource ImageResouce na nacitanie obrazku
+     * @param msg Sprava pre uzivatela pri chybe
+     * @return Obrazok pre menu
+     */
+    public Image loadResourceImage(ImageResource resource, String msg) {
+        try {
+            Image out = resource.getBackImage();
+            return out;
+        } catch(Exception e) {                
+             new MissingFile(e, msg).render();  
+             return null;
+        }   
+    }    
+
     
     public void initialize(Container gameContainer,InputHandle input) {
         if (res == null) {
@@ -117,67 +151,6 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 
     }
     
-    /**
-     * Metoda getUI ziskava informacie o resource a jeho potomkoch a uklada si ich
-     * do HashMapy pre lahsi pristup.
-     * @param resource 
-     */
-    private ArrayList<Container> getUI(UiResource resource) {
-        if (resource.getType().getElements() != null) {            
-            ArrayList<Container> containers = new ArrayList<>();
-            for (UiResource _res : resource.getType().getElements()) {
-                int[] lengths = MathUtils.getLengths(_res, uiContainers.get(resource));
-                
-                if (_res.isScrolling()) {
-                    if (scrollingResource == null) {                        
-                        scrollingResource = new ArrayList<>();
-                    }
-                    scrollingResource.add(_res);
-                }        
-            Container cont = new Container(_res,
-                    lengths[0], lengths[2], lengths[1], lengths[3], uiContainers.get(resource));
-            containers.add(cont);
-            uiContainers.put(_res, cont);
-            cont.setChildContainers(getUI(_res));            
-            
-            }
-            return containers;
-        }
-        return null;
-    }
-    
-    
-    public void recalculate() {
-        recalculate(res);        
-    }
-    /**
-     * Metoda recalculate prepocitava pozicie resource pre toto menu, kedze 
-     * uzivatel moze zvacsovat okno a bez tejto metody by zostali vnutorne prvky
-     * v originalnych velkostiach.
-     */
-    protected void recalculate(UiResource resource) {
-        int[] lengths = MathUtils.getLengths(resource, uiContainers.get(resource).getParentContainer());
-        
-        Container cont = uiContainers.get(resource);
-        cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
-        if (resource.getType().getElements() != null) {
-            for (UiResource _res : resource.getType().getElements()) {
-                    recalculate(_res);                    
-                }
-        }
-    }
-    
-    protected void recalculate(Container cont) {
-        int[] lengths = MathUtils.getLengths(cont.getResource(), cont.getParentContainer());
-                
-        cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
-        if (cont.getChildContainer() != null) {
-            for (Container _cont : cont.getChildContainer()) {
-                    recalculate(_cont);                    
-                }
-        }
-    }
-    
     protected void initializeUI() {        
         if (uiContainers.isEmpty()) {
             return;
@@ -185,8 +158,9 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         
         if (!initialized) {
             recalculate(res); 
-            gamePane.add(Framer.frameLabel);
-            reinitialize(getContentGraphics(), res, gameContainer);
+            // Pridanie Frameru - Mozne nahradit aby sa pridaval iba ked sa stlaci nejake tlacidlo                        
+            reinitialize(getContentGraphics(), res, gameContainer); 
+            gamePane.add(MainUtils.FPSCOUNTER, 0);            
             initialized = true;
         } else {        
             for (Container contToCalc : gameContainer.getChildContainer()) {
@@ -196,16 +170,6 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
         gamePane.updateUI();
         changedUi = false;
-    }
-    
-    private Graphics getContentGraphics() {
-        if (contImage == null) {
-            return null;
-        }
-        Graphics g = contImage.getGraphics();
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());        
-        return g;
     }
     
     protected void initializeGraphics() {                                
@@ -280,6 +244,44 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
             cont.getComponent().refresh();
         }                      
                         
+    }    
+    
+    public void reinitializeMenu() {        
+        initializeMenuResource();
+        initialized = false;
+        ugChange(true);
+    }
+    
+    
+    public void recalculate() {
+        recalculate(res);        
+    }
+    /**
+     * Metoda recalculate prepocitava pozicie resource pre toto menu, kedze 
+     * uzivatel moze zvacsovat okno a bez tejto metody by zostali vnutorne prvky
+     * v originalnych velkostiach.
+     */
+    protected void recalculate(UiResource resource) {
+        int[] lengths = MathUtils.getLengths(resource, uiContainers.get(resource).getParentContainer());
+        
+        Container cont = uiContainers.get(resource);
+        cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
+        if (resource.getType().getElements() != null) {
+            for (UiResource _res : resource.getType().getElements()) {
+                    recalculate(_res);                    
+                }
+        }
+    }
+    
+    protected void recalculate(Container cont) {
+        int[] lengths = MathUtils.getLengths(cont.getResource(), cont.getParentContainer());
+                
+        cont.set(lengths[0], lengths[2], lengths[1], lengths[3]);
+        if (cont.getChildContainer() != null) {
+            for (Container _cont : cont.getChildContainer()) {
+                    recalculate(_cont);                    
+                }
+        }
     }
     
     protected void refreshElements(Graphics g, Container cont, JPanel comp) {                
@@ -304,50 +306,75 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 cont.getComponent().refresh();
             }
         } else {
-            if (cont.getComponent()!= null)
-            cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(),
-                    cont.getParentWidth(), cont.getParentHeight());
+            if (cont.getComponent()!= null) {
+                cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(),
+                        cont.getParentWidth(), cont.getParentHeight());
+            }
         }                
         
     }
-
     
+    @Override
+    public void update() {  
+       if (scrollingResource != null) {
+            for (UiResource resource : scrollingResource) {
+                uiContainers.get(resource).increase(resource.getScrollX(), resource.getScrollY());                
+            }            
+        }
+       this.initializeImage();
+    }      
+    
+                
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     /**
-     * Metoda loadImage nacita z ImageResource obrazok zadany parametrom iFile.
-     * Dodatocne parametre urcuju co za farbu pozadia sa pouzije pri chybe a spravu
-     * pre uzivatela.
-     * @param iFile Text s imageresource na nacitanie obrazku
-     * @param msg Sprava pre uzivatela pri chybe
-     * @return Obrazok pre menu
+     * Metoda ktora vrati meno tohoto menu. Meno ziskava z id resource z ktoreho je menu vytvorene.
+     * @return Meno pre menu.
      */
-    public Image loadImage(String iFile, String msg) {        
-        try {            
-        Image out = ImageResource.getResource(iFile).getBackImage();
-        return out;
-        } catch(Exception e) {                
-             new MissingFile(e, msg).render();  
-             return null;
-        }        
+    public String getName() {        
+        return res.getId();    
     }
     
-    /**
-     * Metoda loadResourceImage je podobna ako loadImage. V tomto pripade ale obrazok
-     * ziskava priamo z resource zadanom parametrom resource. Dodatocne parametre urcuju co za farbu pozadia sa 
-     * pouzije pri chybe a spravu pre uzivatela.
-     * @param resource ImageResouce na nacitanie obrazku
-     * @param msg Sprava pre uzivatela pri chybe
-     * @return Obrazok pre menu
-     */
-    public Image loadResourceImage(ImageResource resource, String msg) {
-        try {
-            Image out = resource.getBackImage();
-            return out;
-        } catch(Exception e) {                
-             new MissingFile(e, msg).render();  
-             return null;
-        }   
+    @Override
+    public int getWidth() {
+        return 0;
+    }
+    
+    @Override
+    public int getHeight() {
+        return 0;
     }    
-
+    
+    /**
+     * Metoda getUI ziskava informacie o resource a jeho potomkoch a uklada si ich
+     * do HashMapy pre lahsi pristup.
+     * @param resource 
+     */
+    private ArrayList<Container> getUI(UiResource resource) {
+        if (resource.getType().getElements() != null) {            
+            ArrayList<Container> containers = new ArrayList<>();
+            for (UiResource _res : resource.getType().getElements()) {
+                int[] lengths = MathUtils.getLengths(_res, uiContainers.get(resource));
+                
+                if (_res.isScrolling()) {
+                    if (scrollingResource == null) {                        
+                        scrollingResource = new ArrayList<>();
+                    }
+                    scrollingResource.add(_res);
+                }        
+            Container cont = new Container(_res,
+                    lengths[0], lengths[2], lengths[1], lengths[3], uiContainers.get(resource));
+            containers.add(cont);
+            uiContainers.put(_res, cont);
+            cont.setChildContainers(getUI(_res));            
+            
+            }
+            return containers;
+        }
+        return null;
+    }
+    
     public static AbstractMenu getMenuByName(String name) {
         return menuMap.get(name);
     }
@@ -360,6 +387,35 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return gamePane;
     }
     
+    private Graphics getContentGraphics() {
+        if (contImage == null) {
+            return null;
+        }
+        Graphics g = contImage.getGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, gamePane.getWidth(), gamePane.getHeight());        
+        return g;
+    }
+    
+    public Collection<Container> getContainers() {
+        return uiContainers.values();
+    }
+    
+    public Container getContainer(UiResource resource) {        
+        return uiContainers.get(resource);
+    }
+    
+    public ArrayList<Container> getMenuContainers() {
+        return containers;
+    }
+    
+    public boolean hasContainer(UiResource resource) {
+        return uiContainers.containsKey(resource);
+    }
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
     /**
      * Metoda ktora indikuje stav ci sa bude menit graficky kontext
      * pri dalsom update.
@@ -387,26 +443,97 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         changedUi = state;
     }
     
-    public void reinitializeMenu() {        
-        initializeMenuResource();
-        initialized = false;
-        ugChange(true);
+    @Override
+    public void setMenu(AbstractMenu menu) {
+        gamePane.setMenu(menu);        
+    }        
+    
+    public void setInitialized(boolean init) {
+        this.initialized = init;
+    }
+        
+    /**
+     * Metoda setInMenu nastavuje submenu pre toto menu. Submenu je typu AbstractInMenu 
+     * a su ako takou nahradou za SwingElementy => kazda komponenta definovana v xml by sa dala nahradit takymto submenu.
+     * @param inMenu Vnutorne menu na zobrazenie.
+     */
+    public void setInMenu(AbstractInMenu inMenu) {
+        
     }
     
-    public Collection<Container> getContainers() {
-        return uiContainers.values();
+    public static void addMenu(AbstractMenu menu) {
+        menuMap.put(menu.getName(), menu);;
     }
     
-    public Container getContainer(UiResource resource) {        
-        return uiContainers.get(resource);
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" InputHandling ">
+    /**
+     * Metoda s interfacu Menu zabezpecujuca uzivatelsky vstup.
+     */
+    
+    @Override
+    public void inputHandling() {
+        for (Container cont : uiContainers.values()) {
+            
+            if (cont.getComponent().isVisible()) {
+                cont.getComponent().processKeyEvents(input);
+            }
+        }
     }
     
-    public ArrayList<Container> getMenuContainers() {
-        return containers;
+    /**
+     * Metoda mouseHandling ma spracovavat udalosti z mysi. Vacsinou su tieto metody v menu prazdne. 
+     * Dovod je ten ze pouzivame Swing komponenty a tie maju priamo zabezpecene spracovavanie mysi =>
+     * vsetky co sa da spravit v menu sa da vymenit za swing elementy dopisanim do layout.xml
+     * @param e MouseEvent pre stlacenie mysi.
+     */
+    @Override
+    public void mouseHandling(MouseEvent e) {
+        
     }
     
-    public boolean hasContainer(UiResource resource) {
-        return uiContainers.containsKey(resource);
+    // </editor-fold>
+            
+    // <editor-fold defaultstate="collapsed" desc=" Kresliace metody " >
+        
+    /**
+     * Metoda ktora vykresluje menu do grafickeho kontextu. Kazdy potomok abstraktneho menu
+     * moze vykreslovat svoje menu inak. Vacsinou tuto metodu nevyuzivame kvoli tomu ze sa daju tieto vykreslenia nahradit komponentami
+     * definovanymi v layout.xml. V GameMenu je ale tato metoda dolezita kedze vykreslovanie mapy prebieha tymto sposobom.
+     * @param g Graficky kontext do ktoreho vykreslujeme.
+     */
+    @Override
+    public void paintMenu(Graphics g) {
+        
+    }    
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Komponent metody ">
+    
+    public void deactivateAll() {
+        for (Container cont : uiContainers.values()) {
+            cont.getComponent().deactivate();
+        }
+    }
+    
+    public void activateAll() {
+        for (Container cont : uiContainers.values()) {
+            cont.getComponent().activate();
+        }
+    }
+    
+    public void deactivate(UiResource res) {
+        if (uiContainers.contains(res)) {
+            uiContainers.get(res).getComponent().deactivate();
+        }
+    }
+    
+    public void activate(UiResource res) {
+        if (uiContainers.contains(res)) {
+            uiContainers.get(res).getComponent().activate();
+        }
     }
     
     public void addContainer(Container cont) {
@@ -436,49 +563,26 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
     }
     
-    public void removeAllContainers() {
-        uiContainers.clear();
-        gameContainer.clear(); 
+    /**
+     * Metoda ma za ulohu vymazat vsetky kontajnery a stym aj vsetky komponenty v tomto menu.
+     * Parameter sluzi ako prepinac ci sa ma vymazat aj kontajner ktory tvori zaklad pre menu.
+     * @param menu True/False podla toho ci sa vymaze aj menu kontajner
+     */
+    public void removeAllContainers(boolean menu) {
+        if (menu) {
+            uiContainers.clear();        
+            gameContainer.clear();             
+        } else {
+            Container cont = uiContainers.get(res);
+            uiContainers.clear();            
+            gameContainer.clear();
+            uiContainers.put(res, cont);
+            gameContainer.addContainer(cont);
+        }
+        
         changedUi = true;
         changedGr = true;
     }
     
-    @Override
-    public void setMenu(AbstractMenu menu) {
-        gamePane.setMenu(menu);        
-    }        
-    
-    public void setInitialized(boolean init) {
-        this.initialized = init;
-    }
-    
-    @Override
-    public void update() {  
-       if (scrollingResource != null) {
-            for (UiResource resource : scrollingResource) {
-                uiContainers.get(resource).increase(resource.getScrollX(), resource.getScrollY());                
-            }            
-        }
-       this.initializeImage();
-    }      
-    
-    
-    
-    /**
-     * Metoda s interfacu Menu zabezpecujuca uzivatelsky vstup.
-     */
-    @Override
-    public void inputHandling() {
-        for (Container cont : uiContainers.values()) {
-            if (cont.getComponent().isVisible()) {
-                cont.getComponent().processKeyEvents(input);
-            }
-        }
-    }
-
-    @Override
-    public void paintMenu(Graphics g) {
-        
-    }
-    
+    // </editor-fold>    
 }

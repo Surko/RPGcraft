@@ -12,12 +12,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.TextType;
+import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.TextUtils;
 
 /**
@@ -41,7 +42,7 @@ public class SwingInputText extends SwingComponent {
             this.text = TextUtils.getResourceText(txType.getText());     
             this.textColor = Color.WHITE;            
             setFont(txType.getFont()); 
-            this.backColor = Colors.getColor(container.getResource().getBackgroundColorId());
+            this.backColor = container.getResource().getBackgroundColorId();
         }
         setBackground(backColor);
         setTextSize();        
@@ -61,9 +62,10 @@ public class SwingInputText extends SwingComponent {
             super.setBackground(color);
         }
     }
-    
+        
     @Override
     public void paintComponent(Graphics g) {
+        //System.out.println("input " + Framer.debugint);
         super.paintComponent(g);                  
         if (text != null) {            
             g.setFont(getFont());

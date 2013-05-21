@@ -30,10 +30,12 @@ public class LoadedTiles {
         HashMap<Integer, TileResource> resources = TileResource.getResources();
         try {
             for (Integer key : resources.keySet()) {
-                if (!definedTiles.containsKey(key)) {
+                if (definedTiles == null || !definedTiles.containsKey(key)) {
                     Tile newTile = new Tile(key, TileResource.getResource(key));           
                     loadedTiles.put(key, newTile);
-                    definedTiles.put(key, newTile);
+                    if (definedTiles != null) {
+                        definedTiles.put(key, newTile);
+                    }
             }
         }
         } catch (Exception e) {

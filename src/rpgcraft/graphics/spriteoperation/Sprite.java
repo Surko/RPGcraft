@@ -21,29 +21,37 @@ public class Sprite {
      * @see Sprite
      */
     public static enum Type {
-        ITEM,
-        TILE,
-        TILER,
-        TILEL,
-        TILEU,
-        TILED,
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT,
-        ATTACK,
-        DEFENSE,
-        CAST,
-        WALKING,
-        RUNNING,
-        CROUCHING,
-        MINING,
-        CRAFTING,
-        TALKING  
+        ITEM(0),
+        TILE(0),        
+        TILEDESTROYED(-1),
+        UP(0),
+        DOWN(2),
+        LEFT(3),
+        RIGHT(1),
+        ATTACK(8),
+        DEFENSE(9),
+        CAST(10),
+        WALKING(4),
+        RUNNING(5),
+        SNEAKING(6),
+        CROUCHING(7),
+        MINING(11),
+        CRAFTING(13),
+        TALKING(12);
+        
+        private int value;
+        
+        private Type(int value) {
+            this.value = value;
+        }
+        
+        public int getValue() {
+            return value;
+        }
         
     }
     
-    // Obrazok pre Sprite
+    // Obrazok pre Sprite a pre Sprite ktory moze byt nanom
     private Image sprite;
     // Typ Sprite vybraty z enum Type v tejto triede
     private Type type;   
@@ -114,7 +122,7 @@ public class Sprite {
         this.h = h;
         this.duration = duration;
         this.sprite = sheet.getImage().getSubimage(x, y, w, h);
-    }
+    }        
     
     /**
      * Metoda ktora nastavi obrazok tohoto Sprite.
@@ -122,7 +130,7 @@ public class Sprite {
      */
     public void setSprite(Image sprite) {
         this.sprite = sprite;
-    }
+    }        
     
     /**
      * Metoda ktora nastavi/prenastavi trvacnost Sprite
@@ -234,8 +242,12 @@ public class Sprite {
      * @see ImageOperation
      */
     public void setImagefromSheet(SpriteSheet sheet, int w, int h) {
-        if (this.w == 0) this.w = w;
-        if (this.h == 0) this.h = h;
+        if (this.w == 0) {
+            this.w = w;
+        }
+        if (this.h == 0) {
+            this.h = h;
+        }
         if (((w != this.w)&&(this.w != 0))||((h != this.h)&&(this.h != 0))) {
            Image subImage = sheet.getImage().getSubimage(x * this.w, y * this.h, this.w, this.h);
            ImageOperation op = new ImageOperation(subImage);

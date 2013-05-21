@@ -47,20 +47,20 @@ public class StaticEntity extends Entity {
     }
 
     @Override
-    protected void pushWith(Entity e) {
+    public void pushWith(Entity e) {
     }
 
     @Override
-    protected int interactWith(int x0, int y0, int x1, int y1, double modifier) {
+    public int interactWith(int x0, int y0, int x1, int y1, double modifier) {
         return 0;
     }
 
     @Override
-    protected void knockback(Type type) {
+    public void knockback(Type type) {
     }
 
     @Override
-    protected boolean updateCoordinates() {
+    public boolean updateCoordinates() {
         return false;
     }
 

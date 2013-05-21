@@ -3,59 +3,90 @@
 	<!-- Tileset XML to edit tiles on map -->
 	
 	<Images>
+		
+		<ui-image>
+		  <id>_cross</id>
+		  <globalw>32</globalw>
+		  <globalh>32</globalh>  				
+			<x>0</x>
+			<y>0</y>					
+			<back-texture>ingame/impass.png</back-texture>	
+		</ui-image>	
+		
+		
+    <ui-image>
+		  <id>ladder</id>
+		  <globalw>32</globalw>
+		  <globalh>32</globalh>  				
+			<x>0</x>
+			<y>0</y>					
+			<back-texture>ingame/ladder.png</back-texture>	
+		</ui-image>	
+    
+    <ui-image>
+		  <id>hole</id>
+		  <globalw>32</globalw>
+		  <globalh>32</globalh>  				
+			<x>0</x>
+			<y>0</y>					
+			<back-texture>ingame/hole.png</back-texture>	
+		</ui-image>	
+		
 		<ui-image>
 		  <id>intro</id>
 		  <globalw>363</globalw>
-		  <globalh>82</globalh>  
-			<back-texture>panel/introIMG.png</back-texture>		
+		  <globalh>82</globalh>  				
 			<x>0</x>
 			<y>0</y>					
-		</ui-image>	
+			<back-texture>ui/panel/introIMG.png</back-texture>	
+		</ui-image>		    		        	
     	
     <ui-image>
 		  <id>main</id>
 		  <globalw>1024</globalw>
-		  <globalh>1024</globalh>  
-			<back-texture>panel/MainMenuIMG.jpg</back-texture>		
+		  <globalh>1024</globalh>  			
 			<x>0</x>
-			<y>0</y>					
+			<y>0</y>
+      <back-texture>ui/panel/MainMenuIMG.jpg</back-texture>							
 		</ui-image>
     	
     <ui-image>
 		  <id>about</id>
-		  <globalw>373</globalw>
-		  <globalh>82</globalh>  
-			<back-texture>panel/introIMG.png</back-texture>		
+		  <globalw>363</globalw>
+		  <globalh>82</globalh>  				
 			<x>0</x>
 			<y>0</y>					
+			<back-texture>ui/panel/introIMG.png</back-texture>	
 		</ui-image>
     	
     <ui-image>
       <id>load</id>
       <globalw>1024</globalw>
-      <globalh>1024</globalh>
-      <back-texture>panel/loadback.png</back-texture>
+      <globalh>1024</globalh>      
       <x>0</x>
       <y>0</y>
+      <back-texture>ui/panel/loadback.png</back-texture>
      </ui-image>	
     	
     <ui-image>
 		  <id>mainButtonTexture</id>
-		  <globalw>626</globalw>
-		  <globalh>417</globalh>  
-			<back-texture>panel/ButtonTexture.jpg</back-texture>		
+		  <globalw>300</globalw>
+		  <globalh>20</globalh>  			
 			<x>0</x>
 			<y>0</y>					
+			<back-texture>ui/panel/ButtonTexture.jpg</back-texture>		
 	  </ui-image>			
 		
 		<ui-image>
 		  <id>player-stat</id>
 		  <globalw>382</globalw>
-		  <globalh>132</globalh>  
-			<back-texture>game/uiblank.png</back-texture>
+		  <globalh>132</globalh>  			
       <trans-x></trans-x>
       <trans-y></trans-y>		
+      <orientation></orientation>
 			<x>0</x>
 			<y>0</y>					
-		</ui-image>		
+			<back-texture>ui/game/uiblank.png</back-texture>
+		</ui-image>	             	
+
 	</Images>

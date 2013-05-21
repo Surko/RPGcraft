@@ -12,6 +12,17 @@ import org.w3c.dom.Element;
  */
 public abstract class AbstractResource<T extends AbstractResource> {
     
+    public enum ScriptType {
+        LISTENER,
+        LUA
+    }
+    
+    public enum ActionType {
+        START,
+        THROUGHT,
+        END
+    }
+    
     protected abstract void parse(Element elem);
     protected abstract void copy(T res) throws Exception;
 }

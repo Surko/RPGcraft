@@ -5,36 +5,25 @@
 package rpgcraft.map;
 
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.Externalizable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import rpgcraft.GamePane;
-import rpgcraft.entities.Entity;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.map.chunks.Chunk;
-import rpgcraft.map.chunks.ChunkContent;
 import rpgcraft.resource.StringResource;
 import rpgcraft.utils.DataUtils;
-import rpgcraft.utils.ImageUtils;
 
 /**
  *
@@ -80,11 +69,11 @@ public class Save {
     public void saveAndQuit(BufferedImage thumbImage) {
         try {
             outputStream = new ObjectOutputStream(new FileOutputStream(
-                            PathManager.getInstance().getWorldSavePath(saveName) + File.separator + "world.info"));   
+                            PathManager.getInstance().getWorldSavePath(saveName, true) + File.separator + "world.info"));   
             outputStream.writeUTF(saveName);
             outputStream.writeUTF(DataUtils.getCurrentDate());
             
-            ImageIO.write(thumbImage, "JPG", PathManager.getInstance().getWorldSavePath(saveName + File.separator + "world.jpg"));
+            ImageIO.write(thumbImage, "JPG", PathManager.getInstance().getWorldSavePath(saveName + File.separator + "world.jpg", true));
             
             if (state.player == null) {
                 outputStream.writeInt(0);
@@ -111,7 +100,7 @@ public class Save {
             this.state = new SaveMap(this);
             LOG.log(Level.INFO, StringResource.getResource("_label_confirmload"), saveName);
             inputStream = new ObjectInputStream(new FileInputStream(
-                               PathManager.getInstance().getWorldSavePath(saveName) + File.separator + "world.info"));        
+                               PathManager.getInstance().getWorldSavePath(saveName, false) + File.separator + "world.info"));        
             this.saveName = inputStream.readUTF();
             
             // DATUM - mozne doplnit na nejake testovanie, posledne prihlasenie, atd...
@@ -152,6 +141,10 @@ public class Save {
         return state;
     }           
     
+    public static boolean saveExist(String name) {                   
+        return PathManager.getInstance().getWorldSavePath(name, false).exists();                
+    }
+    
     public static ArrayList<ArrayList<Object>> getGameSavesParam(ArrayList<String> param) {
         ObjectInputStream _inputStream;
         ArrayList<ArrayList<Object>> resultRecords = new ArrayList<>();
@@ -167,9 +160,7 @@ public class Save {
                 saveData[RecordIndexes.IMAGE.getIndex()] = ImageIO.read(
                             new File(f, File.separator + "world.jpg"));
                 
-                _inputStream.close();
-                
-                record.add(saveData[RecordIndexes.ID.getIndex()]);
+                _inputStream.close();                                
                 
                 for (String p : param) {
                     switch (RecordIndexes.valueOf(p)) {

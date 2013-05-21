@@ -10,6 +10,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
 import rpgcraft.entities.Entity;
+import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.map.tiles.DefaultTiles;
 
 /**
@@ -58,12 +59,28 @@ public class Chunk implements Externalizable {
             return y;
         }
         
+        public int[][] getMetaDataLayer(int layer) {
+            return blocks.getMetaDataLayer(layer);
+        }
+        
         public int[][] getLayer(int layer) {
             return blocks.getLayer(layer);
         }
         
+        public void setMeta(int layer, int x, int y, int value) {
+            blocks.setMetaData(layer, x & 15, y & 15, value);
+        }
+        
+        public void setTile(int layer, int x, int y, int value) {
+            blocks.setIntOnPosition(layer, x & 15, y & 15, value);
+        }
+        
         public int getTile(int layer, int x, int y) {
             return blocks.getIntOnPosition(layer, x & 15, y & 15);
+        }
+        
+        public int getMetaData(int layer, int x, int y) {
+            return blocks.getMetaData(layer, x & 15, y & 15);
         }
         
         public void setLoaded(Boolean loaded) {
@@ -71,7 +88,7 @@ public class Chunk implements Externalizable {
         }
         
         public void destroyTile(int layer, int x, int y) {
-            blocks.setIntOnPosition(layer, x & 15, y & 15, DefaultTiles.BLANK_ID);
+            blocks.setIntOnPosition(layer, x & 15, y & 15, 0);
         }
         
         public boolean getLoaded() {
@@ -86,6 +103,7 @@ public class Chunk implements Externalizable {
             for (int i = 0; i < CHUNK_SIZE; i++ ) {
                 for (int j = 0; j< CHUNK_SIZE; j++) {                    
                     out.writeInt(blocks.getIntOnPosition(k, i, j));
+                    out.writeInt(blocks.getMetaData(k, i, j));
                 }
             }
         }
@@ -99,7 +117,7 @@ public class Chunk implements Externalizable {
             for (int i = 0; i < CHUNK_SIZE; i++ ) {
                 for (int j = 0; j< CHUNK_SIZE; j++) {
                         blocks.setIntOnPosition(k, i, j, in.readInt());
-                    
+                        blocks.setMetaData(k, i, j, in.readInt());
                 }
             }
         }                

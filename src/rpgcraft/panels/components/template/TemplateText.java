@@ -13,7 +13,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.Images;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.UiResource;
@@ -53,7 +53,7 @@ public class TemplateText extends TemplateComponent {
     
     @Override
     public void paint(Graphics g) {
-        g.setColor(Colors.getColor(resource.getBackgroundColorId()));
+        g.setColor(resource.getBackgroundColorId());
         if (title != null) {
             if (changed) {                
                  rpos = MathUtils.getStartPositions(resource.getPosition(), cont.getWidth(), cont.getHeight(),

@@ -16,11 +16,15 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.ImageOperation;
 import rpgcraft.graphics.Images;
+import rpgcraft.manager.PathManager;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.StringResource;
@@ -86,8 +90,8 @@ public class ImageUtils {
      */
     public static Image rotatedImage(UiResource res, int orientation) {
         if (orientation > 0) {
-            return Images.getImage(res.getBackgroundColorId()) == null ? makeTemporaryImage(res.getBackgroundTextureId(),orientation) : 
-                    Images.getImage(res.getBackgroundColorId());
+            return Images.getImage(res.getBackgroundTextureId()) == null ? makeTemporaryImage(res.getBackgroundTextureId(),orientation) : 
+                    Images.getImage(res.getBackgroundTextureId());
         } else {
             return ImageResource.getResource(res.getBackgroundTextureId()).getBackImage();
         }
@@ -226,6 +230,14 @@ public class ImageUtils {
     
     public static BufferedImage imageFromContainer(Container cont) {
         return null;
+    }
+    
+    public static void writeImageToDisc(String name, BufferedImage image) {        
+        try {
+            ImageIO.write(image, "PNG", new File(PathManager.getInstance().getRootPath(),name + ".png"));
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
     }
     
 }

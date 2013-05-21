@@ -5,7 +5,8 @@
 package rpgcraft.panels.listeners;
 
 import java.awt.event.ActionListener;
-import rpgcraft.panels.AbstractMenu;
+import rpgcraft.entities.Player;
+import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.Cursor;
@@ -20,7 +21,10 @@ import rpgcraft.utils.DataUtils;
  */
 public class Listener implements ActionListener {
     
-    public String[] parsedOp;
+    private static final char PARAMDELIM = ',';
+    
+    public String[] parsedObjects;
+    public Action action;
     
     public String[] params;
     public String[] types;
@@ -32,7 +36,7 @@ public class Listener implements ActionListener {
                     switch (types[i]) {
                         case "LIST" : {
                             Cursor c = (Cursor)e.getParam();
-                            parsedOp[i] = c.getString(c.getColumnIndex(params[i]));                        
+                            parsedObjects[i] = c.getString(c.getColumnIndex(params[i]));                        
                         } break;
                         case "TEXT" : {
                             Component src = (Component)e.getSource();
@@ -40,38 +44,39 @@ public class Listener implements ActionListener {
                             Container cont = menu.getContainer(UiResource.getResource(params[i]));
                             Component c = cont.getComponent();
                             if (c instanceof SwingText) {
-                                parsedOp[i] = ((SwingText)c).getText();
+                                parsedObjects[i] = ((SwingText)c).getText();
                                 return;
                             }
                             if (c instanceof SwingInputText) {
-                                parsedOp[i] = ((SwingInputText)c).getText();
+                                parsedObjects[i] = ((SwingInputText)c).getText();
                                 return;
                             }
                         } break;
                         case "VAR" : {
-                            parsedOp[i] = DataUtils.getValueOfVariable(params[i]);
-                        } break;
-                        default : parsedOp[i] = params[i];
+                            parsedObjects[i] = DataUtils.getValueOfVariable(params[i]).toString();
+                        } break;                        
+                        default : parsedObjects[i] = params[i];
                     }
                 } else {
-                    parsedOp[i] = params[i];
+                    parsedObjects[i] = params[i];
                 } 
             }
         }
         else {
-            parsedOp = params;
+            parsedObjects = params;
         }
     }
     
-    protected final void setParams(String args) {                
+    protected final void setParams(String args) {  
         
-        String[] parts = args.split(",");
-
-        this.parsedOp = new String[parts.length];
-        this.params = new String[parts.length];         
-        this.types = new String[parts.length];
+        String[] parts = DataUtils.split(args, PARAMDELIM);
+        int length = parts == null ? 0 : parts.length;
         
-        for (int i = 0; i < parts.length; i++) {
+        this.parsedObjects = new String[length];
+        this.params = new String[length];         
+        this.types = new String[length];
+        
+        for (int i = 0; i < length; i++) {
 
             String[] paramParts = parts[i].split("#");
                 
@@ -89,6 +94,9 @@ public class Listener implements ActionListener {
     }
     
     public void actionPerformed(ActionEvent e) { 
+        //
+        // System.out.println(this.toString());
+        //
         setRunParams(e);                
                 
     }
@@ -97,7 +105,27 @@ public class Listener implements ActionListener {
     public void actionPerformed(java.awt.event.ActionEvent e) {
          
     }
+    
+    protected AbstractMenu getMenu(Object src) {
+        if (src instanceof AbstractMenu) {
+            return (AbstractMenu) src;
+        }
+        if (src instanceof Component) {
+            Component c = (Component)src;
+            return c.getOriginMenu();
+        }
+        return null;       
+    }
+    
+    public boolean isMemorizable() {
+        if (action == null) return false;
+        return action.isMemorizable();
+    }
+    
+    @Override
+    public String toString() {
+        return new String("Parsed Operations =" + parsedObjects);
         
-   
+    }           
     
 }

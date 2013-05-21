@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package rpgcraft.graphics.particles;
+package rpgcraft.graphics.ui.particles;
 
 import java.awt.Image;
 import java.util.Random;

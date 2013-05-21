@@ -11,17 +11,17 @@
    <move>
    <type>UP</type>
       <anim>
-      <duration>10</duration>
+      <duration>500</duration>
       <x>0</x>
       <y>0</y>
       </anim>
       <anim>
-      <duration>10</duration>
+      <duration>500</duration>
       <x>1</x>
       <y>0</y>
       </anim>
       <anim>
-      <duration>10</duration>
+      <duration>500</duration>
       <x>2</x>
       <y>0</y>
       </anim>
@@ -30,17 +30,17 @@
    <move>
    <type>LEFT</type>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>0</x>
       <y>3</y>
      </anim>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>1</x>
       <y>3</y>
      </anim>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>2</x>
       <y>3</y>
      </anim>     
@@ -49,17 +49,17 @@
    <move>
    <type>RIGHT</type>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>0</x>
       <y>1</y>
      </anim>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>1</x>
       <y>1</y>
      </anim>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>2</x>
       <y>1</y>
      </anim>
@@ -68,17 +68,17 @@
    <move>
    <type>DOWN</type>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>0</x>
       <y>2</y>
      </anim>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>1</x>
       <y>2</y>
      </anim>
      <anim>
-     <duration>10</duration>
+     <duration>500</duration>
       <x>2</x>
       <y>2</y>
      </anim>

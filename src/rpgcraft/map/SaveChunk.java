@@ -20,9 +20,16 @@ import rpgcraft.map.chunks.Chunk;
  * @author kirrie
  */
 public class SaveChunk implements Externalizable {
+    
+    // <editor-fold defaultstate="collapsed" desc=" Premenne + Pomocne triedy" >
     // Serializacne premenne, UID a verzia pre buducnost pri zmene archivov.
     private static final long serialVersionUID = 912804676578087866L;
     private static final int serializationVersion = 1;       
+    
+    // Entity ktore sa budu ukladat alebo nacitavat.
+    private ArrayList<Entity> entities;
+    // Chunk s mapou ktory sa bude ukladat alebo nacitavat.
+    private Chunk chunk;
     
     /**
      * Staticka Trieda EOF sluzi na rozpoznanie pri externalizacii ci subor dosiahol koniec.
@@ -30,7 +37,7 @@ public class SaveChunk implements Externalizable {
      * informacie + dodatocna kontrola archivu.
      */
     static class EOF implements Externalizable {
-
+        // Konstruktor EOF priznaku
         public EOF() {
             
         }
@@ -47,21 +54,35 @@ public class SaveChunk implements Externalizable {
         
     }
     
-    // Entity ktore sa budu ukladat alebo nacitavat.
-    private ArrayList<Entity> entities;
-    // Chunk s mapou ktory sa bude ukladat alebo nacitavat.
-    private Chunk chunk;
     
-    public SaveChunk() {
-        
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    
+    /**
+     * Prazdny konstruktor dolezity pri nacitavani Chunkov z disku.
+     * Externalizacia potrebuje pri vytvarani chunkov zavolat tento konstruktor
+     * takze jeho pritomnost nevyhnutna.
+     */
+    public SaveChunk() {        
     }
     
+    /**
+     * Konstruktor s dvoma parametrami ktory inicializuje novy Chunk.
+     * Kazdy Chunk si v sebe uchovava entity ktore sa v nom nachadzaju ako aj object
+     * so samotnym Chunkom a jeho datami.
+     * @param entities Entity nachadzajuce sa v Chunku
+     * @param chunk Samotny chunk s datami.
+     */
     public SaveChunk(ArrayList<Entity> entities, Chunk chunk) {
         this.entities = entities;
         this.chunk = chunk;
     } 
     
-     
+    // </editor-fold>
+         
+    // <editor-fold defaultstate="collapsed" desc=" Externalizacne metody ">
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(serializationVersion);        
@@ -98,12 +119,25 @@ public class SaveChunk implements Externalizable {
         
     }
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    
+    /**
+     * Metoda ktora vrati vsetky entity v tomto chunku.
+     * @return List s entitami.
+     */
     public ArrayList<Entity> getEntities() {
         return entities;
     }
     
+    /**
+     * Metoda ktora vrati samotny chunk s datami a polom s vypisom dlazdic.
+     * @return Chunk so samotnymi datami
+     */
     public Chunk getChunk() {
         return chunk;
     }
     
+    // </editor-fold>
 }

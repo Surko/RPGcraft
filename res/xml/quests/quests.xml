@@ -1,0 +1,15 @@
+<quests>
+<quest>
+<id>fetch</id>
+<label>Fetch something</label>
+<quest-text></quest-text>
+<quest-states>
+<state id="0">
+<state-text></state-text>
+<state-actions>
+<action type="THROUGHT">COMPOP@ADD_COMP_TO(text_edit,MAINCONTAINER)</action>
+</state-actions>
+</state>
+</quest-states>
+</quest>
+</quests>

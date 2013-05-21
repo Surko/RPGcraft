@@ -5,14 +5,15 @@
 <Entities>
 <item>
    <id>healing1</id>
-   <sheet>characters2.png</sheet>
-   <globalw>24</globalw>
-   <globalh>24</globalh>
+   <name>Healing Potion</name>
+   <sheet>healingpotion.png</sheet>
+   <globalw>32</globalw>
+   <globalh>32</globalh>
    <move>
    <type>ITEM</type>
       <anim>
       <duration>2</duration>
-      <x>10</x>
+      <x>0</x>
       <y>0</y>
       </anim>      
    </move>	

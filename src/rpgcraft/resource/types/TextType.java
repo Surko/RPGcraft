@@ -5,6 +5,8 @@
 package rpgcraft.resource.types;
 
 import java.awt.Font;
+import java.util.ArrayList;
+import rpgcraft.resource.UiResource;
 import rpgcraft.resource.UiResource.UiType;
 import rpgcraft.utils.TextUtils;
 
@@ -59,6 +61,15 @@ public class TextType extends AbstractType {
         
     public Font getFont() {
         return txtFont;
+    }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        TextType clone = (TextType)super.clone();
+        clone.txColor = txColor;
+        clone.txText = txText;
+        clone.txtFont = txtFont;
+        return clone;
     }
     
 }

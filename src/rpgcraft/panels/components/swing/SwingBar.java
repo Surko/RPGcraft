@@ -65,7 +65,7 @@ public class SwingBar extends SwingComponent {
     @Override
     public void refresh() {
         super.refresh();
-        int w = 0, h = 0;
+        w = h = 0;
         
         Dimension barDim = prefferedDim;
         

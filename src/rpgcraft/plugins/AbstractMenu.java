@@ -108,7 +108,8 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         
         this.gameContainer = gameContainer;
         this.gamePane = (GamePane)gameContainer.getComponent();
-        this.input = input;                                       
+        this.input = input;
+        this.containers = new ArrayList<>();
         
         //contImage = new BufferedImage(gameContainer.getWidth(), gameContainer.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         
@@ -142,13 +143,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 lengths[1], lengths[3], gameContainer); 
         
         uiContainers.put(res, cont);                
-        
+                
         cont.setChildContainers(getUI(res));
         
-        initializeImage();
-        
+        initializeImage();                
         containers = gameContainer.getChildContainer();
-                
     }
     
     protected void initializeUI() {        
@@ -233,7 +232,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                     reinitialize(g, _resource, parent);
                 }
             }
-        }
+        }                
         
         /*
          * Refresh komponent <=> urcenie vysok a sirok podla ostatnych elementov.
@@ -242,7 +241,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
          */
         if (cont.getComponent() != null) {
             cont.getComponent().refresh();
-        }                      
+        } 
+        
+        // Ked je parent nahodou GamePane tak pri kazdej initializacii v AbstractMenu len pridavame
+        // dalsi kontajner => treba sa ich zbavovat po kazdom prehodeni menu => Nastavenie v GamePane#setMenu.
+        parent.addChildComponents();        
                         
     }    
     
@@ -336,11 +339,21 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return res.getId();    
     }
     
+    /**
+     * Metoda ktora vrati sirku menu. V tomto pripade vrati 0 kedze kazdy potomok
+     * by si mal tuto metodu podedit ale keby nahodou zabudne tak bude nulova velkost.
+     * @return Sirka menu
+     */
     @Override
     public int getWidth() {
         return 0;
     }
     
+    /**
+     * Metoda ktora vrati vysku menu. V tomto pripade vrati 0 kedze kazdy potomok
+     * by si mal tuto metodu podedit ale keby nahodou zabudne tak bude nulova velkost.
+     * @return Vyska menu
+     */
     @Override
     public int getHeight() {
         return 0;
@@ -348,12 +361,13 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     /**
      * Metoda getUI ziskava informacie o resource a jeho potomkoch a uklada si ich
-     * do HashMapy pre lahsi pristup.
+     * do HashMapy pre lahsi pristup. Pri skrolovacom resource uklada resource do listu scrollingResource.
+     * 
      * @param resource 
      */
     private ArrayList<Container> getUI(UiResource resource) {
         if (resource.getType().getElements() != null) {            
-            ArrayList<Container> containers = new ArrayList<>();
+            ArrayList<Container> _containers = new ArrayList<>();
             for (UiResource _res : resource.getType().getElements()) {
                 int[] lengths = MathUtils.getLengths(_res, uiContainers.get(resource));
                 
@@ -365,16 +379,22 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 }        
             Container cont = new Container(_res,
                     lengths[0], lengths[2], lengths[1], lengths[3], uiContainers.get(resource));
-            containers.add(cont);
+            // Lokalne kontajnery v metode
+            _containers.add(cont);            
             uiContainers.put(_res, cont);
             cont.setChildContainers(getUI(_res));            
             
             }
-            return containers;
+            return _containers;
         }
         return null;
     }
     
+    /**
+     * Metoda ktora vrati menu z hashmapy menuMap s menom zadanym ako parameter <b>name</b>
+     * @param name Meno menu ktore hladame
+     * @return Menu s menom rovnym parametru
+     */
     public static AbstractMenu getMenuByName(String name) {
         return menuMap.get(name);
     }
@@ -387,6 +407,12 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return gamePane;
     }
     
+    /**
+     * Metoda ktora vrati graficky kontext pre menu. Graficky kontext menu
+     * je vlastne graphics obrazku <b>contImage</b>. Graficky kontext bude prazdny a
+     * vycisteny ciernou farbou.
+     * @return Graficky kontext pre menu
+     */
     private Graphics getContentGraphics() {
         if (contImage == null) {
             return null;
@@ -397,12 +423,32 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return g;
     }
     
+    /**
+     * Metoda ktora vrati kolekciu vsetkych kontajnerov radenych k tomuto 
+     * menu.
+     * @return Kolekcia kontajnerov
+     */
     public Collection<Container> getContainers() {
         return uiContainers.values();
     }
     
+    /**
+     * Metoda ktora vrati Container ktory sa nachadza v hashmape pod klucom
+     * typu UiResource zadany parametrom <b>resource</b>
+     * @param resource UiResource/kluc podla ktoreho prehladavame mapu.
+     * @return Container zodpovedajuci parametru.
+     */
     public Container getContainer(UiResource resource) {        
         return uiContainers.get(resource);
+    }
+    
+    public Container getContainer(String name) {
+        for (Container cont : containers) {
+            if (cont.getResource().getId().equals(name)) {
+                return cont;
+            }
+        }
+        return null;
     }
     
     public ArrayList<Container> getMenuContainers() {
@@ -443,11 +489,21 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         changedUi = state;
     }
     
+    /**
+     * Metoda ktora nastavi terajsie menu v gamePane na to zadane v parametri <b>menu</b>
+     * @param menu Menu ktore sa ma zobrazit
+     */
     @Override
     public void setMenu(AbstractMenu menu) {
         gamePane.setMenu(menu);        
     }        
     
+    /**
+     * Metoda ktora nastavuje ci bolo menu inicializovane. Vyuzitelne pri aktualizovani
+     * menu. Ked je menu inicializovane tak nemusime vytvarat nove komponenty ale staci iba pomenit
+     * komponenty ktore boli zmenene. Ked nebolo inicializovane tak musime inicializovat.
+     * @param init True/False ci je menu uz inicializovane.
+     */
     public void setInitialized(boolean init) {
         this.initialized = init;
     }
@@ -538,7 +594,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     public void addContainer(Container cont) {
         if (!uiContainers.containsKey(cont.getResource())) {
-            uiContainers.put(cont.getResource(), cont);
+            uiContainers.put(cont.getResource(), cont);            
             changedUi = true;
             changedGr = true;
         }
@@ -548,7 +604,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         Container cont = uiContainers.get(res);
         if (cont != null) {
             cont.getParentContainer().removeContainer(cont);
-            uiContainers.remove(res);
+            uiContainers.remove(res);            
             changedUi = true;
             changedGr = true;
         }
@@ -571,11 +627,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     public void removeAllContainers(boolean menu) {
         if (menu) {
             uiContainers.clear();        
-            gameContainer.clear();             
+            gameContainer.clear();              
         } else {
             Container cont = uiContainers.get(res);
             uiContainers.clear();            
-            gameContainer.clear();
+            gameContainer.clear();            
             uiContainers.put(res, cont);
             gameContainer.addContainer(cont);
         }

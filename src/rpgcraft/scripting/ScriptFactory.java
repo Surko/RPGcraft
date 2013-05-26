@@ -29,7 +29,7 @@ public class ScriptFactory {
     
     private static final Logger LOG = Logger.getLogger(ScriptFactory.class.getName());
     
-    private static ArrayList<ScriptLibraryPlugin> libs;
+    private static ArrayList<ScriptLibraryPlugin> libs;    
     
     private static ScriptFactory instance;
     

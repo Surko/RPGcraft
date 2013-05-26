@@ -47,27 +47,31 @@ public class ScriptUtils {
     
     public static LuaFunction loadScript(String sFile, LuaTable globals, ActionEvent e) throws IOException {
         File script = PathManager.getInstance().getScriptSavePath(sFile, false);
+        ActionEvent.setScriptActionEvent(Thread.currentThread().getId(), e);
         return LoadState.load( new FileInputStream(script), sFile, globals );
     }
     
     public static LuaFunction loadScript(String sFile, ActionEvent e) throws IOException {
         File script = PathManager.getInstance().getScriptSavePath(sFile, false);
-        LuaTable _G = ScriptFactory.getInstance().getGlobals();
-        System.out.println(Thread.currentThread());
+        LuaTable _G = ScriptFactory.getInstance().getGlobals();        
+        ActionEvent.setScriptActionEvent(Thread.currentThread().getId(), e);
         return LoadState.load( new FileInputStream(script), sFile, _G );
     }
     
     public static void callLoadScript(String sFile, LuaTable globals, ActionEvent e) throws IOException {
         if (globals != null) {
             loadScript(sFile, globals, e).call();
+            ActionEvent.removeActionEvent(Thread.currentThread().getId());
             return;
         }
         
         loadScript(sFile, e).call();
+        ActionEvent.removeActionEvent(Thread.currentThread().getId());
     }
     
     public static void callLoadScript(String sFile, ActionEvent e) throws IOException {
         loadScript(sFile, e).call();
+        ActionEvent.removeActionEvent(Thread.currentThread().getId());
     }
      
     public static void callScript(String sFile, ScriptLibraryPlugin ... reqLibs) throws IOException {
@@ -96,14 +100,5 @@ public class ScriptUtils {
             }
         }
         LoadState.load( new FileInputStream(script), sFile, globals ).call();
-    }
-    
-    public static void setValue(String str, Object obj) {
-        ScriptFactory.getInstance().put(str, obj);
-    }
-    
-    public static Object getValue(String str) {
-        Object object = ScriptFactory.getInstance().get(str);
-        return object;
-    }
+    }        
 }

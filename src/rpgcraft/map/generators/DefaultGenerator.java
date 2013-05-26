@@ -47,9 +47,9 @@ public class DefaultGenerator implements GeneratorPlugin {
      * @throws Vynimka pri generovani terenu. Vacsinou priradovanie dlazdic ktore neexistuju. 
      */
     private void generateSky(MapGenerator mapGenerator, int level) throws Exception {
-        for (int i=0;i<mapGenerator.getSize();i++) {
-            for (int j=0;j<mapGenerator.getSize();j++) {                                        
-                mapGenerator.setTile(level, i, j, 0);                
+        for (int y=0;y<mapGenerator.getSize();y++) {
+            for (int x=0;x<mapGenerator.getSize();x++) {                                        
+                mapGenerator.setTile(level, x, y, 0);                
             }
         }
     }
@@ -61,12 +61,12 @@ public class DefaultGenerator implements GeneratorPlugin {
      * @throws Vynimka pri generovani terenu. Vacsinou priradovanie dlazdic ktore neexistuju. 
      */
     private void generateGround(MapGenerator mapGenerator, int level) throws Exception{
-        for (int i=0;i<mapGenerator.getSize();i++) {
-            for (int j=0;j<mapGenerator.getSize();j++) {                                        
-                if (j >8){
-                    mapGenerator.setTile(level, i, j, 2);
+        for (int y=0;y<mapGenerator.getSize();y++) {
+            for (int x=0;x<mapGenerator.getSize();x++) {                                        
+                if (y >8){
+                    mapGenerator.setTile(level, x, y, 2);
                 } else {
-                    mapGenerator.setTile(level, i, j, 1);
+                    mapGenerator.setTile(level, x, y, 1);
                 }
             }
         }

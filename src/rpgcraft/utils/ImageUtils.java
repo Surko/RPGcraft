@@ -154,7 +154,6 @@ public class ImageUtils {
         try {
             resize = new int[2];
             resize[0] = MathUtils.getImageWidth(img, container, res.getImageWidth());
-
             resize[1] = MathUtils.getImageHeight(img, container, res.getImageHeight());
             if (resize[0] == 0 || resize[1] == 0) {
                 LOG.log(Level.WARNING, StringResource.getResource("_zimage"));

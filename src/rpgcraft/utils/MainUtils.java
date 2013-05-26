@@ -6,6 +6,8 @@ package rpgcraft.utils;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.io.File;
+import java.io.FileFilter;
 import rpgcraft.graphics.Colors;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Container;
@@ -21,6 +23,16 @@ import rpgcraft.panels.components.swing.SwingText;
 public class MainUtils {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    
+    /**
+     * Filter suborov iba na jar subory
+     */    
+    public static final FileFilter jarFilter = new FileFilter() {
+        @Override
+        public boolean accept(File file) {
+            return file.getName().matches(".*[.]jar");
+        }
+    };
     
     // FramePanel pre frame pocitadlo
     public static final FramePanel FPSCOUNTER;        
@@ -48,6 +60,8 @@ public class MainUtils {
      */
     private static final class FramePanel extends SwingText {
     
+        private static final int FPSWIDTH = 47, FPSHEIGHT = 10;
+        
         /**
          * Konstruktor pre FramePanel. ROvnaky ako v SwingComponent, jedine je pridane nastavenie
          * pozadia na transparentnu farbu.
@@ -56,7 +70,9 @@ public class MainUtils {
          */
         protected FramePanel(Container container,AbstractMenu menu) {
             super(container, menu);
-            setBackground(Colors.getColor(Colors.transparentColor));           
+            setBackground(Colors.getColor(Colors.transparentColor));  
+            this.tw = w = FPSWIDTH;
+            this.th = h = FPSHEIGHT;
         }
 
         /**
@@ -70,10 +86,25 @@ public class MainUtils {
             g.setColor(textColor);  
             g.setFont(getFont());
             if (title != null) {
-                g.drawString(title, 0, th);
+                g.drawString(title, 0, th);                
             }
             updateFPS();
         }       
+
+        
+        /**
+         * Override metoda zo SwingText ktora nastavi text o pocte framov do FPS pocitadla.
+         * Velkosti su priamo zadane v konstruktore preto nevolame metody setTextSize atd.
+         * @param text Text na zobrazenie
+         * @param parsing nepouzity parameter parsing
+         */
+        @Override
+        public void setText(String text, boolean parsing) {
+            this.title = text;
+            
+        }
+        
+        
         
         /**
          * Metoda ktora vrati preferovanu dimenziu pre framer.
@@ -123,7 +154,7 @@ public class MainUtils {
                     fpsTimer += 1000;                    
                     fShow = MainUtils.framing;
                     framing = 0; 
-                    setText(fShow+ " FPS");
+                    setText(fShow+ " FPS", false);
                 }                    
             }                    
         }               
@@ -255,9 +286,17 @@ public class MainUtils {
         
     }
     
+    public static void timerStart() {
+        START_TIME = System.nanoTime();
+    }
+    
+    public static void timerEnd() {
+        System.out.println(System.nanoTime() - START_TIME);
+    }
+    
     static {      
         FPSCOUNTER = new FramePanel(null, null);
-        FPSCOUNTER.setText("000 FPS");
+        FPSCOUNTER.setText("000 FPS", false);
         FPSCOUNTER.setFont(null);
         FPSCOUNTER.setColor(Colors.getColor(Colors.fpsColor));        
         FPSCOUNTER.setBounds(0, 0, FPSCOUNTER.getTextW(), FPSCOUNTER.getTextH());    

@@ -2,7 +2,7 @@
 <quest>
 <id>fetch</id>
 <label>Fetch something</label>
-<quest-text></quest-text>
+<quest-text>You my friend have to find my favourite specie of all species in the world and kill it.</quest-text>
 <quest-states>
 <state id="0">
 <state-text></state-text>

@@ -8,7 +8,7 @@ package rpgcraft.entities.types;
  *
  * @author doma
  */
-public enum ItemLevelType implements Type {
+public enum ItemLevelType {
            HAND(1),
            WOODEN(3),
            STONE(7),

@@ -6,6 +6,7 @@ package rpgcraft.resource;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +26,7 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
     private static final Logger LOG = Logger.getLogger(QuestsResource.class.getName());
     private static HashMap<String, QuestsResource> questsResources = new HashMap();
     
-    private String id, text;    
+    private String id, text, label;    
     private ArrayList<Action> actions;
     private int stateId = -1;
     private HashMap<Integer, ArrayList<Action>> stateActions;
@@ -55,12 +56,20 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
         return id;
     }
     
+    public String getLabel() {
+        return label;
+    }
+    
     public String getQuestText() {
         return text;
     }
     
     public String getStateText(int stateId) {
         return stateTexts.get(stateId);
+    }
+            
+    public Collection<String> getAllStateTexts() {
+        return stateTexts.values();
     }
     
     public ArrayList<Action> getStateActions(int stateId) {
@@ -81,6 +90,9 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
                     stateActions = new HashMap();
                     stateTexts = new HashMap();
                     parse((Element)eNode);
+                } break;
+                case QuestXML.LABEL : {
+                    this.label = eNode.getTextContent();
                 } break;
                 case QuestXML.STATE : {                    
                     Element state = (Element)eNode;                    
@@ -165,7 +177,7 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
                             action.setClickType(type);
 
                         } catch (Exception e) {
-                            LOG.log(Level.WARNING, StringResource.getResource("_iparam", new String[] {QuestXML.ACTIONTYPE,
+                            LOG.log(Level.WARNING, StringResource.getResource("_iattrib", new String[] {QuestXML.ACTIONTYPE,
                                 QuestXML.ACTION, toString()}));
                             action.setClickType(ActionType.START);
                         }

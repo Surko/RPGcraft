@@ -5,6 +5,7 @@
 package rpgcraft.panels.listeners;
 
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import rpgcraft.entities.Player;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
@@ -20,10 +21,20 @@ import rpgcraft.utils.DataUtils;
  * @author Surko
  */
 public class Listener implements ActionListener {
+        
+    protected static final String INT = "INT";
+    protected static final String LIST = "LIST";
+    protected static final String VAR = "VAR";
+    protected static final String CURSORPOSITION = "CURSORPOSITION";  
+    protected static final String TEXT = "TEXT";
+    
+    protected static final String INTVAR = "INTVAR";
+    protected static final String STRINGVAR = "STRINGVAR";
+    
     
     private static final char PARAMDELIM = ',';
     
-    public String[] parsedObjects;
+    public Object[] parsedObjects;    
     public Action action;
     
     public String[] params;
@@ -33,12 +44,12 @@ public class Listener implements ActionListener {
         if (types != null) {
             for (int i = 0; i < types.length; i++) {
                if (types[i] != null) {               
-                    switch (types[i]) {
-                        case "LIST" : {
+                    switch (types[i]) {                        
+                        case LIST : {
                             Cursor c = (Cursor)e.getParam();
                             parsedObjects[i] = c.getString(c.getColumnIndex(params[i]));                        
                         } break;
-                        case "TEXT" : {
+                        case TEXT : {
                             Component src = (Component)e.getSource();
                             AbstractMenu menu = src.getOriginMenu();
                             Container cont = menu.getContainer(UiResource.getResource(params[i]));
@@ -52,9 +63,24 @@ public class Listener implements ActionListener {
                                 return;
                             }
                         } break;
-                        case "VAR" : {
+                        case VAR : {
+                            parsedObjects[i] = DataUtils.getValueOfVariable(params[i]);
+                        } break;
+                        case INT : {
+                            parsedObjects[i] = Integer.parseInt(params[i]);
+                        } break;
+                        case INTVAR : {
+                            parsedObjects[i] = Integer.parseInt(DataUtils.getValueOfVariable(params[i]).toString());                            
+                        } break;
+                        case STRINGVAR : {
                             parsedObjects[i] = DataUtils.getValueOfVariable(params[i]).toString();
-                        } break;                        
+                        } break;    
+                        case CURSORPOSITION : {
+                            if (e.getParam() instanceof Cursor) {
+                                Cursor c = (Cursor)e.getParam();
+                                parsedObjects[i] = Integer.toString(c.getPosition());
+                            }
+                        } break;
                         default : parsedObjects[i] = params[i];
                     }
                 } else {
@@ -72,7 +98,7 @@ public class Listener implements ActionListener {
         String[] parts = DataUtils.split(args, PARAMDELIM);
         int length = parts == null ? 0 : parts.length;
         
-        this.parsedObjects = new String[length];
+        this.parsedObjects = new Object[length];
         this.params = new String[length];         
         this.types = new String[length];
         
@@ -122,10 +148,31 @@ public class Listener implements ActionListener {
         return action.isMemorizable();
     }
     
+    protected int _intParse(Object name,ActionEvent e) {
+        if (name instanceof Integer) {
+                return (Integer)name;
+        }
+        if (name instanceof String) {
+            Listener posListener = ListenerFactory.getListener((String)name, isMemorizable());
+            if (posListener == null) {                            
+                return Integer.parseInt((String)name);                
+            } else {
+                posListener.actionPerformed(e);
+                if (e.getReturnValue() instanceof Integer) {
+                    return (Integer)e.getReturnValue();
+                }
+                if (e.getReturnValue() instanceof String) {
+                    return Integer.parseInt((String)e.getReturnValue());
+                }
+            }
+        }                
+        
+        return 0;
+    }
+    
     @Override
     public String toString() {
-        return new String("Parsed Operations =" + parsedObjects);
-        
+        return "Parsed Operations =" + parsedObjects;        
     }           
     
 }

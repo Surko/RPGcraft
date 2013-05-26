@@ -58,7 +58,7 @@ public class MapGenerator {
     public void setTile(int z, int x, int y, int value) {
         mapArray[z][x][y] = value;
         Tile tile = Tile.tiles.get(value);        
-        metaArray[z][x][y] = tile == null ? 0 : Tile.tiles.get(value).getHealth();
+        metaArray[z][x][y] = tile == null ? 0 : tile.getHealth();
     }
     
     /**

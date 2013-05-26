@@ -4,6 +4,7 @@
  */
 package rpgcraft.graphics.ui.menu;
 
+import java.awt.Color;
 import rpgcraft.plugins.AbstractInMenu;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -15,8 +16,9 @@ import rpgcraft.entities.Entity;
 import rpgcraft.entities.Item;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.map.SaveMap;
 import rpgcraft.plugins.AbstractMenu;
+import rpgcraft.resource.StringResource;
+import rpgcraft.utils.TextUtils;
 
 /**
  *
@@ -25,7 +27,8 @@ import rpgcraft.plugins.AbstractMenu;
 public class InventoryMenu extends AbstractInMenu {
 
     // <editor-fold defaultstate="collapsed" desc=" Konstanty ">
-    public static final String INVENTORY = "inventory";
+    public static final String INVENTORYID = "_inventory";
+    private static final String INVENTORY = StringResource.getResource(INVENTORYID);    
     private static final int invWidth = 200, invHeight = 400, wGap = 5, hGap = 5;
     private static final int itemsWidth = 160, itemsHeight = 360;
     private static final int itemHeight = 40;
@@ -53,10 +56,22 @@ public class InventoryMenu extends AbstractInMenu {
      * Obrazovy kontajner pre itemy na vykreslenie
      */
     private Image itemsBox;
+    /**
+     * List s predmetmi
+     */
+    private ArrayList<Item> items;
 
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    
+    /**
+     * Prazdny konstruktory pre moznost vytvarania novych instancii metodou newInstance.
+     */
+    public InventoryMenu() {
+        super(null, null);
+    }
+    
     /**
      * Konstruktor menu pre inventar s dvoma parametrami entity a input, ktora
      * urcuje pre ktoru entitu sa bude vykreslovat inventar a ako bude reagovat
@@ -69,10 +84,28 @@ public class InventoryMenu extends AbstractInMenu {
         super(entity, input);
         this.menu = menu;
         this.activated = true;
+        this.items = entity.getInventory();
         setGraphics();
         recalculatePositions();
         this.changedState = true;
-        menuList.put(INVENTORY, this);
+        menuList.put(INVENTORYID, this);
+    }
+    
+    /**
+     * Metoda ktora initializuje toto menu s novymi udajmi. 
+     * Novymi udajmi je entita zadana parametrom pre ktoru vytvarame menu.
+     * Parameter origMenu sluzi ako vzor pre toto menu z ktoreho ziskavame pozadie tohoto menu.
+     * @return Initializovany inventar.
+     */
+    @Override
+    public InventoryMenu initialize(AbstractInMenu origMenu, Entity e) {
+        this.entity = e;
+        this.input = origMenu.getInput();
+        this.menu = origMenu.getMenu();
+        this.items = e.getInventory();
+        this.changedState = true;        
+        this.toDraw = origMenu.getDrawImage();        
+        return this;
     }
 
     // </editor-fold>        
@@ -80,7 +113,7 @@ public class InventoryMenu extends AbstractInMenu {
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     
     public static InventoryMenu getInventoryMenu() {
-        return (InventoryMenu)menuList.get(INVENTORY);       
+        return (InventoryMenu)menuList.get(INVENTORYID);       
     }
     
     /**
@@ -89,7 +122,25 @@ public class InventoryMenu extends AbstractInMenu {
      */
     @Override
     public String getName() {
-        return INVENTORY;
+        return INVENTORYID;
+    }
+    
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int getWGap() {
+        return wGap;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int getHGap() {
+        return hGap;
     }
     
     /**
@@ -121,7 +172,7 @@ public class InventoryMenu extends AbstractInMenu {
      * @return Predmet ktory je v inventary oznaceny.
      */
     private Item getSelectedItem() {
-        return entity.getInventory().get(selection);
+        return items.get(selection);
     }
 
     
@@ -129,18 +180,19 @@ public class InventoryMenu extends AbstractInMenu {
     
     // <editor-fold defaultstate="collapsed" desc=" Settery ">
     /**
-     * Metoda ktora ma zaulohu vytvori graficke rozhranie pre inventar.
+     * {@inheritDoc}
+     * 
+     * Metoda ktora ma zaulohu vytvori graficke rozhranie pre inventar. Navrchu
+     * inventara je vypisany string ze sa jedna o inventar.
      */
     @Override
     public final void setGraphics() {
-        toDraw = new BufferedImage(getWidth(), getHeight(), BufferedImage.TRANSLUCENT);
+        super.setGraphics();
         Graphics g = toDraw.getGraphics();
-
-        g.setColor(Colors.getColor(Colors.invBackColor));
-        g.fillRoundRect(0, 0, getWidth() - wGap, getHeight() - hGap, wGap, hGap);
-
-        g.setColor(Colors.getColor(Colors.invOnTopColor));
-        g.fillRoundRect(wGap, hGap, getWidth() - wGap, getHeight() - hGap, wGap, hGap);
+        g.setColor(Color.BLACK);
+        int[] txtSize = TextUtils.getTextSize(TextUtils.DEFAULT_FONT, INVENTORY);
+        g.drawString(INVENTORY, (getWidth() - txtSize[0])/2, txtSize[1] + hGap);
+        
     }         
     
     /**
@@ -152,14 +204,13 @@ public class InventoryMenu extends AbstractInMenu {
     public void setCraftingBox(int gridx, int gridy) {
         this.gridx = gridx;
         this.gridy = gridy;
-    }
+    }           
     
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc=" Update metody">
     /**
-     * Metoda ktora aktualizuje pozicie vykreslovaneho inventara.
-     *
+     * Metoda ktora aktualizuje pozicie vykreslovaneho inventara.     
      * @param xPos Pozicia x inventara na obrazovke
      * @param yPos Pozicia y inventara na obrazovke
      */
@@ -191,33 +242,34 @@ public class InventoryMenu extends AbstractInMenu {
      */
     private boolean updateImage() {
         itemsBox = new BufferedImage(itemsWidth, itemsHeight, BufferedImage.TRANSLUCENT);
-        Graphics g = itemsBox.getGraphics();
+        Graphics g = itemsBox.getGraphics();       
 
-        ArrayList<Item> inventory = entity.getInventory();
-
-        if (!inventory.isEmpty()) {
+        if (!items.isEmpty()) {
+            if (selection >= items.size()) {
+                selection = items.size() - 1;
+            }
             ArrayList<Item> invenToShow;
             int localSelect = 0;
                 
-            if (inventory.size() > itemsToShow) {
+            if (items.size() > itemsToShow) {
                 // sItem = kolko predmetov je za oznacenym predmetom.
-                int sItem = inventory.size() - selection - 1;
+                int sItem = items.size() - selection - 1;
                 
                 invenToShow = new ArrayList<>();
 
                 if (sItem < itemsToShow) {
                     localSelect = itemsToShow - sItem - 1;
-                    int diff = inventory.size() - itemsToShow;
-                    for (int i = diff < 0 ? 0 : diff; i < inventory.size(); i++) {
-                        invenToShow.add(inventory.get(i));
+                    int diff = items.size() - itemsToShow;
+                    for (int i = diff < 0 ? 0 : diff; i < items.size(); i++) {
+                        invenToShow.add(items.get(i));
                     }
                 } else {
                     for (int i = selection; i < selection + itemsToShow; i++) {
-                        invenToShow.add(inventory.get(i));
+                        invenToShow.add(items.get(i));
                     }
                 }
             } else {
-                invenToShow = inventory;
+                invenToShow = items;
                 localSelect = selection;
             }
 
@@ -263,7 +315,9 @@ public class InventoryMenu extends AbstractInMenu {
     }
     
     /**
+     * <i>{@inheritDoc}</i> <br>
      * Overrida metoda ktora ma za ulohu spravne ukoncit menu.
+     * 
      */
     @Override
     public void exit() {         
@@ -272,21 +326,10 @@ public class InventoryMenu extends AbstractInMenu {
         }
         subMenu = null;
         activated = false;
+        visible = false;
         menu.setInMenu(null);  
         input.freeKeys();
-    }
-    
-    /**
-     * Metoda ktora bezpecne ukonci pod menu pre toto menu. Po kazdom bezpecnom ukonceni
-     * je povinnostou zmenit changedState na true cim sa premaluje toto menu podla novo pridanych predmetov.
-     */
-    public void safeSubMenuExit() {
-        if (subMenu != null) {
-            subMenu.exit();
-            changedState = true;
-        }
-    }
-
+    }        
     
     // </editor-fold>
     
@@ -421,7 +464,7 @@ public class InventoryMenu extends AbstractInMenu {
             if (selection >= 0 && entity.getInventory().size() != 0) {
                 activated = false;
                 safeSubMenuExit();
-                subMenu = new ItemMenu(this, selectPosX, selectPosY);
+                subMenu = new ItemMenu(this, getSelectedItem(), selectPosX, selectPosY);
                 subMenu.setVisible(true);
                 subMenu.activate();
             }
@@ -462,7 +505,7 @@ public class InventoryMenu extends AbstractInMenu {
             if (!activated) {
                 g.setColor(Colors.getColor(Colors.selectedColor));
                 g.fillRoundRect(xPos, yPos, getWidth() - wGap, getHeight() - hGap, wGap, hGap);
-            }
+            }            
         }
         // Testovanie na submenu. Kedze moze prekryvat toto menu tak je v metode ako posledne.
         if (subMenu != null) {

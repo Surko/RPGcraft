@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
@@ -26,9 +27,11 @@ import rpgcraft.utils.TextUtils;
 public class SwingText extends SwingComponent{
 
     private static final Logger LOG = Logger.getLogger(SwingText.class.getName());
+    private static final int GAP = 1;
     
     protected String title;
-    protected int tw = 0,th = 0;
+    protected ArrayList<String> parsedTitle;
+    protected int tw = 0,th = 0, w = 0, h = 0;
     protected int sx = 0, sy = 0;
     protected Color textColor;
     protected Color backColor;
@@ -37,6 +40,7 @@ public class SwingText extends SwingComponent{
     public SwingText() {
         this.textColor = Color.BLACK;
         this.backColor = Colors.getColor(Colors.transparentColor);
+        this.parsedTitle = new ArrayList<>();
     }
     
     public SwingText(Container container,AbstractMenu menu) {
@@ -48,8 +52,9 @@ public class SwingText extends SwingComponent{
             setFont(txType.getFont()); 
             this.backColor = container.getResource().getBackgroundColorId();
         }                     
+        this.parsedTitle = new ArrayList<>();
         setBackground(backColor);        
-        setTextSize();        
+        setText(title, false);       
     }
     
     @Override
@@ -61,18 +66,25 @@ public class SwingText extends SwingComponent{
             setFont(txType.getFont());            
             this.backColor = componentContainer.getResource().getBackgroundColorId();
         }            
+        this.parsedTitle = new ArrayList<>();
         setBackground(backColor);
-        setTextSize();
+        setText(title, false);
     }
     
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);                  
-        if (title != null) {            
-            g.setFont(getFont());
-            g.setColor(textColor);
-            g.drawString(title, 0, th);
-        }        
+        super.paintComponent(g);
+        
+        int h = th;
+        g.setFont(getFont());
+        g.setColor(textColor);   
+        if (parsedTitle != null) {
+            for (String s : parsedTitle) {                                            
+                g.drawString(s, 0, h);                
+                h += th + GAP;
+            }        
+        }
+    
         if (isSelected) {
             g.setColor(Colors.getColor(Colors.selectedColor));
             g.fillRect(0, 0, getWidth(), getHeight());
@@ -88,10 +100,32 @@ public class SwingText extends SwingComponent{
         this.textColor = color;
     }
     
-    public void setTextSize() {
-        int[] txtSize = TextUtils.getTextSize(getFont(), title);  
-        tw = txtSize[0];
-        th = txtSize[1];
+    public void setTextSize(boolean parsing) {
+        parsedTitle.clear();
+        if (parsing) {
+            setParsedText(title, getWidth());             
+        } else {            
+            parsedTitle.add(title);
+            int[] txtSize = TextUtils.getTextSize(getFont(), title);            
+            tw = txtSize[0];
+            th = txtSize[1];
+        }        
+    }
+    
+    public void setParsedText(String text, int width) {                
+        this.title = text;
+        TextUtils.parseToSize(parsedTitle, width, text, getFont());          
+        if (parsedTitle.size() > 0) {
+            int[] txtSize = TextUtils.getTextSize(getFont(), parsedTitle.get(0));
+            th = txtSize[1];
+            tw = w = txtSize[0];
+        }
+        h = parsedTitle.size() * (th + GAP);
+        //System.out.println(h);
+    }
+    
+    public void resetTitle() {
+        parsedTitle.clear();
     }
     
     @Override
@@ -103,13 +137,13 @@ public class SwingText extends SwingComponent{
         }
     }
     
-    public void setText(String text) {
-        this.title= text;
+    public void setText(String text, boolean parsing) {
+        this.title= text;        
         this.isNoData = false;
         if (componentContainer != null) {
             refresh();
-        } else {
-            setTextSize();       
+        } else {            
+            setTextSize(parsing);            
         }
     }
     
@@ -123,46 +157,31 @@ public class SwingText extends SwingComponent{
     
     public int getTextH() {
         return th;
-    }    
-
+    }        
+    
     @Override
-    public int getWidth() {
-        if (componentContainer != null) {
-            return componentContainer.getWidth();
-        }
-        return tw;
+    public int getWidth() {        
+        return w;
     }
     
     @Override
-    public int getHeight() {
-        if (componentContainer != null) {
-            return componentContainer.getHeight();
-        }
-        return th;
+    public int getHeight() {        
+        return h;
     }
     
     @Override
-    public Dimension getPreferredSize() {
-        if (componentContainer != null) {
-            return componentContainer.getPrefDimension();
-        }
-        return new Dimension(tw,th);
+    public Dimension getPreferredSize() {        
+        return new Dimension(w,h);
     }
     
     @Override
-    public Dimension getSize() {
-        if (componentContainer != null) {
-            return componentContainer.getPrefDimension();
-        }
-        return new Dimension(tw,th);
+    public Dimension getSize() {        
+        return new Dimension(w,h);
     }
     
     @Override
-    public Dimension getMinimumSize() {
-        if (componentContainer != null) {
-            return componentContainer.getMinDimension();
-        }
-        return new Dimension(tw,th);
+    public Dimension getMinimumSize() {       
+        return new Dimension(w,h);
     }
     
     @Override
@@ -212,19 +231,26 @@ public class SwingText extends SwingComponent{
     
     @Override
     public void refresh() {
-        super.refresh();        
-        int _w = 0, _h = 0;
+        super.refresh();                
                         
-        int[] txtSize = TextUtils.getTextSize(getFont(), title); 
+        setTextSize(false);
         
-        tw = txtSize[0];
-        th = txtSize[1];
-        
-        _w = componentContainer.isAutoWidth() ? tw : componentContainer.getWidth();
-        _h = componentContainer.isAutoHeight() ? th : componentContainer.getHeight();
+        if (componentContainer.isAutoWidth()) {
+            w = Math.min(componentContainer.getParentWidth(), tw);            
+        } else {
+            w = componentContainer.getWidth();            
+        }
+        if (componentContainer.isAutoHeight()) {                                            
+            if (!componentContainer.isAutoWidth()) {
+                setParsedText(title, componentContainer.getWidth());
+            }
+            h = th;
+        } else {
+            h = componentContainer.getHeight();
+        }
         
         //setSize(_w, _h);
-        componentContainer.set(_w, _h);
+        componentContainer.set(w, h);
          
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru            
         if (componentContainer.getParentContainer().isAutoWidth() || componentContainer.getParentContainer().isAutoHeight()) {  
@@ -235,7 +261,7 @@ public class SwingText extends SwingComponent{
 
         // startovacia pozicia pre vykreslenie resource do rodicovskeho kontajneru          
          
-        refreshPositions(_w, _h, componentContainer.getParentWidth(), 
+        refreshPositions(w, h, componentContainer.getParentWidth(), 
             componentContainer.getParentHeight());  
 
     }

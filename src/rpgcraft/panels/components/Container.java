@@ -94,6 +94,8 @@ public class Container {
             this.changed = true;
             this.top = false;
             this.visible = resource == null ? true : resource.isVisible();
+            this.autow = (w == -1);
+            this.autoh = (h == -1);
         }
         
         public Container(Container srcCont) {
@@ -146,11 +148,63 @@ public class Container {
             this.resImage = new BufferedImage(prefDimension.width, prefDimension.height, BufferedImage.TYPE_4BYTE_ABGR);
         }
         
+        public void addChildComponent(Container cont) {
+            if (c instanceof GamePane) {
+                if (childContainers.contains(cont)) {
+                    c.addComponent(cont.getComponent(),cont.getResource().getConstraints());
+                }            
+            } else {
+                switch (resource.getLayoutType()) {
+                    case INGAME : c.addComponent(cont.getComponent());
+                        break;
+                    default : c.addComponent(cont.getComponent(),cont.getResource().getConstraints());  
+                        break;                    
+                }
+            }
+    
+                
+        }
+        
+        public void addChildComponents() {
+            if (c instanceof GamePane) {
+                //System.out.println(Thread.currentThread());
+                for (Container cont : childContainers) {
+                    c.addComponent(cont.getComponent(),cont.getResource().getConstraints());
+                }
+            } else {
+                switch (resource.getLayoutType()) {
+                    case INGAME : {
+                        for (Container cont : childContainers) {
+                            c.addComponent(cont.getComponent());
+                        }
+                    } break;
+                    default : {
+                        for (Container cont : childContainers) {
+                            c.addComponent(cont.getComponent(),cont.getResource().getConstraints());
+                        }
+                    } break;                    
+                }
+            }
+        }
+        
+        public void addChild(Container cont) {
+            if (childContainers == null) {
+                childContainers = new ArrayList<>();                
+            }
+            if (childContainers.contains(cont)) {
+                return;
+            }
+            childContainers.add(cont);                         
+        }
+                
         public void addContainer(Container cont) {
             if (childContainers == null) {
                 childContainers = new ArrayList<>();                
             }
-            childContainers.add(cont); 
+            if (childContainers.contains(cont)) {
+                return;
+            }
+            childContainers.add(cont);  
             
             if (c instanceof GamePane) {
                 //System.out.println(Thread.currentThread());
@@ -286,21 +340,20 @@ public class Container {
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Settery ">
-        public void set(int w, int h, int mw, int mh) {
-            if (w == -1 || mw == -1) {
-                autow = true;
-                this.changed = true;
-            }
-            if (h == -1 || mh == -1) {
-                autoh = true;
-                this.changed = true;
-            }
+        public void set(int w, int h, int mw, int mh) {            
             if (this.prefDimension.width != w || this.minDimension.width != mw || 
                     this.prefDimension.height != h || this.minDimension.height != mh) {
-                this.changed = true;
+                setChanged(true);
             } else {                
                 return;
-            }              
+            } 
+            
+            if (w == -1 || mw == -1) {
+                autow = true;                
+            }
+            if (h == -1 || mh == -1) {
+                autoh = true;                
+            }
             
             if (this.prefDimension.width < mw) {
                 this.prefDimension.width = mw;
@@ -380,6 +433,9 @@ public class Container {
         
         public void setChanged(boolean changed) {
             this.changed = changed;
+            if (parent != null && !(parent.c instanceof GamePane)) {
+                parent.setChanged(changed);
+            }
         }
         
         public void setImage(BufferedImage resImage) {
@@ -387,7 +443,7 @@ public class Container {
         }
         
         public void setChildContainers(ArrayList<Container> containers) {
-            this.childContainers = containers;
+            this.childContainers = containers;            
         }
         
         public void setParentContainer(Container parent) {

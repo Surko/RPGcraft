@@ -8,9 +8,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.ArrayList;
-import rpgcraft.entities.Entity;
-import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.map.tiles.DefaultTiles;
 
 /**
@@ -71,8 +68,8 @@ public class Chunk implements Externalizable {
             blocks.setMetaData(layer, x & 15, y & 15, value);
         }
         
-        public void setTile(int layer, int x, int y, int value) {
-            blocks.setIntOnPosition(layer, x & 15, y & 15, value);
+        public boolean setTile(int layer, int x, int y, int value) {
+            return blocks.setIntOnPosition(layer, x & 15, y & 15, value);
         }
         
         public int getTile(int layer, int x, int y) {
@@ -88,7 +85,7 @@ public class Chunk implements Externalizable {
         }
         
         public void destroyTile(int layer, int x, int y) {
-            blocks.setIntOnPosition(layer, x & 15, y & 15, 0);
+            blocks.replaceIntOnPosition(layer, x & 15, y & 15, DefaultTiles.BLANK_ID);
         }
         
         public boolean getLoaded() {

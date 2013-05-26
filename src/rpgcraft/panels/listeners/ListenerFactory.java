@@ -21,7 +21,9 @@ public class ListenerFactory {
         LOAD,
         COMPOP,
         DATA,
-        GAME
+        GAME,
+        ENTITY,
+        ITEM
     }
     
     private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());
@@ -53,10 +55,20 @@ public class ListenerFactory {
                     }
                 }
                 return new CombinatedListener(_listeners);
-            }
-                
+            }                
+        }                    
+    }
+    
+    public static Listener getListener(Object command, boolean memorizable) {
+        if (command instanceof Listener) {
+            return (Listener)command;
         }
-                    
+        
+        if (command instanceof String) {
+            return getListener((String)command, memorizable);
+        }
+        
+        return null;
     }
     
     public static Listener getListener(String command, boolean memorizable) {
@@ -79,10 +91,8 @@ public class ListenerFactory {
                     }
                 }
                 return new CombinatedListener(_listeners);
-            }
-                
-        }
-                    
+            }                
+        }                    
     }
     
     private static Listener getListenerFromString(String command) {
@@ -92,8 +102,7 @@ public class ListenerFactory {
             if (listeners.values().size() >= maxListeners) {
                 listeners = new HashMap<>();
             }
-            Listener output = madeListener(command);                        
-                        
+            Listener output = madeListener(command);                                                
             return output;
         }
     }
@@ -139,10 +148,16 @@ public class ListenerFactory {
                             case GAME : {
                                 return new GameListener(parts[1]);
                             }
+                            case ENTITY : {
+                                return new EntityListener(parts[1]);
+                            }
+                            case ITEM : {
+                                return new ItemListener(parts[1]);
+                            }
                         }
                     } catch (Exception e) {
                         LOG.log(Level.INFO, StringResource.getResource("_ndlistener", new String[] {command}));
-                        return blankListener;
+                        return null;
                     }
                 }                
             }

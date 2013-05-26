@@ -29,7 +29,7 @@ import rpgcraft.utils.MathUtils;
  */
 public class SwingImagePanel extends SwingComponent{
     private static final Logger LOG = Logger.getLogger(SwingImagePanel.class.getName());
-    
+    protected static final int wGap = 5, hGap = 5;
     protected Image backImage;
     protected Color backColor;
     protected Color topColor;
@@ -128,7 +128,7 @@ public class SwingImagePanel extends SwingComponent{
         
         if (topColor != null) {
             g.setColor(topColor);            
-            g.fillRect(5, 5, getWidth(), getHeight());        
+            g.fillRect(wGap, hGap, getWidth(), getHeight());        
         }
         
         if (backImage != null) {
@@ -172,7 +172,7 @@ public class SwingImagePanel extends SwingComponent{
     public void refresh() { 
         super.refresh();                
         
-        int w = 0, h = 0;
+        w = h = 0;
                         
         if (componentContainer.getChildContainer() != null) {
             for (Container cont : componentContainer.getChildContainer()) {

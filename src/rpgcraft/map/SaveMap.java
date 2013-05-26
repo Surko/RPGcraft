@@ -7,13 +7,9 @@ package rpgcraft.map;
 import rpgcraft.map.generators.MapGenerator;
 import rpgcraft.entities.Player;
 import rpgcraft.entities.MovingEntity;
-import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.RadialGradientPaint;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayDeque;
@@ -31,16 +27,13 @@ import rpgcraft.MainGameFrame;
 import rpgcraft.entities.*;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.*;
-import rpgcraft.graphics.spriteoperation.Sprite;
-import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.graphics.ui.particles.Particle;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
-import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.chunks.ChunkContent;
 import rpgcraft.map.tiles.*;
-import rpgcraft.plugins.AbstractMenu;
+import rpgcraft.plugins.RenderPlugin;
 import rpgcraft.resource.StringResource;
 /**
  *
@@ -52,33 +45,19 @@ public class SaveMap  {
     /* 
      * Pre zistenie kam ma zaradit mapu budem pouzivat bitove operacie posunu doprava o 4,
      * 0x0 - 15x15 budu v rovnakom priestore na disku pod menom region0x0
-     */           
-    
-    /* 
-     * mod pre vykreslenia svetla
-     * 0 - Jednoduche vykreslenie len okolo hraca pomocou radiant brush
-     * 
-     */        
-    private static final int LIGHT_MODE = 0;
-    
-    /**
-     * mod pre renderovanie chunkov.
-     * 0 - jednoduche renderovanie. Vyrenderuje vsetko v buffery a nasledne aj vykresli.
-     * 1 - renderovanie okolo hraca. Vyrenderuje stvorec okolo hracovej pozicie s polomerom lightRadius pre hraca.
-     * 2 - dalsie mozne renderovanie na doplnenie.
-     */
-    private static final int RENDER_MODE = 1;
-    
+     */                              
     private final Logger LOG = Logger.getLogger(getClass().getName());       
     
     protected String saveName;
     
-    protected Queue<Chunk> chunkQueue = new LinkedList<> ();
+    protected Deque<Chunk> chunkQueue = new LinkedList<> ();
     private Deque<Particle> partRemove = new ArrayDeque<>();
     private Deque<Entity> entityRemove = new ArrayDeque<>();
     
     private int numberOfChunks;
-    Chunk[][] chunksToRender;    
+    private Chunk[][] chunksToRender;    
+    
+    private RenderPlugin render;
     
     private int gameTime = 6 ;
     
@@ -112,38 +91,20 @@ public class SaveMap  {
     private int _lcurrent;
     private int _xcurrent;
     private int _ycurrent;
-    
-    private String xCoor;
-    private String yCoor;
-    
-    private int xPixels;
-    private int yPixels;
-    
-    private int screenX;
-    private int screenY;
-    
+                               
     private int width;
     private int height;
-    
-    private int lastX = 0;
-    private int lastY = 0;    
-    
-    private double scaleParamX = 1;
-    private double scaleParamY = 1;
-    
-    private Image lightingMap;
+    public int xCoordinate,yCoordinate;
+        
     private DayLighting dayLight;
     
-    private int screenLength;
-    
-    private RadialGradientPaint rg;
+    private int screenLength;    
     
     private boolean stat = false;  
     private boolean particle = true;
     private boolean scaleable = false;
     private boolean lighting = false;
-    
-    private static final Font coordinatesFont = new Font("Helvetica", Font.BOLD, 12);
+        
     private static final int delayThread = 2;
     private static int jammedMenu = 0;
     
@@ -155,9 +116,10 @@ public class SaveMap  {
         this.height = game.getHeight();
         this.dayLight = new DayLighting();
         this.numberOfChunks = 3;
-        this.screenLength = numberOfChunks << 9;
-        this.lightingMap = new BufferedImage(MainGameFrame.Fwidth, MainGameFrame.Fheight, BufferedImage.TRANSLUCENT); 
+        this.screenLength = numberOfChunks << 9;        
         this.chunksToRender = new Chunk[numberOfChunks][numberOfChunks];
+        render = RenderPlugin.loadRender("sk.jar");
+        render.setMap(this);
     }
     
     public void initializeTiles() {
@@ -182,16 +144,19 @@ public class SaveMap  {
     public void paint(Graphics g) {  
         try {
             if (scaleable) {
-                scale(g);
+                render.scale(g);
             }
         
-            paintBackground(g);
+            render.paintBackground(g, chunksToRender);
             //paintFlora(g);
-            paintEntitiesParticles(g);        
-            paintLighting(g);                        
+            render.paintEntitiesParticles(g, entities, particles);   
+            
+            if (lighting) {
+                render.paintLighting(g);                        
+            }
             
             if (stat) {
-                paintStrings(g);
+                render.paintStrings(g);
             }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -203,8 +168,10 @@ public class SaveMap  {
         updateEntities();
         if (particle) {
             updateParticles();
-        }                  
-        updateLighting();      
+        }       
+        if (lighting) {
+            updateLighting();      
+        }
     }        
     
     private void updateAround(Entity e) {
@@ -223,32 +190,14 @@ public class SaveMap  {
                 for (int j = 0; j < numberOfChunks; j++) {
                     chunksToRender[i][j] = chunkXYExist(_xcurrent-(numberOfChunks / 2) + j, _ycurrent - (numberOfChunks / 2) + i);
                 }
-            }
+            }                        
                         
             chunkState = false;
-        }
+        }                                        
+        //debuggingText();                
         
-        if (e == null) {
-            xPixels = 0;
-            yPixels = 0;
-
-            if (stat) {            
-                xCoor = null;
-            }
-        } else {            
-            xPixels = e.getXPix() & 511;
-            yPixels = e.getYPix() & 511;
-
-            if (stat) {            
-                xCoor =""+e.getXPix();
-                yCoor =""+e.getYPix();
-            }  
-        }
-        
-        //debuggingText();
-        
-        screenX = (width - (screenLength)) / 2 + 256;
-        screenY = (height - (screenLength)) / 2 + 256;
+        render.setScreenX((width - (screenLength)) / 2 + 256);
+        render.setScreenY((height - (screenLength)) / 2 + 256);
                              
     }
     
@@ -264,9 +213,10 @@ public class SaveMap  {
         }
     }
     
-    private void updateLighting() {
+    private void updateLighting() {                      
         if (lightState) {
-            timeLighting();
+            dayLight.init(gameTime);  
+            render.makeLightingMap(dayLight);
             lightState = false;
         }
     }
@@ -287,204 +237,20 @@ public class SaveMap  {
         if (!partRemove.isEmpty()) {
             particles.remove(partRemove.pop());
         }
-    }
-            
-    private void paintBackground(Graphics g) throws InterruptedException {
-        try {            
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, width, height);
-            lastX = screenX - xPixels + 12;
-            lastY = screenY - yPixels + 12;
-            g.translate(lastX, lastY);      
-            
-            switch (RENDER_MODE) {
-                case 0 : simpleChunkPainting(chunksToRender, g);
-                    break;
-                case 1 : playerChunkPainting(chunksToRender, g);
-                    break;
-            }
-            g.translate(-lastX, -lastY);
-        } catch (Exception e) {
-            g.translate(-lastX, -lastY);
-            //Thread.sleep(delayThread);            
-        }
-
-    }
-    
-    private void paintFlora(Graphics g) {
-        if (chunkState) {
-            
-        }
-    }
-    
-    private void paintEntitiesParticles(Graphics g) {  
-        g.translate(width /2, height/2);
-        for (Entity e : entities) {   
-           if (e.getLevel() == _lcurrent) {
-               if (e instanceof Player) {                
-                    g.drawImage(e.getTypeImage(), 0, 0, null);
-                    continue;
-               }
-               int x = e.getXPix() - player.getXPix();
-               int y = e.getYPix() - player.getYPix();
-               if (Math.abs(x) < (player.getLightRadius() << 5) && (Math.abs(y) < (player.getLightRadius() << 5)))
-                   g.drawImage(e.getTypeImage(), x, y,  null);
-           }
-        }
-        
-        try {
-            for (Particle part: particles) {
-                if (part.isActivated()) {
-                g.drawImage(part.getImage(), part.getX(), part.getY(), null);            
-                }
-            }
-        } catch (Exception e) {}
-        g.translate(-width/2, -height/2);
-    }
-    
-    private void paintLighting(Graphics g) { 
-       if (lighting) {
-            g.drawImage(lightingMap, 0, 0, null);
-        } 
-    }
-    
-    private void paintStrings(Graphics g) {
-        g.setFont(coordinatesFont);
-        g.setColor(fpsColor);
-        if  (xCoor == null) {
-            g.drawString(StringResource.getResource("_mplayer"), 0, height-50);
-        } else {
-            g.drawString("x : " + xCoor + " y : " + yCoor , width-125, height-50);
-            g.drawString("ViewZ : " + _lcurrent + " PlayerZ : " + player.getLevel(), width - 125, height - 25);
-        }
-    }    
-    
-    private void scale(Graphics g) {
-        g2d = (Graphics2D)g;
-        g2d.scale(scaleParamX, scaleParamY);
-    }
-    
-    private void playerChunkPainting(Chunk[][] _chunks, Graphics g) {
-        int[][] upperLayer, upperMeta, lowerLayer, lowerMeta;
-        int _chunkX, _chunkY;
-        Tile toDraw;
-        
-        int Pminx = player.getTileX() - player.getLightRadius();
-        int Pminy = player.getTileY() - player.getLightRadius();
-        int Pmaxx = player.getTileX() + player.getLightRadius();
-        int Pmaxy = player.getTileY() + player.getLightRadius();                        
-        
-        for (int i = 0 ; i< numberOfChunks; i++) {
-            for (int j = 0; j< numberOfChunks; j++) {
-                if (_chunks[j][i]==null) {
-                    continue;
-                }                                
-                
-                _chunkX = i << 9;
-                _chunkY = j << 9;
-                
-                int startX = Pminx - (i-1)*16;
-                if (startX < 0) {
-                    startX = 0;
-                }
-                int startY = Pminy - (j-1)*16;
-                if (startY < 0) {
-                    startY = 0;
-                }
-                int endX = Pmaxx - (i-1)*16;
-                if (endX > Chunk.getSize()) {
-                    endX = Chunk.getSize();
-                }
-                
-                int endY = Pmaxy - (j-1)*16;                        
-                if (endY > Chunk.getSize()) {
-                    endY = Chunk.getSize();
-                }
-                
-                if ((endX < 0)||(endY < 0)||(startX > Chunk.getSize())||(startY > Chunk.getSize())) {
-                    continue;
-                }
-                
-                lowerLayer = _chunks[j][i].getLayer(_lcurrent - 1);                 
-                lowerMeta = _chunks[j][i].getMetaDataLayer(_lcurrent - 1);
-                upperLayer = _chunks[j][i].getLayer(_lcurrent);
-                upperMeta = _chunks[j][i].getMetaDataLayer(_lcurrent);
-                
-                for (int _i = startX; _i< endX; _i++) {
-                    for (int _j = startY; _j< endY; _j++) {  
-                        //System.out.print(_layer[_i][_j]);                                                
-                        
-                        if (upperLayer[_i][_j] != DefaultTiles.BLANK_ID) {
-                            toDraw = Tile.tiles.get(upperLayer[_i][_j]); 
-                            if (toDraw != null) {
-                                g.drawImage(toDraw.getUpperImage(), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
-                            }
-                        } else {                            
-                            toDraw = Tile.tiles.get(lowerLayer[_i][_j]);
-                            if (toDraw != null) {                      
-                                g.drawImage(toDraw.getImage(lowerMeta[_i][_j]), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
-                            }                                                        
-                        }                                                
-                    }
-                }   
-            }
-        }
-    }        
-    
-    private void simpleChunkPainting(Chunk[][] _chunks, Graphics g) {  
-        int[][] upperLayer,upperMeta,lowerLayer,lowerMeta;
-        int _chunkX, _chunkY;
-        Tile toDraw;
-        
-        for (int i = 0 ; i< numberOfChunks; i++) {
-            for (int j = 0; j< numberOfChunks; j++) {
-                if (_chunks[i][j]==null) {
-                    continue;
-                }
-                _chunkX = i << 9;
-                _chunkY = j << 9;
-                                
-                upperLayer = _chunks[i][j].getLayer(_lcurrent);
-                upperMeta = _chunks[i][j].getMetaDataLayer(_lcurrent);
-                lowerLayer = _chunks[i][j].getLayer(_lcurrent - 1);
-                lowerMeta = _chunks[i][j].getMetaDataLayer(_lcurrent - 1);
-                for (int _i = 0; _i< Chunk.getSize(); _i++) {
-                    for (int _j = 0; _j< Chunk.getSize(); _j++) {  
-                        if (upperMeta[_i][_j] != Sprite.Type.TILEDESTROYED.getValue()) {
-                            toDraw = Tile.tiles.get(upperLayer[_i][_j]); 
-                            if (toDraw == null) {
-                                continue;
-                            } else {                        
-                                g.drawImage(toDraw.getImage(upperMeta[_i][_j]), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
-                            }
-                        } else {
-                            toDraw = Tile.tiles.get(lowerLayer[_i][_j]);
-                            if (toDraw == null) {
-                                continue;
-                            } else {                        
-                                g.drawImage(toDraw.getImage(lowerMeta[_i][_j]), (_i << 5) + _chunkX, (_j << 5) + _chunkY, null);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    }                
                                                 
     public void setWidthHeight(Integer width, Integer height) {
-        this.scaleParamX = width.doubleValue()/MainGameFrame.getContentWidth();
-        this.scaleParamY = height.doubleValue()/MainGameFrame.getContentHeight();        
+        render.setScaleParams(width.doubleValue()/MainGameFrame.getContentWidth(),
+            height.doubleValue()/MainGameFrame.getContentHeight());        
         
         if (!scaleable) {            
             this.width = width;
-            this.height = height;            
-            lightingMap = new BufferedImage(width, height, BufferedImage.TRANSLUCENT); 
-            timeLighting();
+            this.height = height;  
+            render.setWidthHeight(width, height);            
         } else {
             this.width = MainGameFrame.getContentWidth();
             this.height = MainGameFrame.getContentHeight();
-            lightingMap = new BufferedImage(MainGameFrame.Fwidth, MainGameFrame.Fheight, BufferedImage.TRANSLUCENT); 
-            timeLighting();
+            render.setWidthHeight(width, height);  
         }
         //
     }                
@@ -500,8 +266,45 @@ public class SaveMap  {
     
     public void decLevel() {
         this._lcurrent--;
+    }        
+    
+    public MovingEntity getPlayer() {
+        return player;
     }
     
+    public int getChunksSize() {
+        return numberOfChunks;
+    }                    
+    
+    public Chunk[][] getChunksToRender() {
+        return chunksToRender;
+    }
+    
+    public DayLighting getDayLighting() {
+        return dayLight;
+    }
+    
+    public boolean getChunkState() {
+        return chunkState;
+    }
+    
+    public boolean hasLighting() {
+        return lighting;
+    }        
+    
+    public Entity getEntity(String name) {
+        for (Entity e : entities) {
+            if (e.getName().equals(name)) {
+                return e;
+            }
+        }
+        return null;
+    }
+    
+    public int getLevel() {
+        return _lcurrent;
+    }
+        
     public void paintFPS(Graphics g,int framer) {        
         g.setColor(fpsColor);
         g.drawString(String.valueOf(framer)+ " FPS", 0, 10);
@@ -527,7 +330,7 @@ public class SaveMap  {
                 return chunk;
             }
         }
-        return null;
+        return loadMapOnBegin(x, y);        
     }
     
     /**
@@ -544,12 +347,14 @@ public class SaveMap  {
                 return chunk;
             }
         }
-        return null;
+        return loadMapOnBegin(x >> 9, y >> 9);  
     }
 
     public boolean addEntity(Entity e) {
         if (e instanceof Player) {
-            this.player = (Player) e;                 
+            this.player = (Player) e;
+            this.render.setMap(this);
+            System.out.println("HOTOVO");
             this.player.setHandling(input);
             entities.add(e);
             _lcurrent = e.getLevel();
@@ -635,61 +440,15 @@ public class SaveMap  {
     
     public void increaseGameTime() {
         this.gameTime++;
-    }
-    
-    private void timeLighting() {                         
-                        
-        dayLight.init(gameTime);                
-        
-        /*
-        while (player == null) {
-            try {
-                Thread.sleep(10L);
-            } catch (Exception e) {
-                
-            }
-        }
-        */
-        
-        if (lighting) {
-        
-            switch (LIGHT_MODE) {
-                case 0 : radialLighting();
-                    break;                            
-            }   
-            
-        }
-        
-        }
-       
-    
-    private void radialLighting() {
-        g2d = (Graphics2D)lightingMap.getGraphics();
-        
-        int radius = player.getLightRadius() + dayLight.getRadiusBuff();
-        rg = new RadialGradientPaint(width /2, height /2, radius, dayLight.getFractions(), dayLight.getColors() );               
-    
-        g2d.setPaint(rg);
-                           
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
-        g2d.fillRect(0, 0, width, height);
-        
-    }
+    }                       
     
     public ChunkContent generateMap() {
         MapGenerator map = new MapGenerator(Chunk.getSize(), Chunk.getDepth());
         return map.generate();
     }
     
-    /**
-     * 
-     * @param x
-     * @param y 
-     */
-    public void loadMap(int x, int y) {
-        if (shiftChunk(chunkXYExist(x, y))) {
-            return;
-        }
+    public Chunk loadMapOnBegin(int x, int y) {
+        Chunk chunk = null;
         try {
             inputStream = new ObjectInputStream(new FileInputStream(
                     PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS, false) + File.separator
@@ -697,7 +456,7 @@ public class SaveMap  {
             try {
                 SaveChunk save = (SaveChunk) inputStream.readObject();
 
-                addChunk(save.getChunk());
+                chunk = addChunkOnBegin(save.getChunk());
                 ArrayList<Entity> entLoad = save.getEntities();
                 if (entLoad != null) {
                     for (Entity e : entLoad) {                    
@@ -706,7 +465,8 @@ public class SaveMap  {
                         e.setChunk(save.getChunk());
                         addEntity(e);
                     }
-                }                
+                }
+                return chunk;
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, StringResource.getResource("_bsaveformat"));
                 new MultiTypeWrn(null, Color.BLACK, StringResource.getResource("_bsaveformat"),null).renderSpecific(
@@ -714,8 +474,51 @@ public class SaveMap  {
             }
 
         } catch(Exception e) { 
-            addChunk(new Chunk(generateMap(), x, y));              
+            return addChunkOnBegin(new Chunk(generateMap(), x, y));              
         }
+        
+        return chunk;
+    }
+    
+    /**
+     * 
+     * @param x
+     * @param y 
+     */
+    public Chunk loadMap(int x, int y) {
+        Chunk chunk = chunkXYExist(x, y);
+        if (shiftChunk(chunk)) {
+            return chunk;
+        }
+        try {
+            inputStream = new ObjectInputStream(new FileInputStream(
+                    PathManager.getInstance().getWorldSavePath(saveName + PathManager.MAPS, false) + File.separator
+                    + "region["+x+","+y+"].m")); 
+            try {
+                SaveChunk save = (SaveChunk) inputStream.readObject();
+
+                chunk = addChunk(save.getChunk());
+                ArrayList<Entity> entLoad = save.getEntities();
+                if (entLoad != null) {
+                    for (Entity e : entLoad) {                    
+                        e.setSaved(false);
+                        e.setMap(this);                    
+                        e.setChunk(save.getChunk());
+                        addEntity(e);
+                    }
+                }
+                return chunk;
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, StringResource.getResource("_bsaveformat"));
+                new MultiTypeWrn(null, Color.BLACK, StringResource.getResource("_bsaveformat"),null).renderSpecific(
+                        StringResource.getResource("_label_badsave"));
+            }
+
+        } catch(Exception e) { 
+            return addChunk(new Chunk(generateMap(), x, y));              
+        }
+        
+        return chunk;
     }
     
     // Ukladacie a nacitacie operacie s mapou (Chunk save/load)
@@ -725,14 +528,34 @@ public class SaveMap  {
      * Ked je fronta nacitanych chunkov vacsia ako maximalne povolena, tak ulozi
      * prvy a prida novy na koniec fronty.
      * @param chunk Chunk do nacitanych chunkov.
+     * @return Chunk ktory pridavame
      */
-    private void addChunk(Chunk chunk) {
+    private Chunk addChunk(Chunk chunk) {
         if (chunkQueue.size() > chunkSize) {
             saveMap(chunkQueue.poll());
             chunkQueue.add(chunk);
         } else {
             chunkQueue.add(chunk);             
         }
+        return chunk;
+    }
+    
+    /**
+     * Metoda prida chunk predany parametrom <b>chunk</b> do nacitanych chunkov
+     * priamo nazaciatok fronty.
+     * Ked je fronta nacitanych chunkov vacsia ako maximalne povolena, tak ulozi
+     * prvy a prida novy namiesto neho.
+     * @param chunk Chunk do nacitanych chunkov.
+     * @return Chunk ktory pridavame
+     */
+    private Chunk addChunkOnBegin(Chunk chunk) {
+        if (chunkQueue.size() > chunkSize) {
+            saveMap(chunkQueue.poll());
+            chunkQueue.addFirst(chunk);            
+        } else {
+            chunkQueue.addFirst(chunk);             
+        }
+        return chunk;
     }
     
     public void saveMap(int x, int y) {      
@@ -793,13 +616,13 @@ public class SaveMap  {
      * Debugovacie metody k lahsiemu rozpoznaniu chyb
      */
     private void debuggingText() {
-        System.out.println("Screen x-origin" + screenX +
-                "\n Screen y-origin" + screenY +
+        System.out.println("Screen x-origin" + render.getScreenX() +
+                "\n Screen y-origin" + render.getScreenY() +
                 "\n Pixels inside one Chunk :"
-                + "\n x:" + xPixels +
-                "\n y:" + yPixels +
-                "\n x translated :"+ lastX +
-                "\n y translated :" + lastY);
+                + "\n x:" + player.getRegX() +
+                "\n y:" + player.getRegX() +
+                "\n x translated :"+ render.getLastX() +
+                "\n y translated :" + render.getLastY());
     }
 
     

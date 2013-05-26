@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.util.logging.Logger;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.Locale;
 import java.util.logging.Level;
 import javax.swing.JFrame;
 import rpgcraft.graphics.ui.components.MsgDialog;

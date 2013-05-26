@@ -77,13 +77,19 @@ public class MenuListener extends Listener {
                 case SETMENU : {
                    if (e.getSource() instanceof Component) {
                         Component c = (Component)e.getSource();
-                        Menu newMenu = AbstractMenu.getMenuByName(parsedObjects[0]);
+                        Menu newMenu = null;
+                        if (parsedObjects[0] instanceof String) {
+                            newMenu = AbstractMenu.getMenuByName((String)parsedObjects[0]);
+                        }
+                        if (parsedObjects[0] instanceof AbstractMenu) {
+                            newMenu = (AbstractMenu)parsedObjects[0];
+                        }
 
                         if (newMenu != null) {                                    
                             ((Menu)c.getOriginMenu()).setMenu(newMenu);                
                         } else {
                             new MultiTypeWrn(null, Color.red, StringResource.getResource("_nelistener",
-                                    new String[] {parsedObjects[0]}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+                                    new String[] {parsedObjects[0].toString()}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
                         }
 
                     } 
@@ -91,11 +97,13 @@ public class MenuListener extends Listener {
                 case CREATEMENU : {
                     if (e.getSource() instanceof Component) {
                         Component c = (Component)e.getSource();
-                        if (AbstractMenu.getMenuByName(parsedObjects[0])==null) {                
-                            FactoryMenu factMenu = new FactoryMenu(UiResource.getResource(parsedObjects[0]));
-                            ((Menu)c.getOriginMenu()).setMenu(factMenu);  
-                        } else {
-                            ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName(parsedObjects[0]));                          
+                        if (parsedObjects[0] instanceof String) {
+                            if (AbstractMenu.getMenuByName((String)parsedObjects[0])==null) {                
+                                FactoryMenu factMenu = new FactoryMenu(UiResource.getResource((String)parsedObjects[0]));
+                                ((Menu)c.getOriginMenu()).setMenu(factMenu);  
+                            } else {
+                                ((Menu)c.getOriginMenu()).setMenu(AbstractMenu.getMenuByName((String)parsedObjects[0]));                          
+                            }
                         }
 
                     }

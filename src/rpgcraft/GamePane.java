@@ -33,6 +33,7 @@ import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.plugins.GeneratorPlugin;
+import rpgcraft.plugins.ItemGeneratorPlugin;
 import rpgcraft.plugins.ScriptLibraryPlugin;
 import rpgcraft.resource.ConversationGroupResource;
 import rpgcraft.resource.ConversationResource;
@@ -110,12 +111,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
                System.out.println(sk[i][j]);
                }
          */
-        try {
-            //ScriptUtils.doFile(PathManager.getInstance().getScriptSavePath("hello.lua", false).toString(), GameLibrary.getInstance());
-            ScriptUtils.callLoadScript("hello.lua", null);
-        } catch (IOException ex) {
-            Logger.getLogger(GamePane.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        
         
         addOwnMouseListener();
         backColor = Colors.getColor(Colors.Black);   
@@ -279,16 +275,45 @@ public class GamePane extends SwingImagePanel implements Runnable {
            
     }
      
-    private void initializeMapPlugins(File file) {
+    /**
+     * Metoda ktora ako ostatne inicializacie pluginov dostava ako parameter zlozku s 
+     * moznymi generatormi itemov. Zo zlozky si zoberie vsetky subory a skontroluje pomocou definovaneho
+     * filtra ci to je jar subor. Pre jar subory vytvori classloader nacita triedu v zadanom
+     * packagi a vytvori novu instanciu. Nasledne prida nacitany plugin do nacitanych pluginov 
+     * v triede ItemGeneratorPlugin pomocou metody addGenerator.
+     * 
+     * @param file Zlozka v ktorej sa nachadzaju generatory predmetov.
+     */
+    private void initializeItemGeneratorPlugins(File file) {
         int plugLoaded = 0;
-        for (File f : file.listFiles()) {
-            if (!f.getName().matches(".*.jar")) {
-                LOG.log(Level.INFO, StringResource.getResource("_", new String[] {f.getName()}));
-                return;
-            }
+        for (File f : file.listFiles(MainUtils.jarFilter)) {            
             
             try {
-                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURL() });
+                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURI().toURL() });
+                ItemGeneratorPlugin plugin = (ItemGeneratorPlugin) authorizedLoader.loadClass("plugins.Plugin").newInstance();
+                ItemGeneratorPlugin.addGenerator(plugin);                
+            } catch (Exception e) {
+                
+            }
+        }
+        LOG.log(Level.INFO, StringResource.getResource("_plugload", new String[] {"Map", Integer.toString(plugLoaded)}));
+    }
+    
+    /**
+     * Metoda ktora ako ostatne inicializacie pluginov dostava ako parameter zlozku s 
+     * moznymi generatormi map. Zo zlozky si zoberie vsetky subory a skontroluje pomocou definovaneho
+     * filtra ci to je jar subor. Pre jar subory vytvori classloader nacita triedu v zadanom
+     * packagi a vytvori novu instanciu. Nasledne prida nacitany plugin do nacitanych pluginov 
+     * v triede MapGenerator pomocou metody addGenerator.
+     * 
+     * @param file Zlozka v ktorej sa nachadzaju generatory map.
+     */
+    private void initializeMapPlugins(File file) {
+        int plugLoaded = 0;
+        for (File f : file.listFiles(MainUtils.jarFilter)) { 
+            
+            try {
+                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURI().toURL() });
                 GeneratorPlugin plugin = (GeneratorPlugin) authorizedLoader.loadClass("plugins.Plugin").newInstance();
                 MapGenerator.addGenerator(plugin);
                 plugin.run();
@@ -299,16 +324,21 @@ public class GamePane extends SwingImagePanel implements Runnable {
         LOG.log(Level.INFO, StringResource.getResource("_plugload", new String[] {"Map", Integer.toString(plugLoaded)}));
     }
     
+    /**
+     * Metoda ktora ako ostatne inicializacie pluginov dostava ako parameter zlozku s 
+     * moznymi skriptovacimi lua pluginmi. Zo zlozky si zoberie vsetky subory a skontroluje pomocou definovaneho
+     * filtra ci to je jar subor. Pre jar subory vytvori classloader nacita triedu v zadanom
+     * packagi a vytvori novu instanciu. Nasledne prida nacitany plugin do nacitanych pluginov 
+     * v triede ScriptFactory pomocou metody addLibrary.
+     * 
+     * @param file Zlozka v ktorej sa nachadzaju pluginy skriptov
+     */
     private void initializeScriptPlugins(File file) {
         int plugLoaded = 0;
-        for (File f : file.listFiles()) {            
-            if (!f.getName().matches(".*.jar")) {
-                LOG.log(Level.INFO, StringResource.getResource("_", new String[] {f.getName()}));
-                return;
-            }
+        for (File f : file.listFiles(MainUtils.jarFilter)) { 
             
             try {                
-                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURL() });                
+                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURI().toURL() });                
                 ScriptLibraryPlugin plugin = (ScriptLibraryPlugin) authorizedLoader.loadClass("plugins.Plugin").newInstance();
                 ScriptFactory.addLibrary(plugin);
                 plugin.run();
@@ -321,16 +351,21 @@ public class GamePane extends SwingImagePanel implements Runnable {
         LOG.log(Level.INFO, StringResource.getResource("_plugload", new String[] {"Script", Integer.toString(plugLoaded)}));
     }
     
+    /**
+     * Metoda ktora ako ostatne inicializacie pluginov dostava ako parameter zlozku s 
+     * moznymi menu pluginmi. Zo zlozky si zoberie vsetky subory a skontroluje pomocou definovaneho
+     * filtra ci to je jar subor. Pre jar subory vytvori classloader nacita triedu v zadanom
+     * packagi a vytvori novu instanciu. Nasledne prida nacitany plugin do nacitanych pluginov 
+     * v triede AbstractMenu pomocou metody addMenu.
+     * 
+     * @param file Zlozka v ktorej sa nachadzaju menu pluginy.
+     */
     private void initializeMenuPlugins(File file) {
         int plugLoaded = 0;
-        for (File f : file.listFiles()) {            
-            if (!f.getName().matches(".*.jar")) {
-                LOG.log(Level.INFO, StringResource.getResource("_", new String[] {f.getName()}));
-                return;
-            }
+        for (File f : file.listFiles(MainUtils.jarFilter)) { 
             
             try {
-                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURL() });
+                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURI().toURL() });
                 AbstractMenu plugin = (AbstractMenu) authorizedLoader.loadClass("plugins.Plugin").newInstance();
                 AbstractMenu.addMenu(plugin);
                 plugin.initialize(componentContainer, input);
@@ -341,16 +376,21 @@ public class GamePane extends SwingImagePanel implements Runnable {
         LOG.log(Level.INFO, StringResource.getResource("_plugload", new String[] {"Menu", Integer.toString(plugLoaded)}));
     }
     
+    /**
+     * Metoda ktora ako ostatne inicializacie pluginov dostava ako parameter zlozku s 
+     * moznymi inmenu pluginmi. Zo zlozky si zoberie vsetky subory a skontroluje pomocou definovaneho
+     * filtra ci to je jar subor. Pre jar subory vytvori classloader nacita triedu v zadanom
+     * packagi a vytvori novu instanciu. Nasledne prida nacitany plugin do nacitanych pluginov 
+     * v triede AbstractInMenu pomocou metody addMenu.
+     * 
+     * @param file Zlozka v ktorej sa nachadzaju inmenu pluginy.
+     */
     private void initializeInMenuPlugins(File file) {
         int plugLoaded = 0;
-        for (File f : file.listFiles()) {            
-            if (!f.getName().matches(".*.jar")) {
-                LOG.log(Level.INFO, StringResource.getResource("_", new String[] {f.getName()}));
-                return;
-            }
+        for (File f : file.listFiles(MainUtils.jarFilter)) { 
             
             try {
-                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURL() });
+                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURI().toURL() });
                 AbstractInMenu plugin = (AbstractInMenu) authorizedLoader.loadClass("plugins.Plugin").newInstance();
                 AbstractInMenu.addMenu(plugin);
             } catch (Exception e) {
@@ -837,6 +877,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
                 } break;
                 case PathManager.MENUPLUG : {
                     initializeMenuPlugins(f);
+                } break;
+                case PathManager.ITEMGENPLUG : {
+                    initializeItemGeneratorPlugins(f);
                 } break;
                     
                 default : break;                    

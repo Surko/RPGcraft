@@ -11,9 +11,12 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import rpgcraft.entities.Entity;
 import rpgcraft.entities.Item;
+import rpgcraft.entities.Item.Command;
 import rpgcraft.graphics.Colors;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.handlers.InputHandle;
+import rpgcraft.panels.listeners.ActionEvent;
+import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.StringResource;
 
 /**
@@ -22,28 +25,7 @@ import rpgcraft.resource.StringResource;
  */
 public class ItemMenu extends AbstractInMenu {
     private static final int hItemBox = 20;
-    private static final int wGap = 5, hGap = 5;    
-       
-    private enum Command {
-        USE(StringResource.getResource("_use")),
-        EQUIP(StringResource.getResource("_equip")),
-        UNEQUIP(StringResource.getResource("_unequip")),
-        ACTIVE(StringResource.getResource("_active")),
-        UNACTIVE(StringResource.getResource("_unactive")),
-        DESTROY(StringResource.getResource("_destroy")),
-        CLOSE(StringResource.getResource("_close")),
-        DROP(StringResource.getResource("_drop"));
-        
-        private String sCommand;
-        
-        private Command(String sCommand) {
-            this.sCommand = sCommand;
-        }
-        
-        public String getValue() {
-            return sCommand;
-        }
-    }
+    private static final int wGap = 5, hGap = 5;                  
     
     private Item item;
     private int selection;
@@ -60,21 +42,34 @@ public class ItemMenu extends AbstractInMenu {
         super(null, null);
     }
     
-    public ItemMenu(AbstractInMenu source, int x, int y) {
+    public ItemMenu(AbstractInMenu source, Item item, int x, int y) {
         super(source.getEntity(), source.getInput());
         this.sourceMenu = source;
-        this.item = entity.getInventory().get(selection);
+        this.item = item;
         this.activated = false;        
         this.xPos = x - width;
         this.yPos = y;
         
         setItemMenu();
-        recalculatePositions();
+        setGraphics();
     }        
+    
+    /**
+     * Metoda ktora initializuje toto menu s novymi udajmi. 
+     * Novymi udajmi je entita zadana parametrom pre ktoru vytvarame menu.
+     * Parameter origMenu sluzi ako vzor pre toto menu z ktoreho ziskavame pozadie tohoto menu.
+     * @return Initializovany journal.
+     */
+    @Override
+    public ItemMenu initialize(AbstractInMenu origMenu, Entity e) {             
+        this.toDraw = origMenu.getDrawImage();        
+        return this;
+    }
     
     private void setItemMenu() {
         choices = new ArrayList<>();
         
+        choices.add(Command.INFO);
         if (item.isUsable()) {
             choices.add(Command.USE);
         }
@@ -96,9 +91,13 @@ public class ItemMenu extends AbstractInMenu {
         if (item.isDropable()) {
             choices.add(Command.DROP);
         }
+        if (item.isPlaceable()) {
+            choices.add(Command.PLACE);
+        }
         choices.add(Command.DESTROY);
         choices.add(Command.CLOSE);
-        
+                
+        this.height = choices.size() * hItemBox + hGap * 2;
     }
     
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
@@ -124,12 +123,9 @@ public class ItemMenu extends AbstractInMenu {
     // </editor-fold>
     
     @Override
-    protected void setGraphics() {
+    protected final void setGraphics() {
+        super.setGraphics();
         Graphics g = toDraw.getGraphics();
-        g.setColor(Colors.getColor(Colors.invBackColor));
-        g.fillRoundRect(0, 0, getWidth() - wGap, getHeight() - hGap, wGap, hGap);
-        g.setColor(Colors.getColor(Colors.invOnTopColor));
-        g.fillRoundRect(wGap, hGap, getWidth(), getHeight(), wGap, hGap);
         g.setColor(Color.BLACK);  
                 
         for (int i = 0; i < choices.size(); i++) {                    
@@ -145,6 +141,24 @@ public class ItemMenu extends AbstractInMenu {
     @Override
     public String getName() {
         return null;
+    }
+    
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int getWGap() {
+        return wGap;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int getHGap() {
+        return hGap;
     }
     
     @Override
@@ -224,6 +238,9 @@ public class ItemMenu extends AbstractInMenu {
     
     private void use() {
         switch (choices.get(selection)) {
+            case INFO : {
+                ListenerFactory.getListener("ENTITY@SAFE_TELEPORT(INT#1025,INT#1025,INT#62)", visible).actionPerformed(new ActionEvent(sourceMenu.getMenu(), w, xPos, null, game));
+            } break;
             case USE : {
                 entity.use(item);                                                
                 sourceMenu.setState(true);
@@ -232,26 +249,31 @@ public class ItemMenu extends AbstractInMenu {
                 break;
             case ACTIVE : entity.setActiveItem(item);
                 break;
-            case UNEQUIP : entity.equip(entity);
+            case UNEQUIP : entity.equip(item);
                 break;
-            case UNACTIVE : entity.setActiveItem(entity);
+            case UNACTIVE : entity.setActiveItem(item);
                 break;
+            case PLACE : {
+                entity.placeItem(item);
+                entity.removeItem(item);                
+                sourceMenu.setState(true);
+            } break;
             case CLOSE : {
                 exit();            
                 if (sourceMenu != null) {
                     sourceMenu.activate();
                 }
             } break;
+            case DESTROY : {
+                entity.removeItem(item);
+                sourceMenu.setState(true);
+            } break;
         }
     }        
 
     @Override
     public void recalculatePositions() {
-        this.height = choices.size() * hItemBox + hGap * 2;
-        if (height != 0) {
-            this.toDraw = new BufferedImage(getWidth(), getHeight(), BufferedImage.TRANSLUCENT);
-            setGraphics();
-        }
+        
     }
     
 }

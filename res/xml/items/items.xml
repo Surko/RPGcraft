@@ -5,6 +5,8 @@
 <Entities>
 <item>
    <id>healing1</id>
+   <entity-type>ITEM</entity-type>
+   <types>MISC:OTHER</types>
    <name>Healing Potion</name>
    <sheet>healingpotion.png</sheet>
    <globalw>32</globalw>

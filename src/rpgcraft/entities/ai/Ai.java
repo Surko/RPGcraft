@@ -22,4 +22,8 @@ public abstract class Ai {
     
     public abstract boolean aiMove(MovingEntity e);            
     
+    public static Ai getAi(String name) {
+        return aiList.get(name);
+    }
+    
 }

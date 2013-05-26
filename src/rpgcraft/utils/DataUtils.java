@@ -10,14 +10,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.*;
-import rpgcraft.GamePane;
 import rpgcraft.MainGameFrame;
 import rpgcraft.entities.Entity;
+import rpgcraft.entities.Item;
 import rpgcraft.entities.Player;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.ui.menu.Menu;
@@ -27,7 +27,6 @@ import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.swing.SwingBar;
-import rpgcraft.panels.components.swing.SwingCustomButton;
 import rpgcraft.panels.components.swing.SwingImage;
 import rpgcraft.panels.components.swing.SwingImageButton;
 import rpgcraft.panels.components.swing.SwingImageList;
@@ -38,6 +37,7 @@ import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
+import rpgcraft.plugins.RenderPlugin;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 
@@ -49,7 +49,9 @@ public class DataUtils {
     
     public enum Data {
         SAVE,
-        PLAYER_ITEMS
+        PLAYER_ITEMS,
+        RENDER,
+        ITEM
     }        
     
     public enum DataValues {
@@ -58,10 +60,9 @@ public class DataUtils {
         STRENGTH
     }
     
-    private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());
-    private static final int N_THREADS = 10;
+    private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());    
     
-    private volatile static ExecutorService es = Executors.newFixedThreadPool(N_THREADS);
+    private volatile static ExecutorService es = Executors.newCachedThreadPool();
     private volatile static int depth; 
     private volatile static int cycleCounter;
     
@@ -318,7 +319,17 @@ public class DataUtils {
                     LOG.log(Level.SEVERE, StringResource.getResource(null));
                     new MultiTypeWrn(null, Color.red, StringResource.getResource(null),
                             null).renderSpecific(StringResource.getResource(null));                    
-                }
+                } break;
+                case RENDER : {
+                    if (srcObject instanceof GameMenu) {                        
+                        infList = RenderPlugin.getRenderParam(param);
+                    }
+                } break;
+                case ITEM : {
+                    if (srcObject instanceof Item) {
+                        infList = Item.getItemInfo((Item)srcObject);
+                    }
+                } break;
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, StringResource.getResource("_ndinfo"));
@@ -338,6 +349,14 @@ public class DataUtils {
         }                       
     }
     
+    /**
+     * Metoda ktora vraci specificky aktualny cas a datum podla vzoru zadaneho parametrom <b>param</b>
+     * Tento vzor dokazu spracovavat objekty dediace od DateFormat. Na zistenie casu
+     * pouzivame metodu getTime z instancie Calendar.
+     * @param param Format datumu.
+     * @return Text s aktualnym datumom
+     * @see DateFormat
+     */
     public static String getSpecificDate(String param) {
         DateFormat dateFormat = new SimpleDateFormat(param);
         
@@ -346,6 +365,27 @@ public class DataUtils {
         return dateFormat.format(calendar.getTime());
     }
     
+    /**
+     * Metoda ktora vraci specificky cas a datum podla vzoru zadaneho parametrom <b>param</b>
+     * Tento vzor dokazu spracovavat objekty dediace od DateFormat. Na zistenie casu
+     * pouzivame metodu getTime z instancie Calendar. Cas ziskavame z parametru <b>time</b>
+     * @param time Cas ulozeny v long tvare.
+     * @return Text s casom
+     * @see DateFormat
+     */
+    public static String getSpecificDate(long time) {
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date(time);                
+        return dateFormat.format(date);
+    }
+    
+    /**
+     * Metoda ktora vraci specificky aktualny cas a datum podla vzoru dd/MM/yyyy HH:mm:ss.
+     * Tento vzor dokazu spracovavat objekty dediace od DateFormat. Na zistenie casu
+     * pouzivame metodu getTime z instancie Calendar.     
+     * @return Text s aktualnym datumom
+     * @see DateFormat
+     */
     public static String getCurrentDate() {
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         
@@ -355,10 +395,20 @@ public class DataUtils {
         
     }
     
+    /**
+     * Metoda ktora vrati kolekciu kontajnerov nachadzajuce sa v hlavnom game kontajneri.
+     * @return Kolekcia kontajnerov
+     */
     public static Collection<rpgcraft.panels.components.Container> getPanelContainers() {
         return MainGameFrame.game.getChildContainers();
     }
     
+    /**
+     * Metoda ktora vrati komponentu ktora sa nachadza v kontajneri s id rovnym zadanemu 
+     * parametru <b>id</b>.
+     * @param id Id kontajneru v ktorom hladame komponentu.
+     * @return Komponenta pod danym id.
+     */
     public static Component getComponentOfId(String id) {
         Collection<rpgcraft.panels.components.Container> containers = MainGameFrame.game.getChildContainers();
         for (rpgcraft.panels.components.Container cont : containers) {
@@ -369,10 +419,24 @@ public class DataUtils {
         return null;
     }
     
+    /**
+     * Metoda ktora vrati vsetky kontajnery ktore sa nachadzaju v menu zadanom parametrom
+     * <b>menu</b>
+     * @param menu Menu v ktorom hladame kontajneri.
+     * @return Kolekcia kontajnerov v menu.
+     */
     public static Collection<rpgcraft.panels.components.Container> getMenuContainers(AbstractMenu menu) {
         return menu.getContainers();
     }
     
+    /**
+     * 
+     * @param resource
+     * @param menu
+     * @param src
+     * @param parent
+     * @return 
+     */
     public static Container getComponentFromResource(UiResource resource, AbstractMenu menu, Container src, Container parent) {
         Component c = null;
         
@@ -407,12 +471,9 @@ public class DataUtils {
             c.addActionListeners(resource.getKeyActions()); 
             src.setComponent(c);                                                
         }
-                                        
-        // Ked je parent nahodou GamePane tak pri kazdej initializacii v AbstractMenu len pridavame
-        // dalsi kontajner => treba sa ich zbavovat po kazdom prehodeni menu => Nastavenie v GamePane#setMenu.
-        if (src != null) {
-            parent.addContainer(src);
-        }
+
+        parent.addChild(src);        
+        
         return src;
     }        
     
@@ -444,8 +505,8 @@ public class DataUtils {
         return variables.get(var);
     }
     
-    public static void setValueOfVariable(Object val, String var) {
-        variables.put(var, val);
+    public static void setValueOfVariable(Object val, Object var) {
+        variables.put(var.toString(), val);
     }       
     
     /**
@@ -454,30 +515,32 @@ public class DataUtils {
      * @param e
      * @return 
      */
-    public static Comparable[] getComparableValues(String[] parsedOp, ActionEvent e) {
+    public static Comparable[] getComparableValues(Object[] parsedOp, ActionEvent e) {
         Comparable[] compValues = new Comparable[2];
         Listener fst = ListenerFactory.getListener(parsedOp[0],false);
         if (fst != null) {
             fst.actionPerformed(e);
             compValues[0] = (Comparable) e.getReturnValue();
-        } else {
-            try {
-                compValues[0] = Integer.parseInt(parsedOp[0]);
-            } catch (Exception ex) {
-                compValues[0] = parsedOp[0];
+        } else {                          
+            if (parsedOp[0] instanceof Integer) {
+                compValues[0] = (Integer)parsedOp[0];        
             }
+            if (parsedOp[0] instanceof String) {
+                compValues[0] = Integer.parseInt((String)parsedOp[0]);
+            }            
         }
 
         Listener snd = ListenerFactory.getListener(parsedOp[1], false);
         if (snd != null) {
             snd.actionPerformed(e);
             compValues[1] = (Comparable) e.getReturnValue();
-        } else {
-            try {
-                compValues[1] = Integer.parseInt(parsedOp[1]);
-            } catch (Exception ex) {
-                compValues[1] = parsedOp[1];
+        } else {                          
+            if (parsedOp[1] instanceof Integer) {
+                compValues[1] = (Integer)parsedOp[1];
             }
+            if (parsedOp[1] instanceof String) {
+                compValues[1] = Integer.parseInt((String)parsedOp[1]);
+            }            
         }
         
         return compValues;

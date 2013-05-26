@@ -24,12 +24,10 @@ public class MainMenu extends AbstractMenu{
     public void initialize(Container gameContainer, InputHandle input) {
         super.initialize(gameContainer, input);        
     }
-
     
     @Override
     public void update() {
-       super.update();  
-       
+       super.update();             
     }
 
     @Override

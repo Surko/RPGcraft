@@ -103,8 +103,8 @@ public final class MsgDialog extends SwingImagePanel {
         MainGameFrame.game.validate();
     }
     
-    public void setText(String text) {
-        msgText.setText(text);           
+    public void setText(String text) {        
+        msgText.setParsedText(text, DIM.width - 2*wGap);
         msgText.setLocation((DIM.width - msgText.getTextW())/2, (DIM.height - msgText.getTextH())/2);
         this.add(msgText);
     }

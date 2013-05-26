@@ -4,6 +4,7 @@
  */
 package rpgcraft.graphics.ui.menu;
 
+import java.awt.Color;
 import rpgcraft.plugins.AbstractInMenu;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -17,14 +18,17 @@ import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.quests.Quest;
+import rpgcraft.resource.StringResource;
+import rpgcraft.utils.TextUtils;
 
 /**
  *
  * @author kirrie
  */
 public class Journal extends AbstractInMenu {    
-    public static final String JOURNAL = "journal";
-    
+    public static final String JOURNALID = "_journal";
+    private static final String JOURNAL = StringResource.getResource(JOURNALID);
+        
     private static final int jrnWidth = 200, jrnHeight = 400, wGap = 5, hGap = 5;
     private static final int questsWidth = jrnWidth - 40, questsHeight = jrnHeight - 40;
     private static final int questHeight = 40;
@@ -39,18 +43,39 @@ public class Journal extends AbstractInMenu {
      * x, y pozicie, kde sa bude vykreslovat QuestInfo.
      */
     private int selectPosX, selectPosY;
-    
+    private ArrayList<Quest> quests;
     private static Journal instance;
+    
+    public Journal() {
+        super(null, null);
+    }
     
     public Journal(Entity entity, InputHandle input, AbstractMenu menu) {
         super(entity, input);
         this.menu = menu;
         this.activated = true;
+        this.visible = true;
         setGraphics();
         recalculatePositions();
         this.changedState = true;
-        menuList.put(JOURNAL, this);
-    }        
+        menuList.put(JOURNALID, this);
+    } 
+    
+    /**
+     * Metoda ktora initializuje toto menu s novymi udajmi. 
+     * Novymi udajmi je entita zadana parametrom pre ktoru vytvarame menu.
+     * Parameter origMenu sluzi ako vzor pre toto menu z ktoreho ziskavame pozadie tohoto menu.
+     * @return Initializovany journal.
+     */
+    @Override
+    public Journal initialize(AbstractInMenu origMenu, Entity e) {
+        this.entity = e;
+        this.input = origMenu.getInput();
+        this.menu = origMenu.getMenu();
+        this.changedState = true;
+        this.toDraw = origMenu.getDrawImage();
+        return this;
+    }
     
     /**
      * Metoda ktora vrati Journal menu. Podobne ako v rodicovskom AbstractInMenu ziskavame toto menu
@@ -58,7 +83,7 @@ public class Journal extends AbstractInMenu {
      * @return Journal menu
      */
     public static Journal getJournalMenu() {
-        return (Journal)menuList.get(JOURNAL);        
+        return (Journal)menuList.get(JOURNALID);        
     }
     
     @Override
@@ -69,14 +94,11 @@ public class Journal extends AbstractInMenu {
 
     @Override
     protected final void setGraphics() {
-        toDraw = new BufferedImage(getWidth(), getHeight(), BufferedImage.TRANSLUCENT);
+        super.setGraphics();
         Graphics g = toDraw.getGraphics();
-
-        g.setColor(Colors.getColor(Colors.invBackColor));
-        g.fillRoundRect(0, 0, getWidth() - wGap, getHeight() - hGap, wGap, hGap);
-
-        g.setColor(Colors.getColor(Colors.invOnTopColor));
-        g.fillRoundRect(wGap, hGap, getWidth() - wGap, getHeight() - hGap, wGap, hGap);
+        g.setColor(Color.BLACK);
+        int[] txtSize = TextUtils.getTextSize(TextUtils.DEFAULT_FONT, JOURNAL);
+        g.drawString(JOURNAL, (getWidth() - txtSize[0])/2, txtSize[1] + hGap);
     }
 
     @Override
@@ -98,7 +120,7 @@ public class Journal extends AbstractInMenu {
         Graphics g = questBox.getGraphics();
         
         if (entity instanceof Player) {                    
-            ArrayList<Quest> quests = ((Player)entity).getActiveQuests();
+            quests = ((Player)entity).getActiveQuests();
             
 
             if (!quests.isEmpty()) {
@@ -129,14 +151,14 @@ public class Journal extends AbstractInMenu {
 
                 for (int i = 0; i < questListToShow.size(); i++) {
                     Quest quest = questListToShow.get(i);                    
-                    g.drawString(quest.getName(), wGap, (i + 1) * questHeight - questHeight / 2);                    
+                    g.drawString(quest.getLabel(), wGap, (i + 1) * questHeight - questHeight / 2);                    
 
                 }
 
                 g.setColor(Colors.getColor(Colors.selectedColor));
                 selectPosY = localSelect * questHeight + yPos + questHeight;
-                selectPosX = xPos + 120;
-                g.fillRoundRect(0, localSelect * 40, questsWidth, questHeight, wGap, hGap);
+                selectPosX = xPos + jrnWidth;
+                g.fillRoundRect(0, localSelect * questHeight, questsWidth, questHeight, wGap, hGap);
                 return true;
             }
         }
@@ -169,7 +191,29 @@ public class Journal extends AbstractInMenu {
      */
     @Override
     public String getName() {
-        return JOURNAL;
+        return JOURNALID;
+    }
+    
+    public Quest getSelectedQuest() {
+        return quests.get(selection);
+    }
+    
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int getWGap() {
+        return wGap;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
+    @Override
+    public int getHGap() {
+        return hGap;
     }
     
     @Override
@@ -193,17 +237,37 @@ public class Journal extends AbstractInMenu {
         if (subMenu != null) {
             subMenu.exit();
         }
-        
-        this.visible = false;
-        this.activated = false;
+        subMenu = null;
+        activated = false;
+        visible = false;
+        menu.setInMenu(null);  
+        input.freeKeys();
     }
     
     @Override
     public void inputHandling() {
+        if (subMenu != null) {
+            
+            if (subMenu.isActivated()) {
+                subMenu.inputHandling();
+                return;
+            } 
+        }
+        
         if (input.clickedKeys.contains(InputHandle.escape.getKeyCode()) || input.clickedKeys.contains(input.quest.getKeyCode())) {       
             exit();
             changedState = true;
             return;
+        }
+        
+        if (input.clickedKeys.contains(InputHandle.enter.getKeyCode())) {       
+            if (subMenu != null) {
+                safeSubMenuExit();
+            }
+            this.activated = false;
+            subMenu = new QuestInfo(this, getSelectedQuest(), selectPosX, selectPosY);
+            subMenu.setVisible(true);
+            subMenu.activate();
         }
     }
     

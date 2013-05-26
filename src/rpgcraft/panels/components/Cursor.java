@@ -11,9 +11,10 @@ package rpgcraft.panels.components;
 public abstract class Cursor {
     protected Object[] rowData;
     protected String[] columns;
+    protected int position;
     
     public abstract void moveToPosition(int position);
-    public abstract int getCount();
+    public abstract int getCount();    
     public abstract void makeIterator();
     public abstract void next();
     public abstract boolean hasNext();
@@ -29,6 +30,10 @@ public abstract class Cursor {
             if (columns[i].equals(colName)) return i;
         }
         return -1;    
+    }
+    
+    public int getPosition() {
+        return position;
     }
     
     public String getColumnName(int index) {

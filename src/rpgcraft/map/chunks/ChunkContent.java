@@ -4,6 +4,8 @@
  */
 package rpgcraft.map.chunks;
 
+import rpgcraft.map.tiles.DefaultTiles;
+
 /**
  *
  * @author doma
@@ -44,9 +46,17 @@ public class ChunkContent {
         return chunkArray[d][w][h];
     }
     
-    public int setIntOnPosition(int d, int w, int h, int value) {
+    public boolean setIntOnPosition(int d, int w, int h, int value) {
+        if (chunkArray[d][w][h] != DefaultTiles.BLANK_ID) {
+            return false;
+        }
+        chunkArray[d][w][h] = value;
+        return true;
+    }
+    
+    public int replaceIntOnPosition(int d, int w, int h, int value) {
         return chunkArray[d][w][h] = value;
-    } 
+    }
     
     public int getMetaData(int d, int w, int h) {        
         return metaData[d][w][h];

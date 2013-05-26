@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package rpgcraft.entities.types;
+package rpgcraft.utils;
 
 /**
  *
- * @author doma
+ * @author kirrie
  */
-public interface Type {
-
+public class GameUtils {        
+    
 }

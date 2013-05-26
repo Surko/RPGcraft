@@ -40,8 +40,9 @@ public class ListModel {
         
         @Override
         public void moveToPosition(int position) {
+            this.position = position;
             rowData = data.get(position);
-        }                                                
+        }                                            
         
         @Override
         public int getCount() {

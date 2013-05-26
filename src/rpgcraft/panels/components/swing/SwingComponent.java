@@ -60,6 +60,8 @@ public abstract class SwingComponent extends JPanel implements Component {
     protected boolean isNoData = false;
     // Ci je komponenta aktivna pre eventy
     protected boolean active = false;
+    // Sirky a vysky komponenty
+    protected int w, h;
     
     // </editor-fold>
     
@@ -347,6 +349,22 @@ public abstract class SwingComponent extends JPanel implements Component {
     @Override
     public AbstractMenu getOriginMenu() {
         return menu;        
+    }
+    
+    @Override
+    public int getWidth() {
+        if (componentContainer != null) {
+            return componentContainer.getWidth();
+        }
+        return w;
+    }
+    
+    @Override
+    public int getHeight() {
+        if (componentContainer != null) {
+            return componentContainer.getHeight();
+        }
+        return h;
     }
     
     /**

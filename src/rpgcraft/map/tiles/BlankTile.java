@@ -26,7 +26,7 @@ public class BlankTile extends Tile {
     public void moveInto(Entity e) {
         e.decLevel();
         if (e instanceof Player) {
-            e.getMap().decLevel();
+            e.getMap().setLevel(e.getLevel());
         }
         e.updateHeight();
     }
@@ -36,6 +36,7 @@ public class BlankTile extends Tile {
         return null;
     }
     
+    @Override
     public Image getUpperImage() {
         return null;
     }

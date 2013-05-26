@@ -164,6 +164,7 @@ public class InputDialog extends SwingImagePanel{
     }
     
     public void setType(int type) {
+        this.add(msgText);
         switch (type) {
             case 0 : {                  
                 this.posBut.setBounds((DIM.width - BTN_DIM.width)/2, DIM.height - BTN_DIM.height - 2, BTN_DIM.width, BTN_DIM.height);
@@ -195,6 +196,7 @@ public class InputDialog extends SwingImagePanel{
     }
     
     public void exitDialog() {
+        msgText.resetTitle();
         this.getParent().remove(this);   
         MainGameFrame.game.validate();
         this.removeAll();        
@@ -245,9 +247,13 @@ public class InputDialog extends SwingImagePanel{
         negBut.setText(text);
     }
     
+    public void setCancelBtnText(String text) {
+        cancelBut.setText(text);
+    }
+    
     public void setText(String text) {
-        msgText.setText(text);           
-        msgText.setLocation((DIM.width - msgText.getTextW())/2, (DIM.height - msgText.getTextH())/2);         
+        msgText.setParsedText(text, DIM.width - 2*wGap);        
+        msgText.setLocation((DIM.width - msgText.getWidth())/2, (DIM.height - msgText.getHeight())/2);         
     }
     
     public void setLifeSpan(long time) {

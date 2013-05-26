@@ -4,11 +4,7 @@
  */
 package rpgcraft.entities;
 
-import rpgcraft.entities.Entity;
-import rpgcraft.entities.types.ArmorType;
-import rpgcraft.entities.types.ItemType;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
-import rpgcraft.resource.EntityResource;
 
 /**
  *
@@ -26,17 +22,7 @@ public class StaticEntity extends Entity {
     
     @Override
     public void use(Entity item) {
-    }
-
-    @Override
-    public ItemType getItemType() {
-        return null;
-    }
-
-    @Override
-    public ArmorType getArmorType() {
-        return null;
-    }
+    }   
 
     @Override
     public void setImpassableTile(int tile) {
@@ -51,7 +37,7 @@ public class StaticEntity extends Entity {
     }
 
     @Override
-    public int interactWith(int x0, int y0, int x1, int y1, double modifier) {
+    public int interactWithEntities(int x0, int y0, int x1, int y1, double modifier) {
         return 0;
     }
 

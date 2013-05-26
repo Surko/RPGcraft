@@ -97,8 +97,8 @@ public class SwingImageList extends SwingImagePanel {
     }
     
     /**
-     * Konstruktor bez blizsie urcenych dat na zobrazenie. Data su mozne pridat 
-     * metodami setModel.
+     * Konstruktor bez blizsie urcenych dat na zobrazenie. Data pridavame metodou 
+     * setModel ktoreho parametre su vytvorene list s udajmi a menu ako zdrojovy objekt.
      * @param container Kontajner ktory tvori prvok v liste
      * @param menu Menu z ktoreho List pochadza.
      */
@@ -117,6 +117,31 @@ public class SwingImageList extends SwingImagePanel {
         // System.out.println(this.getMouseListeners().length);
         
     }
+    
+    /**
+     * Konstruktor bez blizsie urcenych dat na zobrazenie. Data pridavame metodou 
+     * setModel ktoreho parametre su vytvorene list s udajmi a zdrojovy objekt zadany parametrom
+     * v konstruktore.
+     * @param container Kontajner ktory tvori prvok v liste
+     * @param menu Menu z ktoreho List pochadza.
+     * @param srcObject Zdrojovy objekt z ktoreho vytvarame model.
+     */
+    public SwingImageList(Container container, AbstractMenu menu, Object srcObject) {
+        super(container, menu);   
+        lType = (ListType)container.getResource().getType();
+        changedList = true;
+        ArrayList<String> columns = new ArrayList<>();
+        getColumns(container.getResource(), columns);        
+        columns.add(0, "_id");
+        
+        setModel(DataUtils.getDataArrays(lType.getData(), srcObject), columns.toArray(new String[0]));
+        
+        addMouseListener(this);
+        // Mouse listeners length
+        // System.out.println(this.getMouseListeners().length);
+        
+    }
+    
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Privatne metody ">
@@ -176,8 +201,9 @@ public class SwingImageList extends SwingImagePanel {
      */
     private ArrayList<Container> getCopiedContainers(int rows) {
         ArrayList<Container> _containers = new ArrayList<>();        
+        int size = componentContainer.getChildContainer().size();
         for (int i = 0; i < rows; i++) {
-            _containers.add(new Container(componentContainer.getChildContainer().get(i)));
+            _containers.add(new Container(componentContainer.getChildContainer().get(i % size)));
         }        
         return _containers;
     }
@@ -222,7 +248,7 @@ public class SwingImageList extends SwingImagePanel {
                     ((SwingImageButton)comp).setText(c.getString(index++));                    
                 }
                 if (comp instanceof SwingText) {
-                    ((SwingText)comp).setText(c.getString(index++));  
+                    ((SwingText)comp).setText(c.getString(index++), true);  
                 }
                 if (comp instanceof SwingImage) {
                     
@@ -268,7 +294,7 @@ public class SwingImageList extends SwingImagePanel {
                     ((SwingImageButton)comp).setText(c.getString(index));                    
                 }
                 if (comp instanceof SwingText) {
-                    ((SwingText)comp).setText(c.getString(index));                    
+                    ((SwingText)comp).setText(c.getString(index), true);                    
                 }   
                 
                 if (cont.getChildContainer() != null) {
@@ -810,8 +836,8 @@ public class SwingImageList extends SwingImagePanel {
             switch ((ClickType)action.getClickType()) {   
                 case onListElement : {
                     if (event.getParam() instanceof Cursor) {
-                        if (selected >= 0) {
-                            Cursor c = (Cursor)event.getParam();
+                        if (selected >= 0) {                            
+                            Cursor c = (Cursor)event.getParam();                           
                             c.moveToPosition(selected);
                             performAction(action, event);
                         }

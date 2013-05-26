@@ -4,12 +4,9 @@
  */
 package rpgcraft.panels.listeners;
 
-import rpgcraft.graphics.ui.menu.Menu;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
-import rpgcraft.panels.components.Cursor;
-import rpgcraft.utils.DataUtils;
 
 /**
  *
@@ -49,19 +46,21 @@ public class LoadCreateListener extends Listener {
         switch (op) {
             case LOAD : {                                                
                 Component c = (Component)e.getSource();
-
                 GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
-                gameMenu.loadMapInstance(parsedObjects[0]);
-                c.getOriginMenu().setMenu(gameMenu);
+                if (parsedObjects[0] instanceof String) {
+                    gameMenu.loadMapInstance((String)parsedObjects[0]);
+                    c.getOriginMenu().setMenu(gameMenu);
+                }
             } break;
             case CREATE : {
                 Component c = (Component)e.getSource();
 
                 GameMenu gameMenu = (GameMenu) AbstractMenu.getMenuByName("gameMenu");
-                if (gameMenu.newMapInstance(parsedObjects[0])) {
-                    c.getOriginMenu().setMenu(gameMenu);
-                }
-                 
+                if (parsedObjects[0] instanceof String) {
+                    if (gameMenu.newMapInstance((String)parsedObjects[0])) {
+                        c.getOriginMenu().setMenu(gameMenu);
+                    }
+                }    
                     
             }
         }

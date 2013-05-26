@@ -5,6 +5,7 @@
 <Entities>
 <mob>
    <id>Zombie</id>
+   <entity-type>MOVING</entity-type>
    <sheet>characters2.png</sheet>
    <globalw>32</globalw>
    <globalh>32</globalh>
@@ -87,6 +88,7 @@
 
 <mob>
    <id>Ranger</id>
+   <entity-type>MOVING</entity-type>
    <sheet>characters2.png</sheet>
    <globalw>32</globalw>
    <globalh>32</globalh>

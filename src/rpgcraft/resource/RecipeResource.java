@@ -13,7 +13,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rpgcraft.entities.Item;
+import rpgcraft.entities.TileItem;
 import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.map.tiles.Tile;
 import rpgcraft.xml.RecipeXML;
 
 /**
@@ -37,7 +39,7 @@ public class RecipeResource extends AbstractResource<RecipeResource>{
     private int w = -1, h = -1;
     private int cellFill;
     private String id;
-    private Type type;
+    private Type type;    
     private ArrayList<String> resultItems;
     private String[][] resCells;
     private String recipeText;
@@ -139,7 +141,12 @@ public class RecipeResource extends AbstractResource<RecipeResource>{
         ArrayList<Item> _resultItems = new ArrayList<>();
         
         for (String sItem : resultItems) {
-            _resultItems.add(new Item(null, EntityResource.getResource(sItem)));
+            if (sItem.startsWith("tile:")) {
+                int tileId = Integer.parseInt(sItem.substring(5));
+                _resultItems.add(new TileItem(null, Tile.tiles.get(tileId)));
+            } else {
+                _resultItems.add(Item.createItem(null, EntityResource.getResource(sItem)));
+            }
         }
         return _resultItems;
     }

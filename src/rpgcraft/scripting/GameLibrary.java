@@ -12,6 +12,9 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.PackageLib;
 import org.luaj.vm2.lib.TwoArgFunction;
+import rpgcraft.panels.listeners.Action;
+import rpgcraft.panels.listeners.ActionEvent;
+import rpgcraft.panels.listeners.ListenerFactory;
 
 /**
  *
@@ -25,7 +28,8 @@ public class GameLibrary extends ScriptLibraryPlugin {
     
     public static final String[] ONEARG_NAMES = new String[] {
         "log",
-        "value",        
+        "value",
+        "callListener"
     };
     
     public static final String[] TWOARG_NAMES = new String[] {
@@ -69,11 +73,16 @@ public class GameLibrary extends ScriptLibraryPlugin {
             switch (opcode) {
                 case 0 : {
                     LOG.log(Level.INFO, lv.checkjstring());
-                    return NIL;
+                    return TRUE;
                 }
                 case 1 : {                    
                     return LuaValue.userdataOf(GameLibrary.getValue(lv.checkjstring()));                    
-                }                
+                }  
+                case 2 : {                    
+                    ListenerFactory.getListener(lv.checkjstring(), false).actionPerformed(
+                            ActionEvent.getScriptActionEvent(Thread.currentThread().getId()));
+                    return TRUE;
+                }
                 default : return  NIL;
             }
         }
@@ -82,8 +91,7 @@ public class GameLibrary extends ScriptLibraryPlugin {
     
     public static final class GameLib2 extends TwoArgFunction {
         @Override
-        public LuaValue call(LuaValue lv1, LuaValue lv2) {
-            System.out.println(Thread.currentThread());
+        public LuaValue call(LuaValue lv1, LuaValue lv2) {            
             switch (opcode) {
                 case 0 : {          
                     if (!lv2.isnil()) {

@@ -134,6 +134,7 @@ public class InputHandle implements KeyListener {
     public static Key right = new Key(KeyEvent.VK_D);
     public static Key escape = new Key(KeyEvent.VK_ESCAPE);
     public static Key attack = new Key(KeyEvent.VK_SPACE);
+    public static Key tileattack = new Key(KeyEvent.VK_SHIFT);
     public static Key inventory = new Key(KeyEvent.VK_I);
     public static Key q = new Key(KeyEvent.VK_Q);
     public static Key x = new Key(KeyEvent.VK_X);

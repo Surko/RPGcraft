@@ -4,12 +4,16 @@
  */
 package rpgcraft.panels.listeners;
 
+import java.util.HashMap;
+
 /**
  *
  * @author kirrie
  */
 public class ActionEvent extends java.awt.event.ActionEvent{
 
+    private static HashMap<Long, ActionEvent> threadActionEvents = new HashMap<>();
+    
     private int clicks;
     private Object param;
     private Action action;
@@ -18,7 +22,7 @@ public class ActionEvent extends java.awt.event.ActionEvent{
     
     public ActionEvent(Object source, int id, int clicks, String command, Object param) {
         super(source, id, command);
-        this.clicks = clicks;
+        this.clicks = clicks;        
         this.param = param;        
     }
     
@@ -52,6 +56,22 @@ public class ActionEvent extends java.awt.event.ActionEvent{
     
     public Object getReturnValue() {
         return returnValue;
+    }
+    
+    public static void setScriptActionEvent(long id, ActionEvent event) {
+        threadActionEvents.put(id, event);
+    }
+    
+    public static int getScriptActionEvents() {
+        return threadActionEvents.size();
+    }
+    
+    public static ActionEvent getScriptActionEvent(long id) {
+        return threadActionEvents.get(id);
+    }
+    
+    public static void removeActionEvent(long id) {
+        threadActionEvents.remove(id);
     }
     
 }

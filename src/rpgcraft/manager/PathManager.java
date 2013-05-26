@@ -4,24 +4,22 @@
  */
 package rpgcraft.manager;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Singleton trieda so vsetkymi ulozenymi cestami pre subory.
  * @author 
  */
 public final class PathManager {
-    public static final String MAPS = File.separator + "maps";
+    public static final String MAPS = File.separator + "maps";    
+    
     public static final String MAPLUG = "map-plugins";
     public static final String SCRIPTPLUG = "script-plugins";
     public static final String INMENUPLUG = "inmenu-plugins";
     public static final String MENUPLUG = "menu-plugins";
+    public static final String ITEMGENPLUG = "itemgen-plugins";
     
+    public static final String RENDER = "render";   
     private static final String SAVE = "saves";
     private static final String LOG = "logs";
     private static final String SCRIPT = "scripts";
@@ -30,6 +28,7 @@ public final class PathManager {
     private static final String IMAGE = "images";
     private static final String UI = "ui";
     private static final String SHEET = "sheets";
+    private static final String LOCAL = "locales";
     
     private static PathManager instance;
     private static String[] args;
@@ -38,6 +37,7 @@ public final class PathManager {
     private static final byte WINDOWS = 1;
     private static final byte MAC = 2;
     
+    private File renderPath;
     private File rootPath;
     private File worldPath;
     private File logPath;
@@ -47,6 +47,7 @@ public final class PathManager {
     private File imagePath;
     private File uiPath;
     private File sheetPath;
+    private File localizationPath;
     
     private PathManager() {
         determineRootPath(true);
@@ -125,7 +126,7 @@ public final class PathManager {
             result.mkdirs();
         }
         return result;
-    }
+    }        
     
     public File getLogPath() {
         return logPath;
@@ -163,10 +164,21 @@ public final class PathManager {
         return sheetPath;
     }
     
+    public File getRenderPath() {
+        return renderPath;
+    }
+    
+    public File getLocalizationPath() {
+        return localizationPath;
+    }
     
     
     private void updateDirs() {
         rootPath.mkdirs();
+        localizationPath = new File(rootPath, LOCAL);
+        localizationPath.mkdirs();
+        renderPath = new File(rootPath, RENDER);
+        renderPath.mkdirs();
         worldPath = new File(rootPath, SAVE);
         worldPath.mkdirs();
         logPath = new File(rootPath, LOG);

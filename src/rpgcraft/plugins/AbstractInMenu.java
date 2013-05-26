@@ -7,9 +7,11 @@ package rpgcraft.plugins;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import rpgcraft.GamePane;
 import rpgcraft.entities.Entity;
+import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.ui.menu.Menu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.map.SaveMap;
@@ -66,6 +68,7 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
      * @param input 
      */
     public AbstractInMenu(Entity entity, InputHandle input) {
+        //System.out.println(entity + " " + input);
         this.entity = entity;
         this.input = input;
     }
@@ -73,16 +76,38 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
     // </editor-fold>        
     
     // <editor-fold defaultstate="collapsed" desc=" Abstraktne metody ">
+    /**
+     * Metoda ktora initializuje toto menu s novou entitou zadanou parametrom <b>e</b>.
+     * Kazda dediaca trieda moze mat svoju vlastnu implementaciu.      
+     * @param origMenu Originalne menu z ktoreho initializujeme nove menu
+     * @param e Entita pre ktoru robime menu
+     * 
+     */
+    public abstract AbstractInMenu initialize(AbstractInMenu origMenu, Entity e);
     
     /**
      * Metoda ktora prepocitava pozicie menu v GameMenu alebo mozne doplnit aj na ine AbstractMenu.
      */
     public abstract void recalculatePositions();
     
-    /**
-     * Metoda ktora nastavi graficky vyzor pre menu. Kazdy potomok moze byt rozny.
+    /**     
+     * Metoda ktora nastavi graficky vyzor pre menu. Kazdy potomok moze byt rozny ked si tuto
+     * metodu potomok implementuje, ale v konecnom dosledku by mali mat pozadie spolocne.
+     * Telo metody sa sklada z vytvorenia obrazku <b>toDraw</b> ktory vykreslujeme v metode paintMenu.
+     * Tento obrazok je vyplneny dvoma vyplnenymi obdlznikmi (jeden od druheho trochu posunuty <=> wGap, hGap)
+     * na vytvorenie efektu tienu.
      */
-    protected abstract void setGraphics();         
+    protected void setGraphics() {
+        toDraw = new BufferedImage(getWidth(), getHeight(), BufferedImage.TRANSLUCENT);
+        Graphics g = toDraw.getGraphics();
+       
+        g.setColor(Colors.getColor(Colors.invBackColor));
+        g.fillRoundRect(0, 0, getWidth() - getWGap(), getHeight() - getHGap(), getWGap(), getHGap());
+
+        g.setColor(Colors.getColor(Colors.invOnTopColor));
+        g.fillRoundRect(getWGap(), getHGap(), getWidth() - getWGap(), getHeight() - getHGap(), getWGap(), getHGap());
+        
+    }        
     
     /**
      * Metoda ktora vykona update nad menu. Kazdy potomok moze inak aktualizovat menu.
@@ -96,6 +121,18 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
      */
     @Override
     public abstract void paintMenu(Graphics g);
+    
+    /**
+     * Spolocna velkost pre medzeru po dlzke.
+     * @return Medzera po dlzke
+     */
+    public abstract int getWGap();
+    
+    /**
+     * Spolocna velkost pre medzeru po vyske.
+     * @return Medzera po vyske
+     */
+    public abstract int getHGap();
     
     /**
      * Metoda ktora vracia sirku Menu. Kazdy potom moze navratit rozne hodnoty.
@@ -176,6 +213,37 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
         return input;
     }        
     
+    /**
+     * Metoda ktora vrati x-ovu poziciu menu v paneli.
+     * @return x-ova pozicia
+     */
+    public int getXPos() {
+        return xPos;
+    }
+    
+    /**
+     * Metoda ktora vrati y-ovu poziciu menu v paneli.
+     * @return y-ova pozicia
+     */
+    public int getYPos() {
+        return yPos;
+    }
+    
+    /**
+     * Metoda ktora vrati obrazok na vykreslenie.
+     * @return 
+     */
+    public Image getDrawImage() {
+        return toDraw;
+    }
+    
+    /**
+     * Metoda ktora vrati pre ake menu sme tvorili toto inMenu.
+     * @return Menu v ktorom je toto menu
+     */
+    public AbstractMenu getMenu() {
+        return menu;
+    }
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Settery ">
@@ -222,12 +290,25 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
     // <editor-fold defaultstate="collapsed" desc=" Update ">
     /**
      * Metoda ktora ukonci cinnost menu. Defaultne nastavuje viditelnost a ci je menu aktivne na false.
-     * Vacsinou je tato metoda pretazovana v potomkoch.
+     * Vacsinou je tato metoda pretazovana v potomkoch. Netreba zabudat ze ked ukoncujeme nejake hlavne menu (nie submenu)
+     * tak je dolezite zavolat menu.setInMenu(null) aby bolo menu zrusene. Ked je menu typu submenu tak nemusi dochadzat k takemuto nastaveniu.
      */    
     public void exit() {
         visible = false;
         activated = false;
     }           
+    
+    /**
+     * Metoda ktora bezpecne ukonci pod menu pre toto menu. Po kazdom bezpecnom ukonceni
+     * je povinnostou zmenit changedState na true cim sa premaluje toto menu podla novo pridanych predmetov.
+     */
+    public void safeSubMenuExit() {
+        if (subMenu != null) {
+            subMenu.exit();
+            changedState = true;
+            subMenu = null;
+        }
+    }
     
     /**
      * Metoda ktora deaktivuje menu
@@ -262,6 +343,27 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
         this.input = input;
     }
     
-    // </editor-fold>        
+    // </editor-fold> 
+    
+    // <editor-fold defaultstate="Collapsed" desc=" Staticke metody ">
+    /**
+     * Metoda newInstance ktora vrati pravu instanciu AbstractInMenu. Prava v tomto vyzname
+     * znamena ze to bude instancia AbstractInMenu alebo jeho potomkov (vsetko si zisti z typu triedy).
+     * Po vytvoreni novej instancie zavola initialize co prenastavi entitu pre ktoru vytvarame menu.
+     * Vyhoda volani tejto metody pri volani konstruktora je ta ze nevolame metody setGraphics ale vyuzivame spolocny obrazok.
+     * @param name Meno predmetu ktory bude instancia vytvarat.
+     * @param itemType Typ predmetu ktory bude instancia vytvarat.
+     * @return Instanciu typu ItemGeneratorPlugin alebo jeho potomkov.
+     */
+    public final AbstractInMenu newInstance(Entity e) {
+        try {
+            System.out.println(this.getClass().newInstance());
+            return this.getClass().newInstance().initialize(this, e);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    } 
+    
+    // </editor-fold>
     
 }

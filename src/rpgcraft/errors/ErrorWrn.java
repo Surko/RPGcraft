@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import rpgcraft.MainGameFrame;
+import rpgcraft.utils.TextUtils;
 
 /**
  * Trieda definuje podklad pre vypis chyb vytvorenim noveho okna s popisom chyb.
@@ -18,7 +19,7 @@ import rpgcraft.MainGameFrame;
  */
 public class ErrorWrn{
     
-    protected static Logger logger = Logger.getLogger(ErrorWrn.class.getName());
+    protected static Logger LOG = Logger.getLogger(ErrorWrn.class.getName());
     protected String msg;
     protected Color cl;
     protected Exception e;
@@ -64,8 +65,8 @@ public class ErrorWrn{
             c.weighty=1;
             JTextArea eText = new JTextArea();     
             eText.setEditable(false);
-            String fullErrorText = msg + ": \n" + stack2string(e);    
-            logger.log(Level.SEVERE, fullErrorText);
+            String fullErrorText = msg + ": \n" + TextUtils.stack2string(e);    
+            LOG.log(Level.SEVERE, fullErrorText);
             eText.setText(fullErrorText);
             errorPanel.add(new JScrollPane(eText),c);            
         } else {
@@ -74,37 +75,18 @@ public class ErrorWrn{
                 JScrollPane sPane = (JScrollPane) errorPanel.getComponent(0);
                 JViewport eView = (JViewport) sPane.getComponent(0);
                 JTextArea eText = (JTextArea) eView.getComponent(0);
-                String fullErrorText = msg + ": \n" + stack2string(e);
-                logger.log(Level.SEVERE, fullErrorText);
+                String fullErrorText = msg + ": \n" + TextUtils.stack2string(e);
+                LOG.log(Level.SEVERE, fullErrorText);
                 eText.append(fullErrorText);
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Fatal error : different component structure", e);
+                LOG.log(Level.SEVERE, "Fatal error : different component structure", e);
                 System.exit(0);
             }
             
         }                                       
                 
         return errorPanel;
-    }
-    
-    /**
-     * Prevadza danu vynimku typu Exception do Stringu. Pri neznamej vynimke vrati String s informaciou
-     * o neznamej vynimke
-     * @param e Vynimka na prevedenie
-     * @return Vynimku prevedenu do Stringu [type:STRING]
-     */
-    
-    private static String stack2string(Exception e) {
-        try {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            return "------\r\n" + sw.toString() + "------\r\n";
-            } catch(Exception e2) {
-                logger.log(Level.INFO, "Unknown printStackTrace {0}", e2);
-                return "Unknown printStackTrace " + e2;
-            }
-    }
+    }        
 }
     
     

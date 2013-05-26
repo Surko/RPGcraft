@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import rpgcraft.effects.Effect;
+import rpgcraft.entities.ai.Ai;
 import rpgcraft.entities.ai.DefaultAi;
 import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.graphics.ui.particles.BarParticle;
@@ -77,8 +78,7 @@ public class MovingEntity extends Entity {
      */
     public MovingEntity() {}
     
-    protected MovingEntity(Element elem) {
-         
+    protected MovingEntity(Element elem) {         
         this.aggresivity = 50;
         this.defenseP = 0;
         this.defenseA = 20;
@@ -90,7 +90,7 @@ public class MovingEntity extends Entity {
     public MovingEntity(String name, SaveMap map, EntityResource res) {
         this.map = map;        
         this.res = res;        
-        this.name = res.getName() != null ? res.getName() : name;                
+        this.name = name == null ? res.getName() : name;                
     }
     
     public void initialize() {
@@ -99,10 +99,13 @@ public class MovingEntity extends Entity {
         activeEffects = new HashMap<>();
         this.movingEntitySprites = res.getEntitySprites();
         this.id = res.getId();
+        this.ai = res.getAi() == null ? DefaultAi.getInstance() : Ai.getAi(res.getAi());
         this.maxPower = new Double(24);
         this.attackable = true;
         this.pushable = true;        
-        this.activeItem = res.getActiveItem() != null ? res.getActiveItem() : this;            
+        this.activeItem = res.getActiveItem() != null ? res.getActiveItem() : null;            
+        this.group = res.getGroup();
+        this.concentration = res.getConcentration();
         
         /**
          * V tejto casti sa nachadzaju staty ulozene v hashmapach. Tento pristup som volil kvoli tomu
@@ -130,14 +133,16 @@ public class MovingEntity extends Entity {
             // O kolko sa doplni zivot
             doubleStats.put(Stat.HEALTHREGEN, res.getHealthRegen());
             
+            // Damage 
+            
             // Attack/Defense Rating
             doubleStats.put(Stat.ATKRATING, (intStats.get(Stat.AGILITY) * STATMULT) 
                     + (intStats.get(Stat.SPEED) * (STATMULT - 3)) + 
-                    (activeItem != this ? activeItem.attackRating : 0) + res.getAttRatingBonus());
+                    (activeItem != null ? activeItem.attackRating : 0) + res.getAttRatingBonus());
             doubleStats.put(Stat.DEFRATING, (intStats.get(Stat.AGILITY) * STATMULT)
                     + (intStats.get(Stat.SPEED) * (STATMULT - 3)) +
-                    (activeItem != this ? activeItem.attackRating : 0) + res.getDefRatingBonus());
-            
+                    (activeItem != null ? activeItem.attackRating : 0) + res.getDefRatingBonus());
+            System.out.println(name + " " + doubleStats.get(Stat.ATKRATING));
             // Attack/Defense Power
             doubleStats.put(Stat.ATKPOWER, doubleStats.get(Stat.ATKRATING) / intStats.get(Stat.ATKRATER));
             doubleStats.put(Stat.DEFPOWER, doubleStats.get(Stat.DEFRATING) / intStats.get(Stat.DEFRATER));
@@ -166,15 +171,14 @@ public class MovingEntity extends Entity {
         this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
         this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
         this.staminaDischarger = maxStamina;
-        this.attackRadius = intStats.get(Stat.ATKRADIUS);
-        this.concentration = 0d;
-        this.health = maxHealth;
-        this.group = 1;  
+        this.attackRadius = intStats.get(Stat.ATKRADIUS);        
+        this.health = maxHealth;        
         this.damage = 5;
         this.attackRadius = 32;
     }
     
     private void reinitialize() {
+        this.ai = res.getAi() == null ? DefaultAi.getInstance() : Ai.getAi(res.getAi());
         this.movingEntitySprites = res.getEntitySprites();
         this.id = res.getId();
         this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
@@ -185,7 +189,7 @@ public class MovingEntity extends Entity {
         this.damage = 5;
         this.attackRadius = 32;
         
-        if (activeItem == this) {
+        if (activeItem == null) {
             levelType = ItemLevelType.HAND;
         } else if (activeItem != null) {
             levelType = activeItem.levelType;
@@ -262,9 +266,7 @@ public class MovingEntity extends Entity {
     public double getSpeed() {
         return intStats.get(Stat.SPEED);
     }
-
-    
-    
+        
     public void setStamina(int stamina) {
         this.stamina = stamina;
     }
@@ -419,9 +421,6 @@ public class MovingEntity extends Entity {
                 stamina += staminaRegen;                
             }      
             
-            if (ai == null) {
-                ai = DefaultAi.getInstance();
-            }
             ai.aiMove(this);
                 
             return true;
@@ -429,36 +428,72 @@ public class MovingEntity extends Entity {
 
     }
     
+    public void attackTile(double modifier) {
+        if (modifier > 0.25) {
+            if (modifier > 0.25) {
+        
+                // double staminaPen = modifier * staminaDischarger;            
+                int radius = activeItem == null ? attackRadius : activeItem.attackRadius;
+
+                if ((activeItem == null)||(activeItem.canAttack())) {
+                    if (spriteType == Type.UP) {
+                        interactWithTiles(xPix , yPix, xPix, yPix-radius, modifier);                
+                        return;                    
+                    }
+                    if (spriteType == Type.DOWN) {
+                        interactWithTiles(xPix, yPix + radius, xPix, yPix, modifier);                
+                        return;
+                    }
+                    if (spriteType == Type.RIGHT) {
+                        interactWithTiles(xPix, yPix, xPix + radius, yPix, modifier);                
+                        return;
+                    }
+                    if (spriteType == Type.LEFT) {
+                        interactWithTiles(xPix-radius, yPix, xPix, yPix, modifier);  
+                        return;
+                    }
+                }
+
+
+
+                if (activeItem != null && activeItem.isDestroyed()) {
+                    activeItem = null;
+                }
+            
+            }
+        }
+    }            
+    
     public void attack(double modifier) {                        
         
         if (modifier > 0.25) {
         
             // double staminaPen = modifier * staminaDischarger;            
-            int radius = activeItem.attackRadius;
+            int radius = activeItem == null ? attackRadius : activeItem.attackRadius;
         
-            if ((activeItem == this)||(activeItem.canAttack())) {
+            if ((activeItem == null)||(activeItem.canAttack())) {
                 if (spriteType == Type.UP) {
-                    interactWith(xPix , yPix, xPix, yPix-radius, modifier);                
+                    interactWithEntities(xPix , yPix, xPix, yPix-radius, modifier);                
                     return;                    
                 }
                 if (spriteType == Type.DOWN) {
-                    interactWith(xPix, yPix + radius, xPix, yPix, modifier);                
+                    interactWithEntities(xPix, yPix + radius, xPix, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.RIGHT) {
-                    interactWith(xPix, yPix, xPix + radius, yPix, modifier);                
+                    interactWithEntities(xPix, yPix, xPix + radius, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.LEFT) {
-                    interactWith(xPix-radius, yPix, xPix, yPix, modifier);  
+                    interactWithEntities(xPix-radius, yPix, xPix, yPix, modifier);  
                     return;
                 }
             }
             
             
             
-            if (activeItem.isDestroyed()) {
-                activeItem = this;
+            if (activeItem != null && activeItem.isDestroyed()) {
+                activeItem = null;
             }
             
             }            
@@ -469,8 +504,7 @@ public class MovingEntity extends Entity {
      * Metoda ktora dostava 4 prve parametre ako vymedzenie priestoru do ktoreho utocime.
      * Ked sa v tomto priestore nachadzaju nejake entity tak zavola metodu tryHurt
      * ktora entitu skusi poranit. Premenna done sluzi ako indikator ci sa podarilo
-     * utocenie na entity. Ked tomu tak nie je tak pokracuje utocenie na dlazdice ktore 
-     * entita rozbije.
+     * utocenie na entity.
      * @param x0 lava suradnica vymedzeneho priestoru
      * @param y0 dolna suradnica vymedzeneho priestoru
      * @param x1 prava suradnica vymedzeneho priestoru
@@ -479,21 +513,33 @@ public class MovingEntity extends Entity {
      * @return 
      */
     @Override
-    public int interactWith(int x0, int y0, int x1, int y1, double modifier) {
+    public int interactWithEntities(int x0, int y0, int x1, int y1, double modifier) {
         boolean entInteracted = false;
         for (Entity e : map.getEntities()) {
             if (e != this) {
                 if ((e.xPix >= x0)&&(e.xPix <= x1)&&
                         (e.yPix <= y0)&&(e.yPix >= y1)) {
-                    entInteracted = tryHurt(e, modifier);
-                    
+                    entInteracted = tryHurt(e, modifier);                    
                 }               
             }
         }                
         if (entInteracted) {
             return 0;
         }
-        
+        return 0;
+    }
+    
+    /**
+     * Metoda ktora podobne ako interactWithEntites dostava 4 prve parametre ako vymedzenie priestoru do ktoreho utocime.
+     * Na tychto suradniciach vyberie dlazdicu ktora sa tam nachadza a zavola metodu tryHurt s dlazdicou na ktoru utocime.
+     * @param x0 lava suradnica vymedzeneho priestoru
+     * @param y0 dolna suradnica vymedzeneho priestoru
+     * @param x1 prava suradnica vymedzeneho priestoru
+     * @param y1 horna suradnica vymedzeneho priestoru
+     * @param modifier modifikator pre vyhodnotenie utoku
+     * @return 
+     */
+    public int interactWithTiles(int x0, int y0, int x1, int y1, double modifier) {        
         int xTile = (x0 + x1)/2;
         int yTile = (y0 + y1)/2;
         
@@ -516,7 +562,7 @@ public class MovingEntity extends Entity {
         }
         
         tryHurt(targetedTile, chunk, modifier);
-        return 0;        
+        return 0; 
     }
     
     protected boolean tryHurt(Entity e, double modifier) {
@@ -541,19 +587,19 @@ public class MovingEntity extends Entity {
     
     public void knockMove() {
         if (xKnock < 0) {
-            canMove(-2, 0);
+            canMove(-2, 0, 0);
             xKnock ++;
         }
         if (xKnock > 0) {
-            canMove(2, 0); 
+            canMove(2, 0, 0); 
             xKnock --;
         }
         if (yKnock < 0) {
-            canMove(0, -2);
+            canMove(0, -2, 0);
             yKnock ++;
         }
         if (yKnock > 0) {
-            canMove(0, 2); 
+            canMove(0, 2, 0); 
             yKnock --;
         }
     }        
@@ -617,7 +663,7 @@ public class MovingEntity extends Entity {
             }
                         
             
-            if (canMove(ixGo, iyGo)) {
+            if (canMove(ixGo, iyGo, 0)) {
                 moveable = true;                
             } else {
                 return false;
@@ -690,7 +736,7 @@ public class MovingEntity extends Entity {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.
+        super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.        
         out.writeDouble(stamina);
     }
 

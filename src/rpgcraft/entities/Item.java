@@ -5,22 +5,76 @@
 package rpgcraft.entities;
 
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import rpgcraft.entities.items.ItemGenerator;
 import rpgcraft.graphics.spriteoperation.Sprite;
-import rpgcraft.map.tiles.Tile;
+import rpgcraft.map.SaveMap;
+import rpgcraft.plugins.ItemGeneratorPlugin;
 import rpgcraft.resource.EntityResource;
-import rpgcraft.utils.ImageUtils;
+import rpgcraft.resource.StringResource;
 
 /**
  *
  * @author Kirrie
  */
-public class Item extends StaticEntity {
-       
-    // Generator itemov
-    private static ItemGenerator gen;
+public abstract class Item extends StaticEntity {                  
+    
+    public enum Command {
+        INFO(StringResource.getResource("_info")),
+        USE(StringResource.getResource("_use")),
+        EQUIP(StringResource.getResource("_equip")),
+        UNEQUIP(StringResource.getResource("_unequip")),
+        ACTIVE(StringResource.getResource("_active")),
+        UNACTIVE(StringResource.getResource("_unactive")),
+        DESTROY(StringResource.getResource("_destroy")),
+        CLOSE(StringResource.getResource("_close")),
+        PLACE(StringResource.getResource("_place")),
+        DROP(StringResource.getResource("_drop"));
+                
+        private String sCommand;
+        
+        private Command(String sCommand) {
+            this.sCommand = sCommand;
+        }
+        
+        public String getValue() {
+            return sCommand;
+        }
+    }
+    
+    
+    /**
+     * Interface pre rozne type predmetov. Implementuju ho enumy ktore sa nachadzaju v triedach
+     * dediacich od Item
+     */
+    public interface TypeofItems {                                
+        
+        public Object getValue();
+        
+    }
+    
+    public enum ItemType implements TypeofItems {
+        WEAPON,
+        ARMOR,
+        MISC,
+        TILE;
+        
+        private TypeofItems subType;
+        
+        @Override
+        public Object getValue() {
+            return null;
+        }
+        
+        public void setSubType(TypeofItems subType) {
+            this.subType = subType;
+        }
+        
+        public TypeofItems getSubType() {
+            return subType;
+        }
+    }
+    
+    private long seed;
     
     // Sprity pre item
     private ArrayList<Sprite> itemSprites;
@@ -29,21 +83,23 @@ public class Item extends StaticEntity {
     protected int count;
     
     // vlastnosti itemu - vacsinou z resource. Mozne zmenit.
-    private boolean equipable;
-    private boolean dropable;
-    private boolean usable;
-    private boolean activable;
-    private boolean equipped;
+    protected ItemType itemType;
+    protected boolean equipable;
+    protected boolean dropable;
+    protected boolean usable;
+    protected boolean activable;
+    protected boolean equipped;
+    protected boolean placeable;
     
-    private int aBaseDamage = 0;
-    private int baseMaxDurability = 0;
-    private int durability = 0;
+    protected int aBaseDamage = 0;
+    protected int baseMaxDurability = 0;
+    protected int durability = 0;
     
-    private boolean levelable = false;
-    private boolean flame = false;
-    private boolean ice = false;
-    private boolean paralyze = false;
-    private boolean poison = false;
+    protected boolean levelable = false;
+    protected boolean flame = false;
+    protected boolean ice = false;
+    protected boolean paralyze = false;
+    protected boolean poison = false;
 
     public Item() {
     }   
@@ -62,11 +118,113 @@ public class Item extends StaticEntity {
      *
      * @param switcher Urcuje ci sa bude predmet generovat podla daneho mena
      */
-    public static Item randomGen(String name) {
-        gen = new ItemGenerator(name);
+    public static Item randomGen(String genName, String name, ItemType type) {
+        ItemGeneratorPlugin gen = ItemGeneratorPlugin.getGenerator(genName);
+        gen.initialize(name, type);
         return gen.generateAll();
     }
 
+    /**
+     * 
+     * @return 
+     */
+    public static Item createItem(String name, SaveMap map, EntityResource res) {
+        ArrayList<ItemType> types = res.getItemType();
+        Item item = null;
+        if (types.size() > 1) {            
+            item = new CombinatedItem(name, res);
+        }
+        if (types.size() == 1) {
+            switch (types.get(0)) {
+                case ARMOR : {
+                    item = new Armor(name, res);                    
+                } break;
+                case WEAPON : {
+                    item = new Weapon(name, res);                                        
+                } break;
+                case MISC : {
+                    item = new Misc(name, res);
+                } break;
+                case TILE : {
+                    item = new TileItem(name, res);
+                } break;
+                default : return null;
+            }
+            if (item != null) {
+                item.setMap(map);
+            }
+        }
+        return item;
+    }        
+    
+    public static Item createItem(String name, EntityResource res) {
+        ArrayList<ItemType> types = res.getItemType();
+        Item item = null;
+        if (types.size() > 1) {            
+            item = new CombinatedItem(name, res);
+        }
+        if (types.size() == 1) {
+            switch (types.get(0)) {
+                case ARMOR : {
+                    item = new Armor(name, res);                    
+                } break;
+                case WEAPON : {
+                    item = new Weapon(name, res);                                        
+                } break;
+                case MISC : {
+                    item = new Misc(name, res);
+                } break;
+                case TILE : {
+                    item = new TileItem(name, res);
+                } break;
+                default : return null;
+            }           
+        }
+        return item;
+    }  
+    
+    private static void _addItemInfo(Object data, ArrayList<ArrayList<Object>> resultInf) {
+        ArrayList<Object> record = new ArrayList<>(); 
+        record.add(data);
+        record.add(data);
+        resultInf.add(record);  
+    }
+    
+    public static ArrayList<ArrayList<Object>> getItemInfo(Item item) {
+        ArrayList<ArrayList<Object>> resultInf = new ArrayList<>();        
+               
+        // Info o predmetoch
+        _addItemInfo(StringResource.getResource("_info"), resultInf);    
+        
+        if (item.isUsable()) {
+        _addItemInfo(StringResource.getResource("_use"), resultInf);            
+        }        
+        if (item.isEquipable()) {
+            if (item.isEquipped()) {
+                _addItemInfo(StringResource.getResource("_unequip"), resultInf);            
+            } else {
+                _addItemInfo(StringResource.getResource("_equip"), resultInf);    
+            }            
+        }
+        if (item.isActivable()) {
+            if (item.isActive()) {
+                _addItemInfo(StringResource.getResource("_unactive"), resultInf);            
+            } else {
+                _addItemInfo(StringResource.getResource("_active"), resultInf);    
+            }            
+        }
+        if (item.isDropable()) {
+        _addItemInfo(StringResource.getResource("_drop"), resultInf);            
+        } 
+        if (item.isPlaceable()) {
+        _addItemInfo(StringResource.getResource("_place"), resultInf);            
+        }
+        _addItemInfo(StringResource.getResource("_destroy"), resultInf);          
+        _addItemInfo(StringResource.getResource("_close"), resultInf);  
+           
+        return resultInf;          
+    }
+    
     @Override
     public Image getTypeImage() {
         if (itemSprites == null) {
@@ -91,6 +249,16 @@ public class Item extends StaticEntity {
         return count;
     }
 
+    /**
+     * Metoda ktora vrati typ entity v ramci funkcnosti. Typ tohoto predmetu su vacsinou nazvy pre potomkov 
+     * co dedia od tejto triedy (WEAPON, ARMOR,...)
+     * @return Typ entity.     
+     * @see ItemType
+     */    
+    public ItemType getItemType() {          
+        return itemType;
+    }
+    
     @Override
     public boolean isDestroyed() {
         return durability == 0;
@@ -115,6 +283,10 @@ public class Item extends StaticEntity {
     public boolean isEquipped() {
         return equipped;
     }
+    
+    public boolean isPlaceable() {
+        return placeable;
+    }
 
     public void equip() {
         this.equipped = true;
@@ -134,8 +306,18 @@ public class Item extends StaticEntity {
     
     public void decCount(int value) {
         this.count -= value;
+    }   
+    
+    /**
+     * Metoda ktora prenastavi typ tohoto predmetu v ramci funkcnosti na typ zadany parametrom
+     * <b>itemType</b>
+     * @param itemType Typ predmetu
+     * @see ItemType
+     */
+    public void setItemType(ItemType itemType) {
+        this.itemType = itemType;
     }
-
+    
     public void setEquipped() {
         this.equipped = true;
     }
@@ -180,6 +362,14 @@ public class Item extends StaticEntity {
         this.poison = po;
     }
 
+    public void setSeed(long seed) {
+        this.seed = seed;
+    }
+    
+    public long getSeed() {
+        return seed;
+    }
+    
     @Override
     public int hashCode() {
         int hash = 3;

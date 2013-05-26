@@ -34,76 +34,83 @@ public class DefaultAi extends Ai{
     @Override
     public boolean aiMove(MovingEntity e) {        
         
-        if ((e.getTargetEntity() != null)) {
-            double randomValue = 0d;
-            Entity target = e.getTargetEntity();
-                int xP = target.getXPix() - e.getXPix();
-                int yP = target.getYPix() - e.getYPix();
-                int circleCoor = xP * xP + yP* yP;
-                if (circleCoor < target.getSound() * target.getSound()) {                    
-                    if (circleCoor < Math.pow(e.getActiveItem().getAttackRadius(), 2)) {
-                        if (e.getStamina() > 0) { 
-                            if (!e.hasAttacked()) {
-                                randomValue = random.nextDouble();
-                                e.setAttackStarted(true);                                                               
-                            } else {
-                                 e.incStamina(-1, 0);                             
-                                 e.incAcumPower(1, 0);
-                                 //poweringBar.setValue(activeItem.hpower);
-                                 if (e.getAcumPower() >= randomValue * e.getMaxPower()) {
-                                     e.attack(randomValue);
-                                     e.incAcumPower(0, 0);
-                                     e.setAttackStarted(false);    
-                                 }
-                            }
-                        }
-                        e.knockMove();
-                        return true;
-                    } else {
-                       e.setAttackStarted(false);  
-                    }
-
-                    if (xP > 0) {
-                        e.incxGo(1, 0);                        
-                    }
-                    if (xP < 0) {
-                        e.incxGo(-1, 0);
-                    }
-                    if (yP < 0) {
-                        e.incyGo(-1, 0);
-                    }
-                    if (yP > 0) {
-                        e.incyGo(1, 0);
-                    }                    
-                } else {
-                    e.setxGo(0d);
-                    e.setyGo(0d);
-                    e.setTarget(null);
+        Entity target = e.getTargetEntity();            
+        if (target != null && target.getLevel() == e.getLevel()) {
+            double randomValue = 0d;            
+            int xP = target.getXPix() - e.getXPix();
+            int yP = target.getYPix() - e.getYPix();
+            int circleCoor = xP * xP + yP* yP;
+            if (circleCoor < target.getSound() * target.getSound()) {                    
+                /* Ziskanie predmetu ktory dame do kontajneru entita.
+                   Ked je to null tak vyberame vlastnosti zo sameho seba */
+                Entity entItem = e.getActiveItem();                
+                if (entItem == null) {
+                    entItem = e;
                 }
-            } else {                
-                if (random.nextInt(50) == 0) {
-                    e.setxDelay(random.nextInt(3) -1); 
-                    e.setyDelay(random.nextInt(3) -1);
-                } 
-                e.incDoublexGo(1, 0);
-                e.incDoubleyGo(1, 0);
+                //
+                if (circleCoor < Math.pow(entItem.getAttackRadius(), 2)) {
+                    if (e.getStamina() > 0) { 
+                        if (!e.hasAttacked()) {
+                            randomValue = random.nextDouble();
+                            e.setAttackStarted(true);                                                               
+                        } else {
+                             e.incStamina(-1, 0);                             
+                             e.incAcumPower(1, 0);
+                             //poweringBar.setValue(activeItem.hpower);
+                             if (e.getAcumPower() >= randomValue * e.getMaxPower()) {
+                                 e.attack(randomValue);
+                                 e.incAcumPower(0, 0);
+                                 e.setAttackStarted(false);    
+                             }
+                        }
+                    }
+                    e.knockMove();
+                    return true;
+                } else {
+                   e.setAttackStarted(false);  
+                }
+
+                if (xP > 0) {
+                    e.incxGo(1, 0);                        
+                }
+                if (xP < 0) {
+                    e.incxGo(-1, 0);
+                }
+                if (yP < 0) {
+                    e.incyGo(-1, 0);
+                }
+                if (yP > 0) {
+                    e.incyGo(1, 0);
+                }                    
+            } else {
+                e.setxGo(0d);
+                e.setyGo(0d);
+                e.setTarget(null);
             }
+        } else {                
+            if (random.nextInt(50) == 0) {
+                e.setxDelay(random.nextInt(3) -1); 
+                e.setyDelay(random.nextInt(3) -1);
+            } 
+            e.incDoublexGo(1, 0);
+            e.incDoubleyGo(1, 0);
+        }
 
-            if ((!e.updateCoordinates())) {
+        if ((!e.updateCoordinates())) {
 
-                     /* Aby boli zahrnute vsetky moznosti pri pohybe
-                     * tak vygenerujeme nahodne cislo 0-2. Pricitame -1 a 
-                     * potom vynasobime pre moment nahody kedy sa entita nepohne.
-                     */
-               if (random.nextInt(100) == 0) {
-                    e.setxDelay(random.nextInt(3) -1); 
-                    e.setyDelay(random.nextInt(3) -1);
-               } 
-               e.incDoublexGo(1, 0);
-               e.incDoubleyGo(1, 0);
-            }
+                 /* Aby boli zahrnute vsetky moznosti pri pohybe
+                 * tak vygenerujeme nahodne cislo 0-2. Pricitame -1 a 
+                 * potom vynasobime pre moment nahody kedy sa entita nepohne.
+                 */
+           if (random.nextInt(100) == 0) {
+                e.setxDelay(random.nextInt(3) -1); 
+                e.setyDelay(random.nextInt(3) -1);
+           } 
+           e.incDoublexGo(1, 0);
+           e.incDoubleyGo(1, 0);
+        }
 
-            return true;
+        return true;
     }
    
     

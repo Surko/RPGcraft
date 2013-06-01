@@ -98,11 +98,11 @@ public class InventoryMenu extends AbstractInMenu {
      * @return Initializovany inventar.
      */
     @Override
-    public InventoryMenu initialize(AbstractInMenu origMenu, Entity e) {
-        this.entity = e;
+    public InventoryMenu initialize(AbstractInMenu origMenu, Entity e1, Entity e2) {
+        this.entity = e1;
         this.input = origMenu.getInput();
         this.menu = origMenu.getMenu();
-        this.items = e.getInventory();
+        this.items = e1.getInventory();
         this.changedState = true;        
         this.toDraw = origMenu.getDrawImage();        
         return this;
@@ -278,9 +278,9 @@ public class InventoryMenu extends AbstractInMenu {
                 Image itemImg = item.getTypeImage();
                 if (itemImg != null) {
                     g.drawImage(itemImg, 0, i * itemHeight, null);
-                    g.drawString(item.getCount() + " " + item.getName(), itemImg.getWidth(null) + wGap, (i + 1) * itemHeight - itemHeight / 2);
+                    g.drawString(item.toString(), itemImg.getWidth(null) + wGap, (i + 1) * itemHeight - itemHeight / 2);
                 } else {
-                    g.drawString(item.getCount() + " " + invenToShow.get(i).getName(), 0, (i + 1) * itemHeight - itemHeight / 2);
+                    g.drawString(item.toString(), 0, (i + 1) * itemHeight - itemHeight / 2);
                 }
 
             }
@@ -312,6 +312,9 @@ public class InventoryMenu extends AbstractInMenu {
     public final void recalculatePositions() {
         this.xPos = menu.getWidth() - getWidth() - wGap;
         this.yPos = menu.getHeight() - getHeight() - hGap;
+        if (subMenu != null) {            
+            subMenu.recalculatePositions();
+        }
     }
     
     /**
@@ -459,8 +462,7 @@ public class InventoryMenu extends AbstractInMenu {
             }
         }
 
-        if (input.clickedKeys.contains(input.enter.getKeyCode())) {
-             System.out.println("DONE!!");
+        if (input.clickedKeys.contains(input.enter.getKeyCode())) {             
             if (selection >= 0 && entity.getInventory().size() != 0) {
                 activated = false;
                 safeSubMenuExit();

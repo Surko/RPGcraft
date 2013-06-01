@@ -61,7 +61,7 @@ public class ItemMenu extends AbstractInMenu {
      * @return Initializovany journal.
      */
     @Override
-    public ItemMenu initialize(AbstractInMenu origMenu, Entity e) {             
+    public ItemMenu initialize(AbstractInMenu origMenu, Entity e1, Entity e2) {             
         this.toDraw = origMenu.getDrawImage();        
         return this;
     }
@@ -120,19 +120,6 @@ public class ItemMenu extends AbstractInMenu {
         return height;
     }
     
-    // </editor-fold>
-    
-    @Override
-    protected final void setGraphics() {
-        super.setGraphics();
-        Graphics g = toDraw.getGraphics();
-        g.setColor(Color.BLACK);  
-                
-        for (int i = 0; i < choices.size(); i++) {                    
-            g.drawString(choices.get(i).getValue(), wGap, (i + 1) * hItemBox);
-        }
-    }
-    
     /**
      * Metoda by mala vratit meno tohoto menu, ale kedze itemMenu moze byt len subMenu tak mu nepriradujem ziadne 
      * meno aby som donutil ukazanie tohoto menu len s doprovodom hlavneho menu.
@@ -160,6 +147,19 @@ public class ItemMenu extends AbstractInMenu {
     public int getHGap() {
         return hGap;
     }
+    
+    // </editor-fold>
+    
+    @Override
+    protected final void setGraphics() {
+        super.setGraphics();
+        Graphics g = toDraw.getGraphics();
+        g.setColor(Color.BLACK);  
+                
+        for (int i = 0; i < choices.size(); i++) {                    
+            g.drawString(choices.get(i).getValue(), wGap, (i + 1) * hItemBox);
+        }
+    }      
     
     @Override
     public void paintMenu(Graphics g) {
@@ -225,8 +225,7 @@ public class ItemMenu extends AbstractInMenu {
             if (choices.size() > 0) {
                 use();
             }
-            exit();
-            sourceMenu.activate();
+            exit();      
         }
     }
     
@@ -238,41 +237,61 @@ public class ItemMenu extends AbstractInMenu {
     
     private void use() {
         switch (choices.get(selection)) {
-            case INFO : {
-                ListenerFactory.getListener("ENTITY@SAFE_TELEPORT(INT#1025,INT#1025,INT#62)", visible).actionPerformed(new ActionEvent(sourceMenu.getMenu(), w, xPos, null, game));
+            case INFO : {                
+                AbstractInMenu newMenu = new ItemInfo(sourceMenu, item);
+                this.sourceMenu.setMenu(newMenu);
+                newMenu.setVisible(true);
             } break;
             case USE : {
-                entity.use(item);                                                
+                entity.use(item);   
+                sourceMenu.activate();
                 sourceMenu.setState(true);
             } break;
-            case EQUIP : entity.equip(item);
-                break;
-            case ACTIVE : entity.setActiveItem(item);
-                break;
-            case UNEQUIP : entity.equip(item);
-                break;
-            case UNACTIVE : entity.setActiveItem(item);
-                break;
+            case EQUIP : {
+                entity.equip(item);
+                sourceMenu.activate();
+                sourceMenu.setState(true);
+            } break;
+            case ACTIVE : {
+                entity.setActiveItem(item);
+                sourceMenu.activate();
+                sourceMenu.setState(true);
+            } break;
+            case UNEQUIP : {
+                entity.equip(item);
+                sourceMenu.activate();
+                sourceMenu.setState(true);
+            } break;
+            case UNACTIVE : {
+                entity.setActiveItem(null);
+                sourceMenu.activate();
+                sourceMenu.setState(true);
+            } break;
+            case DROP : {
+                entity.drop(item);
+                sourceMenu.activate();
+                sourceMenu.setState(true);
+            } break;    
             case PLACE : {
                 entity.placeItem(item);
-                entity.removeItem(item);                
-                sourceMenu.setState(true);
+                entity.removeItem(item);  
+                sourceMenu.activate();
+                sourceMenu.setState(true);                
             } break;
-            case CLOSE : {
-                exit();            
-                if (sourceMenu != null) {
-                    sourceMenu.activate();
-                }
+            case CLOSE : {                
+                sourceMenu.activate();
             } break;
             case DESTROY : {
                 entity.removeItem(item);
-                sourceMenu.setState(true);
+                sourceMenu.activate();
+                sourceMenu.setState(true);                
             } break;
         }
     }        
 
     @Override
     public void recalculatePositions() {
+        
         
     }
     

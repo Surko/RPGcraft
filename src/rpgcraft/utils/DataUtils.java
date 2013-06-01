@@ -57,7 +57,10 @@ public class DataUtils {
     public enum DataValues {
         HEALTH,
         MAXHEALTH,
-        STRENGTH
+        STAMINA,
+        MAXSTAMINA,        
+        MANA,
+        MAXMANA
     }
     
     private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());    
@@ -491,7 +494,19 @@ public class DataUtils {
                 if (menu instanceof GameMenu) {
                     return ((GameMenu)menu).getMap().player.getMaxHealth();
                 }
-            } break;    
+            } break;
+            case STAMINA : {
+                Menu menu = c.getOriginMenu();
+                if (menu instanceof GameMenu) {
+                    return ((GameMenu)menu).getMap().player.getStamina();
+                }
+            } break;
+            case MAXSTAMINA : {
+                Menu menu = c.getOriginMenu();
+                if (menu instanceof GameMenu) {
+                    return ((GameMenu)menu).getMap().player.getMaxStamina();
+                }
+            } break;     
             default : return null;
                 
         }

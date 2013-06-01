@@ -27,6 +27,11 @@ public class ComponentListener extends Listener {
     private static final Logger LOG = Logger.getLogger(ComponentListener.class.getName());
     
     public static final String MAINCONTAINER = "MAINCONTAINER";
+
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.COMPOP.toString();
+    }
     
     public enum Operations {
         SET_VISIBLE,

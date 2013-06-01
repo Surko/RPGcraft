@@ -63,4 +63,8 @@ public class AttackedTile {
     public int getY() {
         return y;
     }        
+    
+    public int getLevel() {
+        return level;
+    }            
 }

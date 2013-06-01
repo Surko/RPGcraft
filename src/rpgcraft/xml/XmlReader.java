@@ -33,12 +33,13 @@ public class XmlReader {
         ui(2),
         tiles(3),
         effects(4),
-        items(5),
-        entities(6),
-        recipes(7),        
-        quests(8),
-        conversations(9),
+        conversations(5),        
+        items(6),
+        entities(7),
+        recipes(8),        
+        quests(9),
         groups(10);        
+               
         
         private int priority;
         

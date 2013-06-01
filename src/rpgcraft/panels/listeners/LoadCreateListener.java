@@ -13,6 +13,11 @@ import rpgcraft.panels.components.Component;
  * @author kirrie
  */
 public class LoadCreateListener extends Listener {
+
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.LOAD.toString();
+    }
     
     public enum Operations {
         LOAD,

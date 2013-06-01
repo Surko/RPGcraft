@@ -11,14 +11,11 @@ import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.w3c.dom.Element;
 import rpgcraft.effects.Effect;
+import rpgcraft.effects.Effect.EffectEvent;
 import rpgcraft.entities.ai.Ai;
 import rpgcraft.entities.ai.DefaultAi;
 import rpgcraft.entities.types.ItemLevelType;
-import rpgcraft.graphics.ui.particles.BarParticle;
 import rpgcraft.graphics.ui.particles.TextParticle;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.Sprite.Type;
@@ -26,21 +23,18 @@ import rpgcraft.handlers.InputHandle;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.AttackedTile;
-import rpgcraft.map.tiles.BlankTile;
 import rpgcraft.map.tiles.Tile;
-import rpgcraft.resource.EffectResource;
-import rpgcraft.resource.EffectResource.EffectEvent;
 import rpgcraft.resource.EntityResource;
-import rpgcraft.resource.StatResource;
 import rpgcraft.resource.StatResource.Stat;
+import rpgcraft.resource.TileResource;
+import rpgcraft.utils.MainUtils;
 
 /**
  *
  * @author Kirrie
  */
-public class MovingEntity extends Entity {                       
-    
-    private static final int STATMULT = 5;
+public class MovingEntity extends Entity {                               
+    protected static final int SEGMENTLENGTH = 32;    
     
     protected double xDelay, yDelay;
     protected int lightRadius;    
@@ -70,35 +64,90 @@ public class MovingEntity extends Entity {
     protected Double doubleyGo = 0d;
 
     protected AttackedTile targetedTile;
-        
-    private HashMap<Sprite.Type, ArrayList<Sprite>> movingEntitySprites;       
+    protected int skillPoints, statPoints;    
     
+    protected HashMap<Sprite.Type, ArrayList<Sprite>> movingEntitySprites;       
+    
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
     /**
      * Prazdny konstruktor pre vytvorenie instancie Externalizaciou.
      */
-    public MovingEntity() {}
+    public MovingEntity() {}        
     
-    protected MovingEntity(Element elem) {         
-        this.aggresivity = 50;
-        this.defenseP = 0;
-        this.defenseA = 20;
-        this.attack = 10;
-        
-                         
+    /**
+     * Konstruktor s parametrom predmetu. Vytvori novu instanciu MovingEntity kde si za zaklad
+     * zoberie predmet.
+     * @param item Predmet ako zaklad pre entitu.
+     */
+    public MovingEntity(Item item) {
+        this.name = item.name;
+        this.id = item.id;       
+        this.spriteType = Sprite.Type.ITEM; 
+        this.res = EntityResource.getResource(id);
+        if (res == null) {
+            this.movingEntitySprites = new HashMap<>();
+            ArrayList<Sprite> sprites = new ArrayList<>();
+            sprites.add(TileResource.getResource(id).getTileSprites().get(spriteType.getValue()));
+            movingEntitySprites.put(spriteType, sprites);
+        } else {
+            this.movingEntitySprites = res.getEntitySprites();        
+        }        
     }
     
+    /**
+     * Konstruktor ktory vytvori pohyblivu entitu z hraca. Vhodne pri buducej implementacii kuziel
+     * ako ovladanie mysli, ovladanie hraca.
+     * @param player Hrac z ktoreho vytvarame entitu.
+     */
+    public MovingEntity(Player player) {
+        this.name = player.name;
+        this.map = player.map;
+        this.res = player.res;
+                
+        this.id = res == null ? "" : res.getId();   
+        this.ai = res.getAi() == null ? DefaultAi.getInstance() : Ai.getAi(res.getAi());
+        this.movingEntitySprites = player.movingEntitySprites;        
+        this.doubleStats = player.doubleStats;
+        this.intStats = player.intStats;
+        this.activeItem = player.activeItem;
+        this.activeEffects = player.activeEffects;
+        this.group = player.group;
+        this.concentration = player.concentration;
+        this.attackable = player.attackable;
+        this.pushable = player.pushable; 
+        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));
+        this.spriteType = Sprite.Type.DOWN;
+        this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
+        this.stamina = maxStamina;
+        this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
+        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
+        this.staminaDischarger = maxStamina;
+        this.attackRadius = intStats.get(Stat.ATKRADIUS);        
+        this.health = maxHealth;          
+        
+        this.xPix = player.xPix;
+        this.yPix = player.yPix;
+        this.actualChunk = player.actualChunk;
+    }
+    
+    /**
+     * Konstruktor ktory vytvori pohyblivu entitu podla parametrov. 
+     * @param name Nove meno entity
+     * @param map Mapa kde je entita.
+     * @param res Resource ako zaklad pre entitu
+     */
     public MovingEntity(String name, SaveMap map, EntityResource res) {
         this.map = map;        
         this.res = res;        
-        this.name = name == null ? res.getName() : name;                
+        this.name = name == null ? res.getName() : name;        
     }
+    // </editor-fold>
     
-    public void initialize() {
-        doubleStats = new HashMap<>();
-        intStats = new HashMap<>();    
-        activeEffects = new HashMap<>();
+    // <editor-fold defaultstate="collapsed" desc=" Initializing ">
+    @Override
+    public void initialize() {        
         this.movingEntitySprites = res.getEntitySprites();
-        this.id = res.getId();
+        this.id = res == null ? "" : res.getId();
         this.ai = res.getAi() == null ? DefaultAi.getInstance() : Ai.getAi(res.getAi());
         this.maxPower = new Double(24);
         this.attackable = true;
@@ -107,87 +156,44 @@ public class MovingEntity extends Entity {
         this.group = res.getGroup();
         this.concentration = res.getConcentration();
         
-        /**
-         * V tejto casti sa nachadzaju staty ulozene v hashmapach. Tento pristup som volil kvoli tomu
-         * aby som potom mohol lahsie pridavat efekty ku zbraniam ci utokom, ktore by menili tieto staty.
-         * Nasledne by som menil iba tie atributy ktore su ovplyvnene statom ktory sme menili.
-         */
-        
-        // Premenna ktora urcuje vahu pre attackRating. #attackRating / #attackRater = #attackPower         
-        intStats.put(Stat.ATKRATER, res.getAttackRater());
-        // Premenna ktora urcuje vahu pre defenseRating. #defenseRating / #defenseRater = #defensePower        
-        intStats.put(Stat.DEFRATER, res.getDefenseRater());
-        // Premenna ktora urcuje vahu pre speed. #speedRating / #speedRater = #speedPower 
-        intStats.put(Stat.SPDRATER, res.getSpeedRater());
-        
-        try {
-            // Hlavne Staty
-            doubleStats.put(Stat.HEALTHMAX, rollRandom(res.getMinHealth(), res.getMaxHealth()));
-            doubleStats.put(Stat.STAMINAMAX, rollRandom(res.getMinStamina(), res.getMaxStamina()));
-            intStats.put(Stat.STRENGTH, rollRandom(res.getMinStr(), res.getMaxStr()));
-            intStats.put(Stat.AGILITY, rollRandom(res.getMinAgi(), res.getMaxAgi()));
-            intStats.put(Stat.SPEED, rollRandom(res.getMinSpd(), res.getMaxSpd()));
-            
-            // O kolko sa doplni stamina
-            doubleStats.put(Stat.STAMINAREGEN, res.getStaminaRegen());
-            // O kolko sa doplni zivot
-            doubleStats.put(Stat.HEALTHREGEN, res.getHealthRegen());
-            
-            // Damage 
-            
-            // Attack/Defense Rating
-            doubleStats.put(Stat.ATKRATING, (intStats.get(Stat.AGILITY) * STATMULT) 
-                    + (intStats.get(Stat.SPEED) * (STATMULT - 3)) + 
-                    (activeItem != null ? activeItem.attackRating : 0) + res.getAttRatingBonus());
-            doubleStats.put(Stat.DEFRATING, (intStats.get(Stat.AGILITY) * STATMULT)
-                    + (intStats.get(Stat.SPEED) * (STATMULT - 3)) +
-                    (activeItem != null ? activeItem.attackRating : 0) + res.getDefRatingBonus());
-            System.out.println(name + " " + doubleStats.get(Stat.ATKRATING));
-            // Attack/Defense Power
-            doubleStats.put(Stat.ATKPOWER, doubleStats.get(Stat.ATKRATING) / intStats.get(Stat.ATKRATER));
-            doubleStats.put(Stat.DEFPOWER, doubleStats.get(Stat.DEFRATING) / intStats.get(Stat.DEFRATER));
-        } catch (Exception e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, 
-                    "Xml file has min value greater than max :\n" + e.getMessage() );
-        }
-        doubleStats.put(Stat.DBLFACTOR, res.getDoubleFactor());
-        // Sanca na prerusenie - aku sancu ma entita ze prerusi cudzi utok
-        doubleStats.put(Stat.INTCHANCE, res.getInterChance());
-        // Koncetracia - kolko sa odcitava od nepriatelovej interruptionChance
-        
-        // O kolko sa doplni stamina
-        doubleStats.put(Stat.STAMINAREGEN, res.getStaminaRegen());
-        // Vzdialenost ako daleko dosiahne utok. Pri nule je schopna entita iba posuvat.
-        intStats.put(Stat.ATKRADIUS, res.getAttackRadius());
+        super.initialize();        
         
         /*
          * Najcastejsie pouzivane staty, ktore bude mat kazda entita. Pri zmene 
          * statov ulozenych v Hashmapach sa prepocitaju.
          */
-        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));
         this.spriteType = Type.DOWN;
-        this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
-        this.stamina = maxStamina;
-        this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
-        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
-        this.staminaDischarger = maxStamina;
-        this.attackRadius = intStats.get(Stat.ATKRADIUS);        
-        this.health = maxHealth;        
-        this.damage = 5;
-        this.attackRadius = 32;
-    }
-    
-    private void reinitialize() {
-        this.ai = res.getAi() == null ? DefaultAi.getInstance() : Ai.getAi(res.getAi());
-        this.movingEntitySprites = res.getEntitySprites();
-        this.id = res.getId();
-        this.maxStamina = doubleStats.get(Stat.STAMINAMAX);
-        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
-        this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
-        this.maxPower = new Double(24);
         this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + (new Double(intStats.get(Stat.SPEED))/(new Double(intStats.get(Stat.SPDRATER))));        
-        this.damage = 5;
-        this.attackRadius = 32;
+        this.maxStamina = doubleStats.get(Stat.STAMINAMAX);        
+        this.maxHealth = doubleStats.get(Stat.HEALTHMAX);
+        this.healthRegen = doubleStats.get(Stat.HEALTHREGEN);
+        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN);
+        this.attackRadius = (int)(intStats.get(Stat.ATKRADIUS) * (1 + doubleStats.get(Stat.ATKRADIUSPER)));            
+        this.damage = doubleStats.get(Stat.DAMAGE);                      
+        this.attackPower = doubleStats.get(Stat.ATKPOWER);       
+        this.defensePower = doubleStats.get(Stat.DEFPOWER);
+        this.stamina = maxStamina;
+        this.staminaDischarger = maxStamina;
+        this.health = maxHealth;                         
+    }        
+    
+    @Override
+    protected void reinitialize() {
+        super.reinitialize();        
+        this.ai = res.getAi() == null ? DefaultAi.getInstance() : Ai.getAi(res.getAi());
+        this.movingEntitySprites = res.getEntitySprites();        
+        this.maxPower = new Double(24);
+        this.spriteType = Type.DOWN;
+        this.fullSpeed = getDouble(Stat.DBLFACTOR, 0) + ((double)getInt(Stat.SPEED,0))/(getInt(Stat.SPDRATER, 1));        
+        this.maxStamina = getDouble(Stat.STAMINAMAX, 0);        
+        this.maxHealth = getDouble(Stat.HEALTHMAX, 0);
+        this.healthRegen = getDouble(Stat.HEALTHREGEN, 0);
+        this.staminaRegen = getDouble(Stat.STAMINAREGEN, 0);
+        this.attackRadius = (int)(getInt(Stat.ATKRADIUS, 0) * (1 + doubleStats.get(Stat.ATKRADIUSPER)));            
+        this.damage = getDouble(Stat.DAMAGE, 0);                      
+        this.attackPower = getDouble(Stat.ATKPOWER, 0);       
+        this.defensePower = getDouble(Stat.DEFPOWER, 0);        
+        this.staminaDischarger = maxStamina;        
         
         if (activeItem == null) {
             levelType = ItemLevelType.HAND;
@@ -203,6 +209,10 @@ public class MovingEntity extends Entity {
     public void recount() {
         this.attackRadius = intStats.get(Stat.ATKRADIUS);
     }
+      
+    // </editor-fold>
+              
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
     
     /**
      * Metoda ktora nastavi ovladanie pre Entitu. Moznost pouzitia na ovladanie aj inych entit
@@ -213,10 +223,6 @@ public class MovingEntity extends Entity {
     public void setHandling(InputHandle input) {
         this.input = input;
     }
-    
-    public void inputHandling() {
-        
-    }   
     
     @Override
     public void setName(String name) {
@@ -263,31 +269,27 @@ public class MovingEntity extends Entity {
         intStats.put(Stat.SPEED, speed);
     }
         
-    public double getSpeed() {
-        return intStats.get(Stat.SPEED);
-    }
-        
+     
     public void setStamina(int stamina) {
         this.stamina = stamina;
+    }        
+       
+    public void incStamina(double power, double modifier, double value) {
+        this.stamina += power * modifier + value;
     }
     
-    public double getStamina() {
-        return stamina;
-    }
-    
-    public void incStamina(double modifier, double value) {
-        this.stamina += doubleStats.get(StatResource.Stat.ATKPOWER) * modifier + value;
+    @Override
+    public void regenStamina(double stamina) {
+        this.stamina += stamina;
+        if (this.stamina > maxStamina) {
+            this.stamina = maxStamina;
+        }
     }
     
     public void setMaxStamina(int maxStamina) {
         this.maxStamina = maxStamina;
     }
-    
-    
-    public double getMaxStamina() {
-        return maxStamina;
-    }
-    
+            
     public void setMaxPower(double maxPower) {
         this.maxPower = maxPower;
     }
@@ -304,6 +306,18 @@ public class MovingEntity extends Entity {
         doubleyGo += fullSpeed * yDelay * modifier + value;
     }
     
+    public void setGroup(int group) {
+        this.group = group;
+    }
+    
+    @Override
+    public void setChunk(Chunk chunk) {
+        super.setChunk(chunk);
+    }  
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     public boolean canSwim() {
         return swimable;
     }
@@ -315,18 +329,19 @@ public class MovingEntity extends Entity {
     public boolean hasAttacked() {
         return attackStarted;
     }
-    
-    public void setGroup(int group) {
-        this.group = group;
+           
+    @Override
+    public double getStamina() {
+        return stamina;
     }
     
-    @Override
-    public String toString() {
-        String s = this.id + ":"+ this.name + " loaded with their characteristics \n"
-                + "------------------------------------------------------------------------------ \n";
-        return s;
-        
-    }   
+    public double getMaxStamina() {
+        return maxStamina;
+    }
+    
+    public double getSpeed() {
+        return intStats.get(Stat.SPEED);
+    }
     
     @Override
     public Image getTypeImage() {
@@ -345,25 +360,55 @@ public class MovingEntity extends Entity {
     
     public int getLightRadius() {
         return lightRadius;
+    }        
+    
+    // </editor-fold>        
+    
+    public void trySpawn(MovingEntity entity, int scatter) {
+        this.xPix = entity.xPix;
+        this.yPix = entity.yPix;
+        this.level = entity.level < 0 ? 0 : (entity.level > 127 ? 127 : entity.level);
+        Chunk chunk = map.chunkXYExist(xPix >> 9, yPix >> 9);
+        int x0, y0, z0;
+        do {
+            x0 = scatter + random.nextInt(scatter);
+            y0 = scatter + random.nextInt(scatter);
+            z0 = scatter + random.nextInt(scatter);
+            this.actualChunk = map.chunkXYExist(x0 >> 9, y0 >> 9);
+        } while (!tryMove(x0, y0, z0, chunk));
+        /*
+        this.x = xPix << 5;
+        this.y = yPix << 5;
+        this.position = new EntityPosition(x, y);
+        */
+        map.addEntity(this);
+    }
+    
+    public void trySpawn(int x, int y, int z, int scatter) {
+        this.xPix = x;
+        this.yPix = y;
+        this.level = z < 0 ? 0 : (z > 127 ? 127 : z);
+        Chunk chunk = map.chunkXYExist(xPix >> 9, yPix >> 9);
+        int x0, y0, z0;
+        
+        do {
+            x0 = scatter + random.nextInt(scatter);
+            y0 = scatter + random.nextInt(scatter);
+            z0 = scatter + random.nextInt(scatter);
+            this.actualChunk = map.chunkXYExist(x0 >> 9, y0 >> 9);
+        } while (!tryMove(x0, y0, z0, chunk));
+        
+        /*
+        this.x = xPix << 5;
+        this.y = yPix << 5;
+        this.position = new EntityPosition(x, y);
+        */
+        map.addEntity(this);
     }
     
     @Override
-    public void setChunk(Chunk chunk) {
-        super.setChunk(chunk);
-    }
-    
-    public void trySpawn() {
-        this.actualChunk = map.chunkXYExist(xPix >> 9, yPix >> 9);
-        this.level = 64;
-    }
-    
-    @Override
-    public void hit(double damage, Type type) {
-            doHit(damage, type);
-    }
-    
-    protected void doHit(Double damage, Type type) {
-        if (damageDisabled) return;
+    public double hit(double damage, Type type) {
+        if (damageDisabled) return 0;
         
         health -= damage;
         
@@ -372,13 +417,13 @@ public class MovingEntity extends Entity {
         knockback(type);
         
         if (damage > 1) {
-            particle = new TextParticle(String.valueOf(damage.intValue()), 24, -24);
+            particle = new TextParticle(String.valueOf((int)damage), 24, -24);
         } else {
             particle = new TextParticle("1", 24, -24);
         }
         map.addParticle(particle);
-        
-    }
+        return damage;
+    }    
     
     @Override
     public void knockback(Type type) {
@@ -402,24 +447,18 @@ public class MovingEntity extends Entity {
             if (isDestroyed() || isSaving()) {
                 return false;
             }
-                  
-            /* Riesenie cez iterator ktory vymaze z aktivnych efektov taky ktory
-             * uz skoncil alebo tam nejakym sposobom nepatri
-             * Bez iteratora, vymazavanim rovno z Listu by vyhodilo ConcurrentModificationException
-             */
-            ArrayList<Effect> effects = activeEffects.get(EffectEvent.ONSELF);
-            if (effects != null) {
-                for (Iterator iter = effects.iterator(); iter.hasNext();) {
-                        if (!((Effect)iter.next()).update()) {
-                            iter.remove();                    
-                    }
-                }
-            }
+                                       
             
-            // Kazdym prechodom tejto metody doplni staminu, prerobit na time dependent
+            // Kazdym prechodom tejto metody doplni staminu, prerobit na time dependent            
+
             if (stamina<maxStamina) {
                 stamina += staminaRegen;                
             }      
+
+            if (health<maxHealth) {
+                health += healthRegen;
+            }
+            
             
             ai.aiMove(this);
                 
@@ -428,40 +467,37 @@ public class MovingEntity extends Entity {
 
     }
     
-    public void attackTile(double modifier) {
+    public void attackTile(double modifier, int radius, int levelMod) {        
         if (modifier > 0.25) {
-            if (modifier > 0.25) {
-        
-                // double staminaPen = modifier * staminaDischarger;            
-                int radius = activeItem == null ? attackRadius : activeItem.attackRadius;
 
-                if ((activeItem == null)||(activeItem.canAttack())) {
-                    if (spriteType == Type.UP) {
-                        interactWithTiles(xPix , yPix, xPix, yPix-radius, modifier);                
-                        return;                    
-                    }
-                    if (spriteType == Type.DOWN) {
-                        interactWithTiles(xPix, yPix + radius, xPix, yPix, modifier);                
-                        return;
-                    }
-                    if (spriteType == Type.RIGHT) {
-                        interactWithTiles(xPix, yPix, xPix + radius, yPix, modifier);                
-                        return;
-                    }
-                    if (spriteType == Type.LEFT) {
-                        interactWithTiles(xPix-radius, yPix, xPix, yPix, modifier);  
-                        return;
-                    }
+            // double staminaPen = modifier * staminaDischarger;                            
+
+            if ((activeItem == null)||(activeItem.canAttack())) {
+                if (spriteType == Type.UP) {
+                    interactWithTiles(xPix , yPix, xPix, yPix-radius, levelMod, modifier);                
+                    return;                    
                 }
-
-
-
-                if (activeItem != null && activeItem.isDestroyed()) {
-                    activeItem = null;
+                if (spriteType == Type.DOWN) {
+                    interactWithTiles(xPix, yPix + radius, xPix, yPix, levelMod, modifier);                
+                    return;
                 }
-            
+                if (spriteType == Type.RIGHT) {
+                    interactWithTiles(xPix, yPix, xPix + radius, yPix, levelMod, modifier);                
+                    return;
+                }
+                if (spriteType == Type.LEFT) {
+                    interactWithTiles(xPix-radius, yPix, xPix, yPix, levelMod, modifier);  
+                    return;
+                }
             }
-        }
+
+
+
+            if (activeItem != null && activeItem.isDestroyed()) {
+                activeItem = null;
+            }
+
+        }        
     }            
     
     public void attack(double modifier) {                        
@@ -469,23 +505,23 @@ public class MovingEntity extends Entity {
         if (modifier > 0.25) {
         
             // double staminaPen = modifier * staminaDischarger;            
-            int radius = activeItem == null ? attackRadius : activeItem.attackRadius;
+            int radius = attackRadius;
         
             if ((activeItem == null)||(activeItem.canAttack())) {
                 if (spriteType == Type.UP) {
-                    interactWithEntities(xPix , yPix, xPix, yPix-radius, modifier);                
+                    interactWithEntities(xPix - SEGMENTLENGTH , yPix, xPix + SEGMENTLENGTH, yPix-radius, modifier);                
                     return;                    
                 }
                 if (spriteType == Type.DOWN) {
-                    interactWithEntities(xPix, yPix + radius, xPix, yPix, modifier);                
+                    interactWithEntities(xPix - SEGMENTLENGTH, yPix + radius, xPix + SEGMENTLENGTH, yPix, modifier);                
                     return;
                 }
                 if (spriteType == Type.RIGHT) {
-                    interactWithEntities(xPix, yPix, xPix + radius, yPix, modifier);                
+                    interactWithEntities(xPix, yPix + SEGMENTLENGTH, xPix + radius, yPix - SEGMENTLENGTH, modifier);                
                     return;
                 }
                 if (spriteType == Type.LEFT) {
-                    interactWithEntities(xPix-radius, yPix, xPix, yPix, modifier);  
+                    interactWithEntities(xPix-radius, yPix + SEGMENTLENGTH, xPix, yPix - SEGMENTLENGTH, modifier);  
                     return;
                 }
             }
@@ -510,23 +546,21 @@ public class MovingEntity extends Entity {
      * @param x1 prava suradnica vymedzeneho priestoru
      * @param y1 horna suradnica vymedzeneho priestoru
      * @param modifier modifikator pre vyhodnotenie utoku
-     * @return 
+     * @return Ake poskodenie sme vykonali dokopy na vsetkych entitach
      */
     @Override
-    public int interactWithEntities(int x0, int y0, int x1, int y1, double modifier) {
-        boolean entInteracted = false;
-        for (Entity e : map.getEntities()) {
+    public double interactWithEntities(int x0, int y0, int x1, int y1, double modifier) {
+        double entInteracted = 0d;        
+        for (Entity e : map.getNearEntities()) {
             if (e != this) {
                 if ((e.xPix >= x0)&&(e.xPix <= x1)&&
                         (e.yPix <= y0)&&(e.yPix >= y1)) {
-                    entInteracted = tryHurt(e, modifier);                    
+                    entInteracted += tryHurt(e, modifier);                    
                 }               
             }
         }                
-        if (entInteracted) {
-            return 0;
-        }
-        return 0;
+        
+        return entInteracted;
     }
     
     /**
@@ -537,9 +571,9 @@ public class MovingEntity extends Entity {
      * @param x1 prava suradnica vymedzeneho priestoru
      * @param y1 horna suradnica vymedzeneho priestoru
      * @param modifier modifikator pre vyhodnotenie utoku
-     * @return 
+     * @return Ake poskodenie sme vykonali
      */
-    public int interactWithTiles(int x0, int y0, int x1, int y1, double modifier) {        
+    public double interactWithTiles(int x0, int y0, int x1, int y1, int levelMod, double modifier) {        
         int xTile = (x0 + x1)/2;
         int yTile = (y0 + y1)/2;
         
@@ -554,37 +588,33 @@ public class MovingEntity extends Entity {
         
         
         if (targetedTile == null) {                    
-            targetedTile = new AttackedTile(chunk, level - 1, x, y);            
+            targetedTile = new AttackedTile(chunk, level + levelMod, x, y);            
         } else {
-            if (targetedTile.getX() != x || targetedTile.getY() != y) {
-                targetedTile = new AttackedTile(chunk, level - 1, x, y);
+            if (targetedTile.getX() != x || targetedTile.getY() != y || targetedTile.getLevel() != level + levelMod) {
+                targetedTile = new AttackedTile(chunk, level + levelMod, x, y);
             }           
         }
         
-        tryHurt(targetedTile, chunk, modifier);
-        return 0; 
+        return tryHurt(targetedTile, chunk, modifier);        
     }
     
-    protected boolean tryHurt(Entity e, double modifier) {
+    protected double tryHurt(Entity e, double modifier) {
         double thisModAttack = attack * (modifier * 2);
         double entityModDefense = e.defenseA * (e.acumDefense * 2 / e.maxPower);
         
         if ((thisModAttack / entityModDefense ) < random.nextDouble()) {
             map.addParticle(new TextParticle("Miss", 24, -24));
-            return true;
-        } else {
-            System.out.println(modifier);
-            e.hit(damage * modifier - e.defenseP, spriteType);            
+            return 0d;
+        } else {            
             e.addAfterEffectsFrom(this, activeItem);
-            return true;
+            return e.hit(damage * modifier - e.defenseP, spriteType);                                    
         }
     }
     
-    protected boolean tryHurt(AttackedTile tile, Chunk chunk, double modifier) {                        
-        return false;        
+    protected double tryHurt(AttackedTile tile, Chunk chunk, double modifier) {                        
+        return 0d;        
     }
-    
-    
+        
     public void knockMove() {
         if (xKnock < 0) {
             canMove(-2, 0, 0);
@@ -603,6 +633,15 @@ public class MovingEntity extends Entity {
             yKnock --;
         }
     }        
+    
+    protected void changeSprite(Type type) {
+        if (spriteType != type) {
+            if (movingEntitySprites.containsKey(type)) {
+                this.spriteType = type;  
+            }
+            maxTime = 0;
+        }
+    }
     
     /**
      * Metoda ktora ma docinenie so zmenou x-ovych a y-ovych suradnic podla parametrov
@@ -638,28 +677,16 @@ public class MovingEntity extends Entity {
                                                             
             
             if ((ixGo > 0)) {
-                if (spriteType != Sprite.Type.RIGHT) {
-                    this.spriteType = Sprite.Type.RIGHT;  
-                    maxTime = 0;
-                }
+                changeSprite(Sprite.Type.RIGHT);
             }
             if ((ixGo < 0)) {
-                if (spriteType != Sprite.Type.LEFT) {
-                    this.spriteType = Sprite.Type.LEFT;  
-                    maxTime = 0;
-                }
+                changeSprite(Sprite.Type.LEFT);
             }
             if ((iyGo > 0)) {
-                if (spriteType != Sprite.Type.DOWN) {
-                    this.spriteType = Sprite.Type.DOWN;  
-                    maxTime = 0;
-                }
+                changeSprite(Sprite.Type.DOWN);
             }
             if ((iyGo < 0)) {
-                if (spriteType != Sprite.Type.UP) {
-                    this.spriteType = Sprite.Type.UP;  
-                    maxTime = 0;
-                }
+                changeSprite(Sprite.Type.UP);
             }
                         
             
@@ -678,8 +705,7 @@ public class MovingEntity extends Entity {
         return false;
         
     }
-    
-    
+        
     /**
      * Tato metoda sa vykona iba vtedy ked je vzdialenost entit od seba 25 pixelov.
      * Potom posunie entitu zadanu parametrom entity podla metody 
@@ -688,19 +714,17 @@ public class MovingEntity extends Entity {
      * @return True/False ci sa podarilo posunutie.
      */
     @Override
-    protected boolean entityPush(Entity entity) {  
-       
-        int xP = entity.getXPix() - xPix;
-        int yP = entity.getYPix() - yPix;
-        if ((xP * xP + yP * yP) < 576) {
+    protected boolean entityPush(Entity entity, int x0, int y0) {         
+        int xP = entity.getXPix() - x0;
+        int yP = entity.getYPix() - y0;
+        if ((xP * xP + yP * yP) < 512) {
             pushWith(entity);
         } else {
             return false;
         }
         
         return true;
-    }
-
+    }   
     
     /**
      * Metodad pushWith posunie entitu zadanu parametrom entity do prislusnej strany
@@ -713,20 +737,51 @@ public class MovingEntity extends Entity {
     }
 
     @Override
-    public void unequip(Entity e) {
-        
+    public void unequip(Item item) {        
+        removeEffects(item, EffectEvent.ONEQUIP);
+        Armor armor = (Armor)item;
+        armor.unequip();
+        gear.put(armor.getArmorType(), null);      
     }
 
     @Override
-    public void equip(Entity e) {
-        
+    public void equip(Item item) {
+        addEffects(item, EffectEvent.ONEQUIP);
+        Armor armor = (Armor)item;
+        Armor lastArmor = gear.get(armor.getArmorType());
+        if (lastArmor != null) {
+            unequip(lastArmor);
+        }
+        gear.put(armor.getArmorType(), armor);
+        armor.equip();
     }
     
     @Override
-    public void use(Entity item) {
-        
+    public void use(Item item) {
+        removeItem(item);
+        addEffects(item, EffectEvent.ONUSE);
     }
 
+    @Override
+    public void drop(Item item) {
+        if (item.getCount() <= 1) {
+            if (item.isActive()) {
+                setActiveItem(null);                
+            }
+            if (item.isEquipped()) {
+                unequip(item);
+            }
+            inventory.remove(item);
+            item.setXYPix(xPix, yPix, level);
+            map.addEntity(item);
+            return;
+        } else {
+            item.decCount();            
+            item.setXYPix(xPix, yPix, level);
+            map.addEntity(item);
+        }
+    }
+    
     @Override
     public void setImpassableTile(int tile)  {
         if (Tile.tiles.containsKey(tile)) {
@@ -734,6 +789,32 @@ public class MovingEntity extends Entity {
         }
     }
 
+    /**
+     * Prazdna metoda s ovladanim. Vacsinou hu implementuje iba Player.
+     */
+    public void inputHandling() {
+        
+    }   
+
+    @Override
+    public void decStats(Entity item) {
+        super.decStats(item);
+        this.maxStamina = doubleStats.get(Stat.STAMINAMAX) * (1 + doubleStats.get(Stat.STAMINAMAXPER)); 
+        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN) * (1 + doubleStats.get(Stat.STAMINAREGENPER));
+        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + ((double)intStats.get(Stat.SPEED))/(getInt(Stat.SPDRATER, 1));
+    }
+    
+    @Override
+    public void incStats(Entity item) {
+        super.incStats(item); //To change body of generated methods, choose Tools | Templates.          
+        this.maxStamina = doubleStats.get(Stat.STAMINAMAX) * (1 + doubleStats.get(Stat.STAMINAMAXPER));  
+        this.staminaRegen = doubleStats.get(Stat.STAMINAREGEN) * (1 + doubleStats.get(Stat.STAMINAREGENPER));
+        this.fullSpeed = doubleStats.get(Stat.DBLFACTOR) + ((double)intStats.get(Stat.SPEED))/(getInt(Stat.SPDRATER, 1));        
+    }
+    
+    
+    
+    
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.        
@@ -748,4 +829,24 @@ public class MovingEntity extends Entity {
     }
     
     
+    @Override
+    public String toString() {
+        String s = this.id + ":"+ this.name + " loaded with their characteristics \n" +
+                intStats.get(Stat.STRENGTH) + " strength \n" +
+                intStats.get(Stat.AGILITY) + " agility \n" +
+                intStats.get(Stat.ENDURANCE) + " endurance \n" +
+                intStats.get(Stat.SPEED) + " speed \n" +                
+                this.damage + " damage \n" +
+                this.maxHealth + " maxHealth \n" +
+                this.maxStamina + " maxStamina \n" +
+                intStats.get(Stat.ATKRATING) + " atkRating \n" +
+                intStats.get(Stat.DEFRATING) + " defRating \n" +
+                this.attackPower + " atkPower \n" +
+                this.defensePower + " defPower \n" +
+                this.maxPower + " maxPower \n" +
+                "------------------------------------------------------------------------------ \n";
+        return s;
+        
+    }           
+   
 }

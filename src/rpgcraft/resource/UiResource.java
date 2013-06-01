@@ -122,6 +122,7 @@ public class UiResource extends AbstractResource<UiResource> {
     private boolean active;
     private boolean visible;
     private UiPosition position;
+    private int transPosX,transPosY;
     private UiPosition imagePosition;
     private UiPaintMode mode;
     private AbstractType type;
@@ -593,10 +594,10 @@ public class UiResource extends AbstractResource<UiResource> {
                                 }
                             }   break;
                             default :
-                                position = UiPosition.valueOf(eNode.getTextContent());                            
+                                setPositions(eNode);                                      
                         }
                     }                    
-                    position = UiPosition.valueOf(eNode.getTextContent());                     
+                    setPositions(eNode);
                 } break;     
                 case LayoutXML.LISTDATA : {
                     if(type.getUiType() == UiType.LIST) {
@@ -897,6 +898,22 @@ public class UiResource extends AbstractResource<UiResource> {
     }
     
     /**
+     * Metoda ktora vrati posunutu poziciu o x-ovu suradnicu
+     * @return X-ova posunuta pozicia
+     */
+    public int getTransPosX() {
+        return transPosX;
+    }
+    
+    /**
+     * Metoda ktora vrati posunutu poziciu o y-ovu suradnicu
+     * @return Y-ova posunuta pozicia
+     */
+    public int getTransPosY() {
+        return transPosY;
+    }
+    
+    /**
      * Metoda ktora vrati poziciu obrazku v komponente v ktorej sa nachadza.     
      * @return Pozicia komponenty v komponente
      * @see UiPosition
@@ -965,6 +982,21 @@ public class UiResource extends AbstractResource<UiResource> {
      */
     public boolean isVisible() {
         return visible;
+    }
+    
+    /**
+     * Metoda ktora nastavi pozicie komponenty z tagu position
+     * @param eNode Vrchol typu position
+     */
+    public void setPositions(Node eNode) {
+        position = UiPosition.valueOf(eNode.getTextContent()); 
+        Element element = (Element)eNode;
+        if (element.hasAttribute(LayoutXML.X)) {
+            transPosX = Integer.parseInt(element.getAttribute(LayoutXML.X));
+        }
+        if (element.hasAttribute(LayoutXML.Y)) {
+            transPosY = Integer.parseInt(element.getAttribute(LayoutXML.Y));
+        }
     }
     
     /**

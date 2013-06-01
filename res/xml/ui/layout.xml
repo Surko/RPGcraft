@@ -156,20 +156,7 @@ DATA@ASSIGN(VAR#a,b)</action>
     <actions>
       <action type="KEY" code="VK_P">DATA@IF(COMPOP@IS_VISIBLE(inventory),COMPOP@SET_INVISIBLE(inventory),COMPOP@SET_VISIBLE(inventory))</action>      
     </actions>     
-    <elements>            
-      <element>
-      <id>playerh</id>
-      <type>BAR</type>
-      <layout>        
-        <width>100</width>
-        <height>20</height>
-      </layout>    
-      <background>        
-        <background-color>healthColor</background-color>
-      </background>
-      <data>HEALTH/MAXHEALTH</data>
-      <position>BOTTOM_LEFT</position>
-      </element>
+    <elements>                                
       <element>
       <id>playerstats</id>
       <type>PANEL</type>
@@ -183,6 +170,32 @@ DATA@ASSIGN(VAR#a,b)</action>
         <image-height>ORIGINAL</image-height>
       </background>
       <position>BOTTOM_LEFT</position>      
+      </element>
+      <element>
+      <id>playerh</id>
+      <type>BAR</type>
+      <layout>        
+        <width>272</width>
+        <height>8</height>
+      </layout>    
+      <background>        
+        <background-color>healthColor</background-color>
+      </background>
+      <data>HEALTH/MAXHEALTH</data>
+      <position x="80" y="-72">BOTTOM_LEFT</position>
+      </element>
+      <element>
+      <id>players</id>
+      <type>BAR</type>
+      <layout>        
+        <width>272</width>
+        <height>8</height>
+      </layout>    
+      <background>        
+        <background-color>staminaColor</background-color>
+      </background>
+      <data>STAMINA/MAXSTAMINA</data>
+      <position x="80" y="-64">BOTTOM_LEFT</position>
       </element>
     </elements>        
   </element>

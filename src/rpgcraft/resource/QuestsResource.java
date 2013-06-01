@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Element;
@@ -29,7 +30,7 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
     private String id, text, label;    
     private ArrayList<Action> actions;
     private int stateId = -1;
-    private HashMap<Integer, ArrayList<Action>> stateActions;
+    private TreeMap<Integer, ArrayList<Action>> stateActions;
     private HashMap<Integer, String> stateTexts;
     
     private QuestsResource(Element elem) {
@@ -72,8 +73,8 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
         return stateTexts.values();
     }
     
-    public ArrayList<Action> getStateActions(int stateId) {
-        return stateActions.get(stateId);
+    public ArrayList<Action> getStateActions(int stateId) {                
+        return stateActions.floorEntry(stateId).getValue();
     }
     
     @Override
@@ -87,7 +88,7 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
                     this.id = eNode.getTextContent();
                 } break;  
                 case QuestXML.QUESTSTATES : {
-                    stateActions = new HashMap();
+                    stateActions = new TreeMap();
                     stateTexts = new HashMap();
                     parse((Element)eNode);
                 } break;
@@ -162,6 +163,7 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
                                 } break;
                                 case LISTENER : {
                                     action.setLua(false);
+                                    action.makeListener();
                                 }
                                 default : break;
                             }
@@ -183,8 +185,7 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
                         }
                     } else {
                         action.setClickType(ActionType.START);
-                    }
-                    action.makeListener();
+                    }                    
                     actions.add(action);
                 } break;
             }

@@ -6,6 +6,7 @@ package rpgcraft.map;
 
 import rpgcraft.map.generators.MapGenerator;
 import rpgcraft.entities.Player;
+import rpgcraft.entities.Entity;
 import rpgcraft.entities.MovingEntity;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -17,14 +18,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import rpgcraft.GamePane;
 import rpgcraft.MainGameFrame;
-import rpgcraft.entities.*;
+import rpgcraft.effects.Effect;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.*;
 import rpgcraft.graphics.ui.particles.Particle;
@@ -33,14 +34,16 @@ import rpgcraft.manager.PathManager;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.chunks.ChunkContent;
 import rpgcraft.map.tiles.*;
+import rpgcraft.panels.GameMenu;
 import rpgcraft.plugins.RenderPlugin;
 import rpgcraft.resource.StringResource;
+import rpgcraft.utils.MainUtils;
 /**
  *
  * @author Kirrie
  */
 
-public class SaveMap  {          
+public class SaveMap implements Runnable {                  
     
     /* 
      * Pre zistenie kam ma zaradit mapu budem pouzivat bitove operacie posunu doprava o 4,
@@ -59,12 +62,16 @@ public class SaveMap  {
     
     private RenderPlugin render;
     
-    private int gameTime = 6 ;
+    protected short dayTime;    
+    protected DayLighting dayLight;
+    protected long lastSecond;
+    protected int gameTime = 6;
     
     protected int x;
     protected int y;
     
-    private final GamePane game;    
+    private final GamePane game;  
+    private final GameMenu menu;
     private final InputHandle input;
     public static final boolean defineTileself = true;
     public static final int chunkSize = 25;            
@@ -77,14 +84,19 @@ public class SaveMap  {
     private boolean lightState = true;
     private boolean chunkState = true;
     private boolean playerState = true;
+    private boolean paused = false;
+    private boolean running = true;
     
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
     
-    protected volatile ArrayList<Entity> entities = new ArrayList<>();
+    protected ArrayList<Effect> onSelfEffects;
+    protected volatile ArrayList<Entity> nearEntities = new ArrayList<>();
+    protected volatile ArrayList<Entity> entitiesList = new ArrayList<>();
+    // Entity na poziciach protected volatile HashMap<EntityPosition, ArrayList<Entity>> entities;
     protected volatile ArrayList<Particle> particles = new ArrayList<>();
     
-    protected volatile HashMap<Integer,Entity> tileEntities = new HashMap<>();
+    //protected volatile HashMap<Integer,Entity> tileEntities = new HashMap<>();
     
     private Graphics2D g2d;
     
@@ -95,8 +107,7 @@ public class SaveMap  {
     private int width;
     private int height;
     public int xCoordinate,yCoordinate;
-        
-    private DayLighting dayLight;
+    
     
     private int screenLength;    
     
@@ -109,13 +120,19 @@ public class SaveMap  {
     private static int jammedMenu = 0;
     
     public SaveMap(Save save) {
+        //this.entities = new HashMap<>();
+        this.menu = save.menu;
         this.game = save.game; 
+        this.running = true;        
         this.input = save.input;
         this.saveName = save.saveName;
         this.width = game.getWidth();
         this.height = game.getHeight();
-        this.dayLight = new DayLighting();
+        this.dayLight = new DayLighting(gameTime);
+        this.nearEntities = new ArrayList<>();
+        this.onSelfEffects = new ArrayList<>();
         this.numberOfChunks = 3;
+        this.lighting = true;
         this.screenLength = numberOfChunks << 9;        
         this.chunksToRender = new Chunk[numberOfChunks][numberOfChunks];
         render = RenderPlugin.loadRender("sk.jar");
@@ -149,7 +166,7 @@ public class SaveMap  {
         
             render.paintBackground(g, chunksToRender);
             //paintFlora(g);
-            render.paintEntitiesParticles(g, entities, particles);   
+            render.paintEntitiesParticles(g, entitiesList, particles);   
             
             if (lighting) {
                 render.paintLighting(g);                        
@@ -164,14 +181,17 @@ public class SaveMap  {
     }
     
     public void update() {
-        updateAround(player);
+        updateAround(player); 
         updateEntities();
+        if (isSecond()) {  
+            updateTime();
+            updateEffects();         
+            updateLighting();      
+        }
         if (particle) {
             updateParticles();
         }       
-        if (lighting) {
-            updateLighting();      
-        }
+        
     }        
     
     private void updateAround(Entity e) {
@@ -191,7 +211,7 @@ public class SaveMap  {
                     chunksToRender[i][j] = chunkXYExist(_xcurrent-(numberOfChunks / 2) + j, _ycurrent - (numberOfChunks / 2) + i);
                 }
             }                        
-                        
+            
             chunkState = false;
         }                                        
         //debuggingText();                
@@ -201,23 +221,62 @@ public class SaveMap  {
                              
     }
     
+    private void updateTime() {
+        dayTime++;
+        if (dayTime >= 60) {
+            gameTime++;
+            if (gameTime >= 24) {
+                gameTime = 0;
+            }
+            lightState = true;
+            dayTime = 0;
+        }
+    }
+    
+    private void updateEffects() {
+        /* Riesenie cez iterator ktory vymaze z aktivnych efektov taky ktory
+         * uz skoncil alebo tam nejakym sposobom nepatri. Vyberame iba effeckty typu
+         * ONSELF ktore sa vykonavaju kazdu sekundu na entite. Dalsie efekty sa vykonavaju v prislucnych
+         * blokoch/metodach (ONUSE - use metoda, ONEQUIP - equip metoda, ... atd)
+         * Bez iteratora, vymazavanim rovno z Listu by vyhodilo ConcurrentModificationException
+         */                      
+        if (!onSelfEffects.isEmpty()) {
+            for (Iterator<Effect> iter = onSelfEffects.iterator(); iter.hasNext();) {
+                    if (!(iter.next()).update()) {
+                        iter.remove();                    
+                }
+            }
+        }           
+        
+    }
+    
     private void updateEntities() {
-        for (Entity e: entities) {
+        nearEntities.clear();
+        for (Entity e: entitiesList) {            
+            if (player.getLevel() == e.getLevel() && Math.abs(e.getX() - player.getX()) < 10
+                    && Math.abs(e.getY() - player.getY()) < 10) {
+                nearEntities.add(e);
+            }
+        }
+        
+        for (Entity e : nearEntities) {
             if (!e.update()) {
                 entityRemove.add(e);
             }
         }
         
         if (!entityRemove.isEmpty()) {
-            entities.remove(entityRemove.pop());
+            entitiesList.remove(entityRemove.pop());
         }
     }
     
-    private void updateLighting() {                      
-        if (lightState) {
-            dayLight.init(gameTime);  
-            render.makeLightingMap(dayLight);
-            lightState = false;
+    private void updateLighting() {         
+        if (lighting) {
+            if (lightState) {
+                dayLight.init(gameTime);  
+                render.makeLightingMap(dayLight);
+                lightState = false;
+            }
         }
     }
           
@@ -256,8 +315,9 @@ public class SaveMap  {
     }                
     
     public void setLevel(int level) {
-        if (level < Chunk.getDepth())
+        if (level < Chunk.getDepth()) {
             this._lcurrent = level;
+        }
     }
     
     public void incLevel() {
@@ -267,6 +327,22 @@ public class SaveMap  {
     public void decLevel() {
         this._lcurrent--;
     }        
+    
+    public void start() {
+        this.running = true;
+    }
+    
+    public void end() {
+        this.running = false;
+    }
+    
+    public boolean isSecond() {
+        if (MainUtils.SECONDTIMER - lastSecond >= 1)  {
+            lastSecond = MainUtils.SECONDTIMER;
+            return true;
+        }
+        return false;
+    }
     
     public MovingEntity getPlayer() {
         return player;
@@ -284,21 +360,67 @@ public class SaveMap  {
         return dayLight;
     }
     
+    public long getTime() {
+        return dayTime;
+    }
+    
+    /**
+     * Metoda ktora vrati stav chunkov a ci sa maju preinitializovat
+     * @return True/false ci sa initializuju chunky.
+     */
     public boolean getChunkState() {
         return chunkState;
     }
     
+    /**
+     * Metoda ktora vrati stav ci sa zobrazuje osvetlenie.
+     * @return True/false ci je aktivne osvetlenie.
+     */
     public boolean hasLighting() {
         return lighting;
     }        
     
+    /*
+    public ArrayList<Entity> getEntity(int x, int y) {
+        EntityPosition pos = new EntityPosition(x, y);
+        return entities.get(pos);
+    }
+    * */
+    
     public Entity getEntity(String name) {
-        for (Entity e : entities) {
+        for (Entity e : entitiesList) {
             if (e.getName().equals(name)) {
                 return e;
             }
         }
         return null;
+    }
+    
+    public Entity getEntity(long uniId) {
+        for (Entity e : entitiesList) {
+            if (e.getUniId() == uniId) {
+                return e;
+            }
+        }
+        return null;
+    }
+    
+    public ArrayList<Effect> getAllEffects() {
+        return onSelfEffects;
+    }
+    
+    public ArrayList<Effect> getEffects(Entity e) {
+        ArrayList<Effect> result = new ArrayList<>();
+        for (Effect effect : onSelfEffects) {
+            if (effect.getDestUniId() == e.getUniId()) {
+                result.add(effect);
+            }
+        }
+        return result;
+    }
+    
+    public GameMenu getMenu() {
+        return menu;
     }
     
     public int getLevel() {
@@ -350,19 +472,50 @@ public class SaveMap  {
         return loadMapOnBegin(x >> 9, y >> 9);  
     }
 
+    /*
+    public void addEntityToPosition(Entity e) {
+        ArrayList<Entity> positionEntities = entities.get(e.getPosition());
+        if (positionEntities == null) {
+            positionEntities = new ArrayList<>();
+            entities.put(e.getPosition(), positionEntities);            
+        } else {
+            if (positionEntities.contains(e)) {
+                return;
+            }
+        }
+        positionEntities.add(e);
+    }
+    */
+    
+    public void addEffect(Effect effect) {
+        this.onSelfEffects.add(effect);
+    }
+    
     public boolean addEntity(Entity e) {
         if (e instanceof Player) {
             this.player = (Player) e;
-            this.render.setMap(this);
-            System.out.println("HOTOVO");
+            this.render.setMap(this);            
             this.player.setHandling(input);
-            entities.add(e);
+            entitiesList.add(e);             
             _lcurrent = e.getLevel();
             return true;            
         }
-        
-        return entities.add(e);
+        //addEntityToPosition(e);
+        return entitiesList.add(e);
     }
+        
+    public void removeEntity(Entity e) {
+        entityRemove.add(e);
+        //entities.get(e.getPosition()).remove(e);
+    }     
+    
+    /*
+    public void removeFromPos(Entity e) {
+        ArrayList<Entity> posEntities = entities.get(e.getPosition());
+        if (posEntities != null) {
+            posEntities.remove(e);
+        }
+    } */
     
     public boolean addParticle(Particle particle) {
         return particles.add(particle);
@@ -391,6 +544,10 @@ public class SaveMap  {
         
         if (player != null) {
             player.inputHandling();
+        }
+        
+        if (input.clickedKeys.contains(input.lighting.getKeyCode())) {
+            lighting = !lighting;
         }
         
         if (input.clickedKeys.contains(input.stat.getKeyCode())) {
@@ -424,10 +581,14 @@ public class SaveMap  {
     
     public int getHeight() {
         return height;
+    }    
+    
+    public ArrayList<Entity> getNearEntities() {
+        return nearEntities;
     }
     
-    public ArrayList<Entity> getEntities() {
-        return entities;
+    public ArrayList<Entity> getAllEntities() {
+        return entitiesList;
     }
     
     public int getGameTime() {
@@ -436,6 +597,8 @@ public class SaveMap  {
     
     public void setGameTime(int time) {
         this.gameTime = time;
+        dayLight.init(time);
+        lightState = true;
     }
     
     public void increaseGameTime() {
@@ -567,7 +730,7 @@ public class SaveMap  {
                 if ((chunk.getX() == x)&&(chunk.getY() == y)) {                                        
                     // Objekt s entitami, ktory ulozime k Chunku.
                     ArrayList<Entity> entSave = new ArrayList<>();
-                    for (Entity e : entities) {
+                    for (Entity e : entitiesList) {
                         if ((e.getRegX() == x )&&(e.getRegY() == y)) {
                             entSave.add(e);                        
                             e.setSaved(true);
@@ -595,7 +758,7 @@ public class SaveMap  {
             
             // Objekt s entitami, ktory ulozime k Chunku.
             ArrayList<Entity> entSave = new ArrayList<>();
-            for (Entity e : entities) {
+            for (Entity e : entitiesList) {
                 if ((e.getRegX() == chunkX )&&(e.getRegY() == chunkY)) {
                     entSave.add(e);
                     e.setSaved(true);                    
@@ -633,6 +796,19 @@ public class SaveMap  {
                 ImageIO.write((BufferedImage)tile.getImage(0), "jpg", new File("./"+tile.getName()+".jpg"));
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+        
+    @Override
+    public void run() {
+        while (running && !paused) {
+            try {
+                updateEntities();
+                System.out.println(Thread.currentThread());
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SaveMap.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

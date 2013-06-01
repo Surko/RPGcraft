@@ -18,6 +18,7 @@ public final class PathManager {
     public static final String INMENUPLUG = "inmenu-plugins";
     public static final String MENUPLUG = "menu-plugins";
     public static final String ITEMGENPLUG = "itemgen-plugins";
+    public static final String LISTPLUG = "listener-plugins";
     
     public static final String RENDER = "render";   
     private static final String SAVE = "saves";

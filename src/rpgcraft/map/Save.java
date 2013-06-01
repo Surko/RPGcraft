@@ -18,12 +18,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import rpgcraft.GamePane;
+import rpgcraft.effects.Effect;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.map.chunks.Chunk;
+import rpgcraft.panels.GameMenu;
 import rpgcraft.resource.StringResource;
 import rpgcraft.utils.DataUtils;
+import rpgcraft.utils.MainUtils;
 
 /**
  *
@@ -51,6 +54,7 @@ public class Save {
     
     private static final Logger LOG = Logger.getLogger(Save.class.getName());
     
+    protected GameMenu menu;
     protected GamePane game;
     protected InputHandle input;
     protected String saveName;
@@ -60,18 +64,26 @@ public class Save {
     
     private SaveMap state;
     
-    public Save(String saveName, GamePane game, InputHandle input) {
+    public Save(String saveName, GamePane game, GameMenu menu, InputHandle input) {
         this.saveName = saveName;
         this.game = game;
+        this.menu = menu;
         this.input = input;
     }
     
     public void saveAndQuit(BufferedImage thumbImage) {
         try {
+            state.end();
             outputStream = new ObjectOutputStream(new FileOutputStream(
                             PathManager.getInstance().getWorldSavePath(saveName, true) + File.separator + "world.info"));   
             outputStream.writeUTF(saveName);
             outputStream.writeUTF(DataUtils.getCurrentDate());
+            outputStream.writeLong(MainUtils.objectId);            
+            outputStream.writeLong(MainUtils.SECONDTIMER);
+            outputStream.writeLong(state.lastSecond);            
+            outputStream.writeShort(state.dayTime);
+            outputStream.writeInt(state.gameTime);
+            outputStream.writeObject(state.getAllEffects());
             
             ImageIO.write(thumbImage, "JPG", PathManager.getInstance().getWorldSavePath(saveName + File.separator + "world.jpg", true));
             
@@ -86,7 +98,7 @@ public class Save {
             for (Chunk chunk : state.chunkQueue) {
                 state.saveMap(chunk);
             }
-            state.entities.clear();
+            state.entitiesList.clear();            
             LOG.log(Level.INFO, StringResource.getResource("_label_confirmsave"), saveName);
             
             
@@ -106,14 +118,27 @@ public class Save {
             // DATUM - mozne doplnit na nejake testovanie, posledne prihlasenie, atd...
             inputStream.readUTF();
             
+            // Nacitanie pocitadla objektov
+            MainUtils.objectId = inputStream.readLong();
+            // Nacitanie casu v hre
+            MainUtils.SECONDTIMER = inputStream.readLong();
+            state.lastSecond = inputStream.readLong();            
+            state.dayTime = inputStream.readShort();
+            state.setGameTime(inputStream.readInt());
+            // Nacitanie efektov ktore sa spracovavaju v mape
+            state.onSelfEffects = (ArrayList<Effect>) inputStream.readObject();
+            
             // Nacitavanie thumbImage vynechavam co neznamena zeby sa nedalo na nieco vyuzit
             
             // Pozicia stredneho chunku okolo ktoreho sa loaduje.
             int chunkX = inputStream.readInt();
-            int chunkY = inputStream.readInt();
+            int chunkY = inputStream.readInt();                        
             
             inputStream.close();
-            state.loadMapAround(chunkX, chunkY);                        
+            state.loadMapAround(chunkX, chunkY);             
+            for (Effect effect : state.onSelfEffects) {
+                effect.reinitEntities(state);
+            }
             
         } catch (Exception ex) {
             if (ex instanceof FileNotFoundException) {

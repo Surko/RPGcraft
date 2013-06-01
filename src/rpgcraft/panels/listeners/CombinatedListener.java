@@ -28,4 +28,9 @@ public class CombinatedListener extends Listener {
             e.setJumpValue(1);
         }
     }
+
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.COMPOP.toString();
+    }
 }                    

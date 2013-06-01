@@ -76,6 +76,25 @@ public class MathUtils {
         return positions;
     }
     
+    /**
+     * Metoda getStartPositions vrati pole s dvoma hodnotami (x-ova, y-ova pozicia),
+     * od ktorej vykreslujeme nejaky resource. Hodnoty w1 a h1 je dlzka a vyska
+     * otcovskeho kontajneru, pricom w2 a h2 toho mensieho
+     * @param w1 Dlzka otcovskeho kontajneru v ktorom je resource
+     * @param h1 Vyska otcovskeho kontajneru v ktorom je resource
+     * @param w2 Dlzka resource
+     * @param h2 Vyska resource
+     * @return Pozicie od ktorych vykreslujeme
+     */
+    public static int[] getStartPositions(UiResource resource, int w1, int h1, int w2, int h2) {
+
+        int[] positions = getStartPositions(resource.getPosition(), w1, h1, w2, h2);        
+        positions[0] += resource.getTransPosX();
+        positions[1] += resource.getTransPosY();
+        return positions;
+    }
+    
+    
     private static int getSpecificLength(UiResource resource, Container cont, String length, int minLength, boolean state) {
         
         switch (length) {

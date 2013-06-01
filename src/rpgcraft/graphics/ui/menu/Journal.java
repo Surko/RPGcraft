@@ -68,8 +68,8 @@ public class Journal extends AbstractInMenu {
      * @return Initializovany journal.
      */
     @Override
-    public Journal initialize(AbstractInMenu origMenu, Entity e) {
-        this.entity = e;
+    public Journal initialize(AbstractInMenu origMenu, Entity e1, Entity e2) {
+        this.entity = e1;
         this.input = origMenu.getInput();
         this.menu = origMenu.getMenu();
         this.changedState = true;
@@ -90,8 +90,8 @@ public class Journal extends AbstractInMenu {
     public final void recalculatePositions() {
         this.xPos = wGap;
         this.yPos = hGap;
-    }
-
+    }   
+        
     @Override
     protected final void setGraphics() {
         super.setGraphics();

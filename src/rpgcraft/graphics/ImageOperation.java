@@ -79,7 +79,7 @@ public class ImageOperation {
      * @param img Originalny obrazok.
      */    
     public ImageOperation(BufferedImage img) {
-        this.origImage = img;
+        this.origImage = img;        
     }
     
     /**
@@ -91,13 +91,12 @@ public class ImageOperation {
      * @param type Typ obrazku aky chceme mat v BufferedImage.
      * @see ImageButton
      */
-    public void createBufferedImages(int type) {
-        
+    public void createBufferedImages(int type) {        
         destImage = new BufferedImage(origImage.getWidth(null),
                                   origImage.getHeight(null),
                                   type);
         destImage.getGraphics().drawImage(origImage, 0, 0, null);        
-        showImage = destImage;
+        showImage = destImage;            
     }
     
     /**

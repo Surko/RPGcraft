@@ -20,9 +20,14 @@ public class CombinatedItem extends Item{
     private MiscType miscType;
     
     
+    public CombinatedItem() {
+        
+    }
+    
     public CombinatedItem(String name, EntityResource res) {
         this.name = name;
         this.res = res;
     }
+   
     
 }

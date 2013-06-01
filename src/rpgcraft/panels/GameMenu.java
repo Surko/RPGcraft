@@ -19,12 +19,14 @@ import rpgcraft.entities.Player;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.ui.menu.CharInfo;
+import rpgcraft.graphics.ui.menu.ConversationPanel;
 import rpgcraft.graphics.ui.menu.InventoryMenu;
 import rpgcraft.graphics.ui.menu.Journal;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
 import rpgcraft.map.Save;
 import rpgcraft.map.SaveMap;
+import rpgcraft.map.tiles.Tile;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
@@ -191,26 +193,27 @@ public class GameMenu extends AbstractMenu implements Runnable {
     public synchronized void loadMapInstance(String saveName) {                 
         
         if (!gamePane.hasXmlInitialized()) {                         
-            gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                  
+            try {
+                gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                                       
+            } catch (Exception e) {
+                new MultiTypeWrn(e, Color.RED, StringResource.getResource("_resourcerror"),
+                        null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+            }                                                        
         } else {
             LOG.log(Level.INFO, "Xml files were already initialized ---> ABORT");
-        }
-                        
-        this.save = new Save(saveName,gamePane, input); 
-        
+        }        
+                
+        this.save = new Save(saveName,gamePane, this, input); 
+        Tile.initializeTiles();
         Logger.getLogger(getClass().getName()).log(Level.INFO, "Game map set");
         
         if (save.loadAndStart(saveName)) {
                                     
-            saveMap = save.getSaveMap();
-            saveMap.initializeTiles();
+            saveMap = save.getSaveMap();            
             saveMap.loadMapAround(0,0);              
             player = saveMap.player;
             
-            setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
-            InventoryMenu inventory = new InventoryMenu(player, input, this);
-            Journal journal = new Journal(player, input, this);
-            CharInfo charInfo = new CharInfo(player, input, this);
+            setWidthHeight(gamePane.getWidth(), gamePane.getHeight());            
             
             if (saveMap.player == null) {
                 LOG.log(Level.WARNING, StringResource.getResource("_mplayer"));
@@ -219,7 +222,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
             if (PAINTING_TYPE == 2) {
                 buffThread = new Thread(this);        
                 buffThread.start();
-            }
+            }                        
         }
         
     }
@@ -233,50 +236,100 @@ public class GameMenu extends AbstractMenu implements Runnable {
         this.menu = menu;
         jammedMenu = 10;                
         }*/
+        MainUtils.stopped = false;
         this.inMenu = inMenu;        
         if (inMenu != null) {
+            MainUtils.stopped = true;
             inMenu.activate();            
             inMenu.setVisible(true);
             inMenu.recalculatePositions();
         }    
     }
     
-    public void showInMenu(String sMenu, Entity e) {
+    public void showInMenu(String sMenu, Entity e1, Entity e2) {
         AbstractInMenu menu = AbstractInMenu.getMenu(sMenu);
-        if (menu == null) {
+        if (menu == null) {                        
             return;
         }
         
-        if (e == null) {
-            setInMenu(menu.newInstance(player));
+        if (e1 == null) {
+            setInMenu(menu.newInstance(player, e2));
         } else {
-            setInMenu(menu.newInstance(e));
-        }                
+            setInMenu(menu.newInstance(e1, e2));
+        }        
     }
     
-    public void showJournal() {
+    public AbstractInMenu showMenu(Class<? extends AbstractInMenu> newClass, String sMenu, Entity e1, Entity e2) {
+        AbstractInMenu menu = AbstractInMenu.getMenu(sMenu);
+        if (menu == null) {                        
+            try {
+                menu = newClass.newInstance();
+                menu.reinitialize(e1, input, this);
+                AbstractInMenu.addMenu(menu);
+            } catch (InstantiationException ex) {
+                Logger.getLogger(GameMenu.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(GameMenu.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        if (e1 == null) {
+            menu = menu.newInstance(player, e2);
+            setInMenu(menu);
+        } else {
+            menu = menu.newInstance(e1, e2);
+            setInMenu(menu);
+        }       
+        
+        return menu;
+        
+    }
+    
+    public Journal showJournal() {
         Journal journal = (Journal)Journal.getJournalMenu();
         if (journal == null) {
             journal = new Journal(player, input, this);
-        }        
-        setInMenu(journal.newInstance(player));        
+        }                
+        journal = (Journal)journal.newInstance(player, null);
+        setInMenu(journal);  
+        return journal;
     }
     
-    public void showInventory(Entity e) {
+    public CharInfo showInfo(Entity e) {
+        CharInfo info = (CharInfo)CharInfo.getCharacterMenu();
+        if (info == null) {
+            info = new CharInfo(player, input, this);
+        }    
+                
+        if (e == null) {
+            info = (CharInfo)info.newInstance(player, null);
+            setInMenu(info);         
+        } else {
+            info = (CharInfo)info.newInstance(e, null);
+            setInMenu(info);
+        }
+        
+        return info;
+    }
+    
+    public InventoryMenu showInventory(Entity e) {
         InventoryMenu inventory = InventoryMenu.getInventoryMenu();
         if (inventory == null) {
             inventory = new InventoryMenu(player, input, this);
         }
         
         if (e == null) {
-            setInMenu(inventory.newInstance(player));
+            inventory = (InventoryMenu)inventory.newInstance(player, null);
+            setInMenu(inventory);
         } else {
-            setInMenu(inventory.newInstance(e));
-        }
-                
+            inventory = (InventoryMenu)inventory.newInstance(e, null);
+            setInMenu(inventory);
+        } 
+        
+        return inventory;
     }
     
-    public void showCharacter(Entity e) {                
+    public CharInfo showCharacter(Entity e) {                
         CharInfo charInfo = CharInfo.getCharacterMenu();
         
         if (charInfo == null) {
@@ -284,11 +337,32 @@ public class GameMenu extends AbstractMenu implements Runnable {
         }
         
         if (e == null) {
-            setInMenu(charInfo.newInstance(player));
+            charInfo = (CharInfo)charInfo.newInstance(player, null);
+            setInMenu(charInfo);
         } else {
-            setInMenu(charInfo.newInstance(e));
+            charInfo = (CharInfo)charInfo.newInstance(e, null);
+            setInMenu(charInfo);
         }
              
+        return charInfo;
+    }
+    
+    public ConversationPanel showConversation(Entity e1, Entity e2) {                
+        ConversationPanel conversation = ConversationPanel.getConversationPanel();
+        
+        if (conversation == null) {
+            conversation = new ConversationPanel(player, e2,input, this);
+        }
+        
+        if (e1 == null) {
+            conversation = (ConversationPanel)conversation.newInstance(player, e2);
+            setInMenu(conversation);
+        } else {
+            conversation = (ConversationPanel)conversation.newInstance(e1, e2);
+            setInMenu(conversation);
+        }
+             
+        return conversation;
     }
     
     /**
@@ -302,38 +376,46 @@ public class GameMenu extends AbstractMenu implements Runnable {
             return false;
         }                
         
-        this.save = new Save(saveName,gamePane, input);        
+        this.save = new Save(saveName,gamePane, this, input);        
         
         Logger.getLogger(getClass().getName()).log(Level.INFO, "Game map set");
         
         if (!gamePane.hasXmlInitialized()) {                         
-            gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                  
+            try {
+                gamePane.initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                                       
+            } catch (Exception e) {
+                new MultiTypeWrn(e, Color.RED, StringResource.getResource("_resourcerror"),
+                        null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+            }                                                        
         } else {
-            LOG.log(Level.INFO, "Xml files were already initialized ---> ABORT");
-        }
+            LOG.log(Level.INFO, StringResource.getResource("_xmlinitialized"));
+        } 
         save.createNewSave();
         
         SaveMap _saveMap = save.getSaveMap();
-        _saveMap.initializeTiles();
-        _saveMap.loadMapAround(0,0);                          
+        _saveMap.initializeTiles();                                 
+            
         
-        // Testovacie riadky na vytvorenie dvoch entit. Tieto prikazy mozu byt v samostatnej metode na inicializaciu. Napriklad pri update
-        // a kontrolovanie ci uz bolo inicializovane. v load map instance taketo prikazy niesu a preto vzdy budu initialized na true pri load.
-        MovingEntity entity = new MovingEntity("Zombie", _saveMap, EntityResource.getResource("Zombie"));        
-        entity.initialize();        
-        entity.trySpawn();
-        MovingEntity entity2 = new MovingEntity("Zombie", _saveMap, EntityResource.getResource("Zombie"));        
-        entity2.initialize();         
-        entity2.trySpawn();
-        //entity.setImpassableTile(1); 
+        // Nacitanie playera 
         Player _player = new Player("Surko", _saveMap, EntityResource.getResource("_player"));
-        _player.initialize();
+        _player.initialize();        
         _player.trySpawn();
         _player.setHandling(input);
         _player.setLightRadius(6);
         _player.setSound(128);
-        _player.addQuest("fetch");
+        _player.addQuest("fetch");        
         player = _player;
+        // Testovacie riadky na vytvorenie dvoch entit. Tieto prikazy mozu byt v samostatnej metode na inicializaciu. Napriklad pri update
+        // a kontrolovanie ci uz bolo inicializovane. v load map instance taketo prikazy niesu a preto vzdy budu initialized na true pri load.
+        MovingEntity entity = new MovingEntity("Zombie", _saveMap, EntityResource.getResource("Zombie"));        
+        entity.initialize();        
+        entity.trySpawn(player, 64);
+        MovingEntity entity2 = new MovingEntity("Zombie", _saveMap, EntityResource.getResource("Zombie"));        
+        entity2.initialize();         
+        entity2.trySpawn(player, 64);        
+                
+        // Nacitanie mapy okolo hraca
+        _saveMap.loadMapAround(player); 
         //player.setImpassableTile(1);
         
         Item item = Item.createItem("Healing Potion",EntityResource.getResource("healing1"));
@@ -341,18 +423,10 @@ public class GameMenu extends AbstractMenu implements Runnable {
         player.addItem(item);
         player.addItem(item);
         player.addItem(item);
-        player.addItem(item);
-        
-        // DEBUG PRE PRIDANIE HRACA, vylucitelne s nacitanim mapy
-        _saveMap.addEntity(player);
-        _saveMap.addEntity(entity); 
-        //map.addEntity(entity2);
-        
+        player.addItem(item);                        
+                
         saveMap = _saveMap;
-        setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
-        InventoryMenu inventory = new InventoryMenu(player, input, this);
-        Journal journal = new Journal(player, input, this);
-        CharInfo charInfo = new CharInfo(player, input, this);          
+        setWidthHeight(gamePane.getWidth(), gamePane.getHeight());                 
                                 
         if (saveMap.player == null) {
             LOG.log(Level.WARNING, StringResource.getResource("_mplayer"));
@@ -362,7 +436,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
             buffThread = new Thread(this);        
             buffThread.start();
         }
-        
+                
         return true;
     }
     // </editor-fold>
@@ -391,6 +465,10 @@ public class GameMenu extends AbstractMenu implements Runnable {
             if (input.clickedKeys.contains(input.quest.getKeyCode())) {
                 showJournal();
             }
+            
+            if (input.clickedKeys.contains(input.character.getKeyCode())) {
+                showInfo(player);
+            }
 
             // Ulozenie hry pri stlaceni ESC
             if (input.clickedKeys.contains(input.escape.getKeyCode())) {
@@ -411,20 +489,13 @@ public class GameMenu extends AbstractMenu implements Runnable {
     
     @Override
     public synchronized void update() {
-        super.update();
-        if (MainUtils.TICK > 2500) {
-            if (saveMap.getGameTime()==24) {
-                saveMap.setGameTime(0);
-            }
-            saveMap.increaseGameTime();
-            saveMap.setLightState(true);
-            MainUtils.TICK = 0;
-        }          
-        input.keyUpdates();
-        saveMap.update();
-        if (inMenu != null) {
+        super.update();        
+         if (inMenu != null) {
             inMenu.update();
+        } else {
+            saveMap.update();               
         }
+        
         hasToRepaint = true;
         
     }

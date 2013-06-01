@@ -5,6 +5,7 @@
 package rpgcraft.panels.listeners;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +17,8 @@ import rpgcraft.resource.StringResource;
  */
 public class ListenerFactory {
     
+    private static ArrayList<Listener> plugListeners = new ArrayList<>();
+    
     public enum Commands {
         MENUOP,
         LOAD,
@@ -23,11 +26,10 @@ public class ListenerFactory {
         DATA,
         GAME,
         ENTITY,
-        ITEM
+        ITEM,        
     }
     
-    private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());
-    public static final Listener blankListener = new Listener();
+    private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());    
     
     public static final int maxListeners = 100;    
     public static HashMap<String, Listener> listeners = new HashMap<>();        
@@ -117,13 +119,13 @@ public class ListenerFactory {
                 parts = new String[2];
                 parts[0] = command.substring(0, fstAt);
                 parts[1] = command.substring(fstAt + 1);
-            }
+            }                        
             
             switch (parts.length) {
                 case 0 : {
                     //Prazdny listener
                     LOG.log(Level.INFO, StringResource.getResource("_blistener"));
-                    return blankListener;
+                    return null;
 
                 }
                 case 1 : {
@@ -132,6 +134,11 @@ public class ListenerFactory {
                 }                
                 default : {
                     try {
+                        for (Listener list : plugListeners) {
+                            if (list.getName().equals(parts[0])) {
+                                return list.getClass().newInstance();
+                            }
+                        }
                         switch (Commands.valueOf(parts[0])) {
                             case MENUOP : {
                                 return new MenuListener(parts[1]);                            
@@ -168,6 +175,16 @@ public class ListenerFactory {
         return null;
     }
     
+    
+    public static void addListener(Listener listener) {
+        if (!plugListeners.contains(listener)) {
+            plugListeners.add(listener);
+        }
+    }
+    
+    public static void removeListener(Listener listener) {
+        plugListeners.remove(listener);
+    }
     
     public static void removeAll() {
         listeners = new HashMap<>();

@@ -103,7 +103,7 @@ public class CraftingMenu extends AbstractInMenu {
      * @return Initializovane craftinMenu.
      */
     @Override
-    public CraftingMenu initialize(AbstractInMenu origMenu, Entity e) {               
+    public CraftingMenu initialize(AbstractInMenu origMenu, Entity e1, Entity e2) {               
         this.toDraw = origMenu.getDrawImage();        
         return this;
     }

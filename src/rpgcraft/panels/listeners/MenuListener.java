@@ -24,6 +24,11 @@ import rpgcraft.resource.UiResource;
  * @author Kirrie
  */
 public class MenuListener extends Listener {
+
+        @Override
+        public String getName() {
+            return ListenerFactory.Commands.MENUOP.toString();
+        }
     
         public enum Operations {
             SETMENU,

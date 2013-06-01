@@ -18,6 +18,8 @@ public class Chunk implements Externalizable {
      private static final long serialVersionUID = 912804676578087866L;
      private static final int CHUNK_SIZE = 16;
      private static final int DEPTH = 128;
+     
+     public static final int CHUNKMOD = CHUNK_SIZE - 1;
     
      private ChunkContent blocks;
      private int x;
@@ -64,8 +66,13 @@ public class Chunk implements Externalizable {
             return blocks.getLayer(layer);
         }
         
+        
         public void setMeta(int layer, int x, int y, int value) {
             blocks.setMetaData(layer, x & 15, y & 15, value);
+        }
+        
+        public boolean setTile(int layer, int x, int y, int value, int meta) {
+            return blocks.setTileOnPosition(layer, x, y, value, meta);            
         }
         
         public boolean setTile(int layer, int x, int y, int value) {

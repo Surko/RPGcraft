@@ -35,8 +35,8 @@ public class DefaultAi extends Ai{
     public boolean aiMove(MovingEntity e) {        
         
         Entity target = e.getTargetEntity();            
-        if (target != null && target.getLevel() == e.getLevel()) {
-            double randomValue = 0d;            
+        if (target != null && target.getLevel() == e.getLevel()) { 
+            double value = e.getRandomValue();
             int xP = target.getXPix() - e.getXPix();
             int yP = target.getYPix() - e.getYPix();
             int circleCoor = xP * xP + yP* yP;
@@ -51,15 +51,16 @@ public class DefaultAi extends Ai{
                 if (circleCoor < Math.pow(entItem.getAttackRadius(), 2)) {
                     if (e.getStamina() > 0) { 
                         if (!e.hasAttacked()) {
-                            randomValue = random.nextDouble();
+                            e.setRandomValue(random.nextDouble());
                             e.setAttackStarted(true);                                                               
                         } else {
-                             e.incStamina(-1, 0);                             
-                             e.incAcumPower(1, 0);
+                             e.incStamina(e.getAttackPower(), -1, 0);                             
+                             e.incAcumPower(e.getAttackPower(), 1, 0);
+                             System.out.println(e.getAcumPower() + " " + e.getMaxPower());
                              //poweringBar.setValue(activeItem.hpower);
-                             if (e.getAcumPower() >= randomValue * e.getMaxPower()) {
-                                 e.attack(randomValue);
-                                 e.incAcumPower(0, 0);
+                             if (e.getAcumPower() >= value * e.getMaxPower()) {
+                                 e.attack(value);
+                                 e.clearPowers();
                                  e.setAttackStarted(false);    
                              }
                         }

@@ -79,7 +79,7 @@ public class ImageResource extends AbstractResource<ImageResource>{
                             }
                             ImageOperation io = new ImageOperation(img);
 
-                            io.createBufferedImages(BufferedImage.TYPE_INT_RGB);        
+                            io.createBufferedImages(BufferedImage.TYPE_INT_ARGB);        
                             io.cropBufferedImage(x,y,globalW,globalH);
                             io.finalizeOp();
                             backImage = io.getShowImg();
@@ -105,7 +105,7 @@ public class ImageResource extends AbstractResource<ImageResource>{
                             }
                             ImageOperation io = new ImageOperation(img);
 
-                            io.createBufferedImages(BufferedImage.TYPE_INT_RGB);        
+                            io.createBufferedImages(BufferedImage.TYPE_INT_ARGB);        
                             io.cropBufferedImage(x,y,globalW,globalH);
                             io.finalizeOp();
                             topImage = io.getShowImg();

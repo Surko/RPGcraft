@@ -5,6 +5,7 @@
 package rpgcraft.entities;
 
 import rpgcraft.resource.EntityResource;
+import rpgcraft.resource.StringResource;
 
 /**
  *
@@ -13,19 +14,24 @@ import rpgcraft.resource.EntityResource;
 public class Armor extends Item{
     
     public enum ArmorType implements TypeofItems {
-           HEAD,
-           TORSO,
-           LEGGINGS,
-           LEGS,
-           HANDS;
+           HEAD(StringResource.getResource("head")),
+           TORSO(StringResource.getResource("torso")),
+           LEGGINGS(StringResource.getResource("leggings")),
+           LEGS(StringResource.getResource("legs")),
+           HANDS(StringResource.getResource("hands"));
 
+        private String value;
+        
+        private ArmorType(String value) {
+            this.value = value;
+        }
+        
         @Override
-        public Object getValue() {
-            return null;
+        public String getValue() {
+            return value;
         }
     }
     
-    protected ArmorType armorType;
 
     // Dolezity konstruktor pri externalizacii
     public Armor() {
@@ -34,17 +40,16 @@ public class Armor extends Item{
     
     public Armor(String name, EntityResource res) {
         super(name, res);
+        for (ItemType type :res.getItemType()) {
+            this.itemType = type;
+        }
     }            
     
-    /**
-     * Metoda ktora vrati konkretnejsi typ v ramci funkcnosti. Tato metoda dava zmysel iba vtedy ked je 
-     * entita typu Armor.
-     * @return Type obrany/armoru
-     * @see ArmorType
-     */
-    public ArmorType getArmorType() {        
-        return armorType;
-    }
+    @Override
+    public void initialize() {
+        super.initialize();
+        this.equipable = true;        
+    }        
     
     
     /**
@@ -52,7 +57,11 @@ public class Armor extends Item{
      * @param armorType Typ brnenia
      */
     public void setArmorType(ArmorType armorType) {
-           this.armorType = armorType;
+           this.itemType.setSubType(armorType);
+    }
+    
+    public ArmorType getArmorType() {
+        return (ArmorType)itemType.getSubType();
     }
     
 }

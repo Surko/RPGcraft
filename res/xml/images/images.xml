@@ -33,6 +33,15 @@
 		</ui-image>	
 		
 		<ui-image>
+		  <id>healeffect</id>
+		  <globalw>32</globalw>
+		  <globalh>32</globalh>  				
+			<x>0</x>
+			<y>0</y>					
+			<back-texture>ingame/healeffect.png</back-texture>	
+	  </ui-image>
+		
+		<ui-image>
 		  <id>intro</id>
 		  <globalw>363</globalw>
 		  <globalh>82</globalh>  				

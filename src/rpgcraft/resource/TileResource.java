@@ -85,6 +85,9 @@ public class TileResource extends AbstractResource<TileResource> {
         return tileResources;       
     }
     
+    public static TileResource getResource(String id) {
+        return tileResources.get(Integer.parseInt(id));
+    }
     
     private TileResource(Element elem) {
         _sprites = new HashMap();
@@ -235,7 +238,7 @@ public class TileResource extends AbstractResource<TileResource> {
     
     public HashMap<Integer, Sprite> getTileSprites() {
         return _sprites;
-    }
+    }        
     
     public String getName() {
         return name;

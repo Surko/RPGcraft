@@ -106,11 +106,7 @@ public class InputHandle implements KeyListener {
        
         public int getKeyCode() {
             return code;
-        }
-        
-        public void update() {
-            
-        }
+        }        
                                 
     }
     
@@ -149,18 +145,15 @@ public class InputHandle implements KeyListener {
     public static Key crafting = new Key(KeyEvent.VK_C);
     public static Key quest = new Key(KeyEvent.VK_Q);
     public static Key jump = new Key(KeyEvent.VK_J);
+    public static Key character = new Key(KeyEvent.VK_C);
+    public static Key active = new Key(KeyEvent.VK_E);
+    public static Key lighting = new Key(KeyEvent.VK_F6);
 
     
     @Override
     public void keyTyped(KeyEvent e) {
         
-    }
-    
-    public void keyUpdates() {
-        for (Key k : regKeys) {
-            k.update();
-        }
-    }
+    }        
     
     public void freeKeys() {
         clickedKeys.clear();

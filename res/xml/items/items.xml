@@ -19,9 +19,13 @@
       <y>0</y>
       </anim>      
    </move>	
-	
+	 <stats>
+	    <basestrength>2-2</basestrength>
+	    <basehealth>3-3</basehealth>
+      <healthbonus>2</healthbonus>
+	 </stats>
    <effects>
-    <effect>HEAL</effect>
-   </effects>	
+    <effect type="ONUSE">HEAL</effect>
+   </effects>	   
 </item>
 </Entities>

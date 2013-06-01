@@ -21,7 +21,7 @@ import rpgcraft.xml.ConversationXML;
  *
  * @author kirrie
  */
-public final class ConversationResource extends AbstractResource<ConversationResource> {        
+public final class ConversationResource extends AbstractResource<ConversationResource> {               
     
     private static final Logger LOG = Logger.getLogger(ConversationResource.class.getName());
     private static final String DELIM = "[,]";
@@ -41,12 +41,32 @@ public final class ConversationResource extends AbstractResource<ConversationRes
         conversations.put(id, this);
     }
     
+    public static ConversationResource getResource(String id) {
+        return conversations.get(id);
+    }
+    
     public static ConversationResource newBundledResource(Element elem) {
         return new ConversationResource(elem);
     }
     
     private void validate() {
         
+    }
+    
+    public ArrayList<Listener> getConditions() {
+        return conditions;
+    }
+    
+    public ArrayList<Action> getActions() {
+        return actions;
+    }
+    
+    public String getText() {
+        return text;                
+    }
+    
+    public ArrayList<String> getAnswerConversations() {
+        return answerConversations;
     }
     
     @Override

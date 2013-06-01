@@ -48,7 +48,7 @@ public class ImageUtils {
      * @param cont Kontainer v ktorom sa resource nachadza.
      */
     public static void paintBackgroundImage(UiResource resource, Container cont) {
-        cont.setImage(new BufferedImage(cont.getWidth(), cont.getHeight(), BufferedImage.TYPE_4BYTE_ABGR));        
+        cont.setImage(new BufferedImage(cont.getWidth(), cont.getHeight(), BufferedImage.TYPE_INT_ARGB));        
 
         if (resource.getBackgroundTextureId() != null) {
             Image img = ImageResource.getResource(resource.getBackgroundTextureId()).getBackImage();
@@ -132,7 +132,7 @@ public class ImageUtils {
     public static Image makeTemporaryImage(String name,int o) {
         ImageOperation io = ImageOperation.getInstance();
         io.setOrigImage(ImageResource.getResource(name).getBackImage());
-        io.createBufferedImages(BufferedImage.TYPE_4BYTE_ABGR);
+        io.createBufferedImages(BufferedImage.TYPE_INT_ARGB);
         io.rotate(o);
         return Images.newImage(name,io.getShowImg());  
         
@@ -172,7 +172,7 @@ public class ImageUtils {
         if (img != null) {
             ImageOperation io = ImageOperation.getInstance();
             io.setOrigImage(img);
-            io.createBufferedImages(BufferedImage.TYPE_INT_RGB);
+            io.createBufferedImages(BufferedImage.TYPE_INT_ARGB);
             if (o > 0) {                
                 io.rotate(o);
             }
@@ -181,7 +181,7 @@ public class ImageUtils {
                     int w = resize[0];
                     int h = resize[1];
                     if (w != img.getWidth(null) || h != img.getHeight(null)) {                          
-                        io.betterresizeImage(w, h, BufferedImage.TYPE_INT_RGB);                    
+                        io.betterresizeImage(w, h, BufferedImage.TYPE_INT_ARGB);                    
                     }
                 }
             }
@@ -212,7 +212,7 @@ public class ImageUtils {
     }
     
     public static BufferedImage getScreenImage(Component comp, Rectangle region) {
-        BufferedImage image = new BufferedImage(region.width, region.height, BufferedImage.TYPE_INT_RGB);   
+        BufferedImage image = new BufferedImage(region.width, region.height, BufferedImage.TYPE_INT_ARGB);   
         Graphics g2d = image.createGraphics();
         
         if (!comp.isOpaque()) {

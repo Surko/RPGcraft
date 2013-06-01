@@ -52,6 +52,10 @@ public class Colors {
      */
     public static final String nightColor = "nightColor";
     /**
+     * Transparentna farba vytvarajuca efekt podvecera
+     */
+    public static final String eveningColor = "eveningColor";
+    /**
      * Farba popisujuca zivot hraca
      */
     public static final String healthColor = "healthColor";
@@ -59,6 +63,10 @@ public class Colors {
      * Farba popisujuca obranu hraca
      */
     public static final String defenseColor = "defenseColor";
+    /**
+     * Farba popisujuca staminu hraca
+     */
+    public static final String staminaColor = "staminaColor";
     /**
      * Farba na pozadi inventara
      */
@@ -87,8 +95,10 @@ public class Colors {
         colors.put(Black, Color.BLACK);
         colors.put(morningColor, new Color(211,175,90,25));
         colors.put(nightColor, new Color(20, 20, 125, 150));
+        colors.put(eveningColor, new Color(20, 20, 125, 80));
         colors.put(healthColor, Color.RED);
         colors.put(defenseColor, Color.YELLOW);
+        colors.put(staminaColor, new Color(7, 194, 17));
         colors.put(invBackColor, new Color(224, 224, 224));
         colors.put(invOnTopColor, new Color(145, 145, 145, 100));
         colors.put(selectedColor, new Color(0, 0, 0, 50));

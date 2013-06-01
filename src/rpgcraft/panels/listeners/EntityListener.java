@@ -25,6 +25,11 @@ import rpgcraft.resource.StringResource;
 public class EntityListener extends Listener {
     
     private static final Logger LOG = Logger.getLogger(GameListener.class.getName());
+
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.ENTITY.toString();
+    }
     
     public enum Operations {
         ADD_QUEST,
@@ -38,7 +43,12 @@ public class EntityListener extends Listener {
         SAFE_TELEPORT,
         GETX,
         GETY,
-        GETZ
+        GETZ,
+        GET_GROUP,
+        GET_ITEMCOUNT,
+        GET_QUESTSTATE,
+        IS_SAMEGROUP
+        
         
     }
     
@@ -574,6 +584,102 @@ public class EntityListener extends Listener {
                         }
                     }
                 } break;
+                case GET_GROUP : {
+                    AbstractMenu menu = getMenu(e.getSource());                    
+                    Entity entity = null;
+                    if (menu instanceof GameMenu)  {
+                        switch (parsedObjects.length) {
+                            case 0 : {
+                                entity = ((GameMenu)menu).player;
+                                e.setReturnValue(entity.getGroup());
+                            } break;
+                            case 1 : {
+                                entity = _getEntity(parsedObjects[0],(GameMenu)menu, e);
+                                e.setReturnValue(entity.getGroup());
+                            } break;
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            }
+                        }
+                    }
+                } break;
+                case GET_ITEMCOUNT : {
+                    AbstractMenu menu = getMenu(e.getSource());                    
+                    Entity entity = null;
+                    Item item = null;
+                    if (menu instanceof GameMenu)  {
+                        switch (parsedObjects.length) {
+                            case 1 : {
+                                entity = ((GameMenu)menu).player;
+                                if (parsedObjects[0] instanceof String) {
+                                    item = _getItem(entity, (String)parsedObjects[0], e);
+                                }
+                                if (parsedObjects[0] instanceof Integer) {
+                                    item = entity.getItem((Integer)parsedObjects[0]);
+                                }
+                                if (parsedObjects[0] instanceof Item) {
+                                    item = entity.getItem((Item)parsedObjects[0]);
+                                }
+                                if (item != null) {
+                                    e.setReturnValue(item.getCount());
+                                }                                
+                            } break;
+                            case 2 : {
+                                entity = _getEntity(parsedObjects[0],(GameMenu)menu, e);
+                                e.setReturnValue(entity.getGroup());
+                            } break;
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            }
+                        }
+                    }
+                } break;
+                case GET_QUESTSTATE : {
+                    AbstractMenu menu = getMenu(e.getSource());                    
+                    Entity entity = null;                    
+                    if (menu instanceof GameMenu)  {
+                        GameMenu game = (GameMenu)menu;
+                        switch (parsedObjects.length) {
+                            case 1 : {
+                                if (game.player instanceof Player) {
+                                    Player player = (Player)game.player;
+                                    Quest quest = null;                                    
+                                    if (parsedObjects[0] instanceof String) {
+                                        quest = player.getQuest((String)parsedObjects[0]);
+                                    }     
+                                    if (quest != null) {
+                                        e.setReturnValue(quest.getState());
+                                    }
+                                }                               
+                            } break;                            
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            }
+                        }
+                    }
+                } break;
+                case IS_SAMEGROUP : {
+                    AbstractMenu menu = getMenu(e.getSource());                    
+                    Entity fst = null, snd = null;                    
+                    if (menu instanceof GameMenu)  {
+                        GameMenu game = (GameMenu)menu;
+                        switch (parsedObjects.length) {
+                            case 2 : {
+                                fst = _getEntity(parsedObjects[0],(GameMenu)menu, e);
+                                snd = _getEntity(parsedObjects[1],(GameMenu)menu, e);
+                                
+                                if (fst != null && snd != null) {
+                                    e.setReturnValue(fst.getGroup() == snd.getGroup());
+                                } else {
+                                    e.setReturnValue(false);
+                                }
+                            } break;                            
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            }
+                        }
+                    }
+                }
             }
         } catch (Exception exception) {
             new MultiTypeWrn(exception, Color.red, StringResource.getResource("_elistener",
@@ -625,6 +731,24 @@ public class EntityListener extends Listener {
                 entity.removeItem((Integer)e.getReturnValue());                                
             }
         }
+    }
+    
+    
+    private Item _getItem(Entity entity, String cmd, ActionEvent e) {        
+        Listener itemFunction = ListenerFactory.getListener(cmd, isMemorizable());
+        if (itemFunction == null) {
+            int index = Integer.parseInt(cmd);
+            return entity.getItem(index);
+        } else {
+            itemFunction.actionPerformed(e);
+            if (e.getReturnValue() instanceof Item) {
+                return (Item)e.getReturnValue();                
+            }
+            if (e.getReturnValue() instanceof Integer) {
+                return entity.getItem((Integer)e.getReturnValue());                                
+            }
+        }
+        return null;
     }
     
     /**

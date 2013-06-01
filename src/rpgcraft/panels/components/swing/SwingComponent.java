@@ -577,7 +577,7 @@ public abstract class SwingComponent extends JPanel implements Component {
      */
     @Override
     public void refreshPositions(int w, int h, int pw, int ph) {
-        int[] _rpos = MathUtils.getStartPositions(componentContainer.getResource().getPosition(),
+        int[] _rpos = MathUtils.getStartPositions(componentContainer.getResource(),
                       pw, ph, w , h);
         componentContainer.setPositions(_rpos);
         // Musi byt porovnavanie s null, lebo uplne prva komponenta nie je rozvrhnuta podla xml.

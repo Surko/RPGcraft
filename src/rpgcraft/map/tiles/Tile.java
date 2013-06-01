@@ -8,6 +8,8 @@ import java.awt.Image;
 import java.util.ArrayList;
 import java.util.HashMap;
 import rpgcraft.entities.Entity;
+import rpgcraft.entities.Item;
+import rpgcraft.entities.TileItem;
 import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.spriteoperation.SpriteSheet;
@@ -22,6 +24,7 @@ public class Tile {
     
     public static HashMap<Integer,Tile> tiles;
     private static final String IMPASS = "_cross";
+    private static final String DELIM = ":";
        
     private Image upperImage;
     
@@ -123,6 +126,14 @@ public class Tile {
     
     public boolean equalsTo(Tile tile) {        
         return this.id == tile.id ? true : false;
+    }
+    
+    public static Tile getTile(TileItem item) {
+        return tiles.get(item.getTileId());
+    }
+    
+    public static Tile getTile(String id) {
+        return tiles.get(Integer.parseInt(id));
     }
     
     public static void initializeTiles() {        

@@ -4,7 +4,9 @@
  */
 package rpgcraft.entities;
 
+import org.omg.CORBA.INITIALIZE;
 import rpgcraft.resource.EntityResource;
+import rpgcraft.resource.StringResource;
 
 /**
  *
@@ -13,18 +15,44 @@ import rpgcraft.resource.EntityResource;
 public class Weapon extends Item{
     
     public enum WeaponType implements TypeofItems {
-        ONEHSWORD,
-        TWOHSWORD;
+        ONEHSWORD(StringResource.getResource("onehsword")),
+        TWOHSWORD(StringResource.getResource("twohsword"));
 
-        @Override
-        public Object getValue() {
-            return null;
+        private String value;
+        
+        private WeaponType(String value) {
+            this.value = value;
         }
+        
+        @Override
+        public String getValue() {
+            return value;
+        }
+        
+        @Override
+        public String toString() {
+            return value;
+        }
+        
+    }    
+    
+    public Weapon() {
         
     }
     
     public Weapon(String name, EntityResource res) {
         super(name, res);
     }
+    
+    @Override
+    public void initialize() {
+        super.initialize();
+        this.activable = true;   
+        if (res != null) {
+            for (ItemType type :res.getItemType()) {
+                this.itemType = type;
+            }
+        }
+    }        
     
 }

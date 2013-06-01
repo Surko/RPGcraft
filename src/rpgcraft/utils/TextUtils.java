@@ -93,10 +93,14 @@ public class TextUtils {
         return parseToSize(null, size, text, font);
     }
     
-    public static ArrayList<String> parseToSize(ArrayList<String> lines, int size, String text, Font font) {   
+    public static ArrayList<String> parseToSize(ArrayList<String> lines, int size, String text, Font font) {                 
         if (lines == null) {
             lines = new ArrayList<>();
         }
+        
+        if (text == null) {
+            return lines;
+        } 
         
         String line = "", tryLine = "";
         int txtSize = 0, _psize = 0;
@@ -128,7 +132,7 @@ public class TextUtils {
         if (!line.equals("")) {
             lines.add(line);
         }
-            System.out.println(lines.get(0) + " " + lines.get(1));
+        
         return lines;
     }
     

@@ -49,7 +49,7 @@ public class QuestInfo extends AbstractInMenu {
      * vzdy nove instancie.
      */
     @Override
-    public QuestInfo initialize(AbstractInMenu origMenu, Entity e) {        
+    public QuestInfo initialize(AbstractInMenu origMenu, Entity e1, Entity e2) {        
         this.toDraw = origMenu.getDrawImage();               
         return this;
     }

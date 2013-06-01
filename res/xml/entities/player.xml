@@ -5,6 +5,7 @@
 <mob>
    <id>_player</id>
    <name>Player</name>
+   <group>1</group>
    <entity-type>MOVING</entity-type>
    <sheet>characters.png</sheet>
    <globalw>32</globalw>
@@ -102,6 +103,6 @@
     <interchance>0.5</interchance>
     
     <attratbonus>5</attratbonus>
-    <defratbonus>5</defratbonus>
+    <defratbonus>5</defratbonus>    
    </stats>	
 </mob>

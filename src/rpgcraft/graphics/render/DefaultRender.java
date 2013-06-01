@@ -89,6 +89,7 @@ public final class DefaultRender extends RenderPlugin {
      */
     private int screenX;
     private int screenY;
+    private int lightingMapX, lightingMapY;
     
     /**
      * Sirka a vyska priestoru do ktoreho kreslime
@@ -131,10 +132,8 @@ public final class DefaultRender extends RenderPlugin {
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, width, height);              
             lastX = screenX - (entity.getXPix()&511);
-            lastY = screenY - (entity.getYPix()&511);                    
-            
-            g.translate(lastX, lastY);      
-                        
+            lastY = screenY - (entity.getYPix()&511);                                
+            g.translate(lastX, lastY);                            
             switch (RENDER_MODE) {
                 case 0 : simpleChunkPainting(chunksToRender, g);
                     break;
@@ -191,7 +190,7 @@ public final class DefaultRender extends RenderPlugin {
      */
     @Override
     public void paintLighting(Graphics g) {        
-        g.drawImage(lightingMap, 0, 0, null);         
+        g.drawImage(lightingMap, lightingMapX, lightingMapY, null);         
     }
     
     /**
@@ -349,15 +348,22 @@ public final class DefaultRender extends RenderPlugin {
     }
     
     private void radialLighting(DayLighting dayLight) {
+        int lTileRadius = (entity.getLightRadius() + 1) << 5;
+         if (lightingMap == null || lightingMap.getWidth(null) != 2 * lTileRadius) {
+        lightingMap = new BufferedImage(2 * lTileRadius,
+                2 * lTileRadius, BufferedImage.TRANSLUCENT);
+        lightingMapX = (width - lightingMap.getWidth(null))/2;
+        lightingMapY = (height - lightingMap.getHeight(null))/2;
+        }                 
+        int radius = (entity.getLightRadius() << 5) + dayLight.getRadiusBuff();                
         g2d = (Graphics2D)lightingMap.getGraphics();
-        
-        int radius = entity.getLightRadius() + dayLight.getRadiusBuff();
-        RadialGradientPaint rg = new RadialGradientPaint(width /2, height /2, radius, dayLight.getFractions(), dayLight.getColors() );               
+        RadialGradientPaint rg = new RadialGradientPaint(lightingMap.getWidth(null)/ 2 ,
+                lightingMap.getHeight(null)/2 , radius, dayLight.getFractions(), dayLight.getColors() );               
     
         g2d.setPaint(rg);
                            
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
-        g2d.fillRect(0, 0, width, height);        
+        g2d.fillRect(0, 0, 2 * lTileRadius, 2 * lTileRadius);        
     }
     
     // </editor-fold>
@@ -366,10 +372,10 @@ public final class DefaultRender extends RenderPlugin {
     @Override
     public void setWidthHeight(int width, int height) {
         this.width = width;
-        this.height = height;
-        if (map.hasLighting()) {
-            lightingMap = new BufferedImage(MainGameFrame.Fwidth, MainGameFrame.Fheight, BufferedImage.TRANSLUCENT); 
-            makeLightingMap(map.getDayLighting());
+        this.height = height;   
+        if (lightingMap != null) {
+            lightingMapX = (width - lightingMap.getWidth(null))/2;
+            lightingMapY = (height - lightingMap.getHeight(null))/2;
         }
     }
 

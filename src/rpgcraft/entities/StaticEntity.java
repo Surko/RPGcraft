@@ -12,16 +12,20 @@ import rpgcraft.graphics.spriteoperation.Sprite.Type;
  */
 public class StaticEntity extends Entity {    
 
-    @Override
-    public void unequip(Entity e) {        
-    }
-
-    @Override
-    public void equip(Entity e) {        
+    public StaticEntity() {
+        
     }
     
     @Override
-    public void use(Entity item) {
+    public void unequip(Item e) {        
+    }
+
+    @Override
+    public void equip(Item e) {        
+    }
+    
+    @Override
+    public void use(Item item) {
     }   
 
     @Override
@@ -29,7 +33,8 @@ public class StaticEntity extends Entity {
     }
 
     @Override
-    public void hit(double damage, Type type) {
+    public double hit(double damage, Type type) {
+        return 0d;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class StaticEntity extends Entity {
     }
 
     @Override
-    public int interactWithEntities(int x0, int y0, int x1, int y1, double modifier) {
+    public double interactWithEntities(int x0, int y0, int x1, int y1, double modifier) {
         return 0;
     }
 
@@ -48,6 +53,11 @@ public class StaticEntity extends Entity {
     @Override
     public boolean updateCoordinates() {
         return false;
+    }
+
+    @Override
+    public void drop(Item item) {
+        
     }
 
     

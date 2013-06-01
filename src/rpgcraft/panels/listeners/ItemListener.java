@@ -23,6 +23,11 @@ import rpgcraft.resource.StringResource;
 public class ItemListener extends Listener {
     
     private static final Logger LOG = Logger.getLogger(GameListener.class.getName());
+
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.ITEM.toString();
+    }
     
     public enum Operations {        
         CREATEITEM,        

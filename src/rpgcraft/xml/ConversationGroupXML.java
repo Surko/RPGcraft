@@ -10,7 +10,7 @@ package rpgcraft.xml;
  */
 public class ConversationGroupXML {
     public static final String ROOT = "groups";
-    public static final String ELEMENT = "groups";
+    public static final String ELEMENT = "group";
     public static final String ID = "id";
     public static final String LABEL = "label";
     public static final String MSGS = "msgs";

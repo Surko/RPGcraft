@@ -9,6 +9,10 @@
    <sheet>characters2.png</sheet>
    <globalw>32</globalw>
    <globalh>32</globalh>
+   <activation-actions>
+   <action>GAME@SHOW_CONVERSATION()</action>
+   </activation-actions>
+   <conversations>Greetings,Goodbye</conversations>
    <move>
    <type>UP</type>
       <anim>

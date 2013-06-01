@@ -34,10 +34,22 @@ public class MainUtils {
         }
     };
     
+    public static final FileFilter xmlFilter = new FileFilter() {
+
+        @Override
+        public boolean accept(File file) {
+            return file.getName().matches(".*[.]xml");
+        }
+        
+    };
+    
     // FramePanel pre frame pocitadlo
     public static final FramePanel FPSCOUNTER;        
     public static volatile int TICK = 0;
     public static volatile long START_TIME;
+    public static long SECONDTIMER;
+    public static boolean stopped;
+    
     public static volatile boolean DEBUG = true;
     
     //FPS junk
@@ -45,8 +57,11 @@ public class MainUtils {
     public static final boolean SHOWFPS = true;
     public static final long fpsProhibitor = 10;
     public static volatile int framing; 
-    public static volatile long fpsTimer;  
+    public static volatile long fpsTimer;     
     public static volatile int debugint;
+    
+    // Pocitadlo objektov
+    public static long objectId;
     
     // </editor-fold>
        
@@ -154,6 +169,9 @@ public class MainUtils {
                     fpsTimer += 1000;                    
                     fShow = MainUtils.framing;
                     framing = 0; 
+                    if (!stopped) {
+                        SECONDTIMER++;
+                    }
                     setText(fShow+ " FPS", false);
                 }                    
             }                    

@@ -5,8 +5,6 @@
 package rpgcraft.panels.listeners;
 
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import rpgcraft.entities.Player;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
@@ -15,18 +13,22 @@ import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.resource.UiResource;
 import rpgcraft.utils.DataUtils;
+import rpgcraft.utils.Pair;
 
 /**
  *
  * @author Surko
  */
-public class Listener implements ActionListener {
-        
+public abstract class Listener implements ActionListener {                    
+    
     protected static final String INT = "INT";
     protected static final String LIST = "LIST";
     protected static final String VAR = "VAR";
     protected static final String CURSORPOSITION = "CURSORPOSITION";  
     protected static final String TEXT = "TEXT";
+    protected static final String FIRST = "FIRST";
+    protected static final String SECOND = "SECOND";
+    protected static final String THIS = "THIS";
     
     protected static final String INTVAR = "INTVAR";
     protected static final String STRINGVAR = "STRINGVAR";
@@ -44,7 +46,18 @@ public class Listener implements ActionListener {
         if (types != null) {
             for (int i = 0; i < types.length; i++) {
                if (types[i] != null) {               
-                    switch (types[i]) {                        
+                    switch (types[i]) { 
+                        case THIS : {
+                            parsedObjects[i] = e.getParam();
+                        } break;
+                        case FIRST : {
+                            Pair pair = (Pair)e.getParam();
+                            parsedObjects[i] = pair.getFirst();
+                        } break;
+                        case SECOND : {
+                            Pair pair = (Pair)e.getParam();
+                            parsedObjects[i] = pair.getSecond();
+                        } break;
                         case LIST : {
                             Cursor c = (Cursor)e.getParam();
                             parsedObjects[i] = c.getString(c.getColumnIndex(params[i]));                        
@@ -168,7 +181,9 @@ public class Listener implements ActionListener {
         }                
         
         return 0;
-    }
+    }        
+    
+    public abstract String getName();
     
     @Override
     public String toString() {

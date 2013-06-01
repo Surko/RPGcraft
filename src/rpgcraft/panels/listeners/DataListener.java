@@ -20,6 +20,11 @@ import rpgcraft.utils.ScriptUtils;
 public class DataListener extends Listener {
     
     private static final Logger LOG = Logger.getLogger(DataListener.class.getName());
+
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.DATA.toString();
+    }
     
     public enum Operations {
         ASSIGN,

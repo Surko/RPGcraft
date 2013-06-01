@@ -20,33 +20,38 @@ public class DayLighting {
     private float[] fractions;
     private int radBuff = 0;
             
-    public void init(int time) {
+    public DayLighting(int gameTime) {
+        init(gameTime);
+    }
+    
+    public final void init(int time) {
         if ((time < 6)||(time >= 20)) {
-            this.colors = new Color[] {Colors.getColor(Colors.transparentColor),
+            this.colors = new Color[] {Colors.getColor(Colors.eveningColor),
                 Colors.getColor(Colors.nightColor),Colors.getColor(Colors.fullBlack)};
             this.fractions = new float[] {0.1f, 0.5f, 1.0f};
+            this.radBuff = -96;
             return;
         }
         if (time < 10) {
-            this.colors = new Color[] {Colors.getColor(Colors.transparentColor),
-                Colors.getColor(Colors.morningColor),Colors.getColor(Colors.fullBlack)};
+            this.colors = new Color[] {Colors.getColor(Colors.morningColor),
+                Colors.getColor(Colors.eveningColor),Colors.getColor(Colors.fullBlack)};
             this.fractions = new float[] {0.1f, 0.5f, 1.0f};
-            this.radBuff = 32;
+            this.radBuff = -64;
             return;
         }
         if (time < 16) {
             this.colors = new Color[] {Colors.getColor(Colors.transparentColor),
                 Colors.getColor(Colors.morningColor),Colors.getColor(Colors.fullBlack)};
             this.fractions = new float[] {0.4f, 0.5f, 1.0f};
-            this.radBuff = 64;
+            this.radBuff = 0;
             return;
         }
         
         if (time < 20) {
             this.colors = new Color[] {Colors.getColor(Colors.transparentColor),
-                Colors.getColor(Colors.morningColor),Colors.getColor(Colors.fullBlack)};
+                Colors.getColor(Colors.eveningColor),Colors.getColor(Colors.fullBlack)};
             this.fractions = new float[] {0.4f, 0.5f, 1.0f};
-            this.radBuff = 32;
+            this.radBuff = -64;
 
         }
         

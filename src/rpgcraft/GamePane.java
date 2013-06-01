@@ -13,13 +13,11 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.jar.JarFile;
 import java.util.logging.*;
 import javax.swing.*;
-import org.luaj.vm2.lib.jse.JsePlatform;
 import org.w3c.dom.Element;
+import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.manager.PathManager;
@@ -31,12 +29,15 @@ import rpgcraft.panels.components.swing.SwingImageList;
 import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
+import rpgcraft.panels.listeners.Listener;
+import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.plugins.GeneratorPlugin;
 import rpgcraft.plugins.ItemGeneratorPlugin;
 import rpgcraft.plugins.ScriptLibraryPlugin;
 import rpgcraft.resource.ConversationGroupResource;
 import rpgcraft.resource.ConversationResource;
+import rpgcraft.resource.EffectResource;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.TileResource;
@@ -44,13 +45,12 @@ import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.QuestsResource;
 import rpgcraft.resource.RecipeResource;
 import rpgcraft.resource.UiResource;
-import rpgcraft.scripting.GameLibrary;
 import rpgcraft.scripting.ScriptFactory;
 import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.MainUtils;
-import rpgcraft.utils.ScriptUtils;
 import rpgcraft.xml.ConversationGroupXML;
 import rpgcraft.xml.ConversationXML;
+import rpgcraft.xml.EffectXML;
 import rpgcraft.xml.EntityXML;
 import rpgcraft.xml.TilesXML;
 import rpgcraft.xml.ImagesXML;
@@ -110,8 +110,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
            for (int j = 0; j < sk[i].length; j++) {
                System.out.println(sk[i][j]);
                }
-         */
-        
+         */                      
         
         addOwnMouseListener();
         backColor = Colors.getColor(Colors.Black);   
@@ -237,9 +236,13 @@ public class GamePane extends SwingImagePanel implements Runnable {
       */     
     private void initialization() {   
             
-            if (!xmlInitialized) {                         
-                initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());
-                xmlInitialized = true;                        
+            if (!xmlInitialized) { 
+                try {
+                    initializeXmlFiles(PathManager.getInstance().getXmlPath().listFiles());                                                           
+                } catch (Exception e) {
+                    new MultiTypeWrn(e, Color.RED, StringResource.getResource("_resourcerror"),
+                            null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+                }
             } else {
                 LOG.log(Level.INFO, "Xml files were already initialized ---> ABORT");
             }
@@ -401,12 +404,35 @@ public class GamePane extends SwingImagePanel implements Runnable {
     }
     
     /**
+     * Metoda ktora ako ostatne inicializacie pluginov dostava ako parameter zlozku s 
+     * moznymi listener pluginmi. Zo zlozky si zoberie vsetky subory a skontroluje pomocou definovaneho
+     * filtra ci to je jar subor. Pre jar subory vytvori classloader nacita triedu v zadanom
+     * packagi a vytvori novu instanciu. Nasledne prida nacitany plugin do nacitanych pluginov 
+     * v triede ListenerFactory pomocou metody addListener.
+     * 
+     * @param file Zlozka v ktorej sa nachadzaju listener pluginy.
+     */
+    private void initializeListenerPlugins(File file) {
+        int plugLoaded = 0;
+        for (File f : file.listFiles(MainUtils.jarFilter)) { 
+            
+            try {
+                ClassLoader authorizedLoader = URLClassLoader.newInstance(new URL[] { f.toURI().toURL() });
+                Listener plugin = (Listener) authorizedLoader.loadClass("plugins.Plugin").newInstance();
+                ListenerFactory.addListener(plugin);
+            } catch (Exception e) {
+                
+            }
+        }
+        LOG.log(Level.INFO, StringResource.getResource("_plugload", new String[] {"InMenu", Integer.toString(plugLoaded)}));
+    }
+    
+    /**
      * Metoda inicializuje vsetky entity ktore sa nachadzaju v adresari entities.
      * Parameter <b>file</b> sluzi ako adresar z ktoreho cerpame xml subory. V if podmienke testujeme
      * ci je adresar xml. Ked je tak ho rozparsujeme s tym ze pozname rootelement/parameter <b>res</b>.
      * Root element tu sluzi taku rolu, ze mame dva typy entit: Predmety a NPC/Hraca. Pre kazdy taky 
-     * typ mame roznu stavbu xml dokumentu.
-     * (pri zlom formate xml sa vypise chyba do logu ako sa aj objavi hracie error okno)
+     * typ mame roznu stavbu xml dokumentu.     
      * @param file Adresar z ktoreho cerpame xml subory na rozparsovanie a vytvorenie resource s entitami.
      * @param res Textove pole podla ktoreho urcujeme Root element v xml.
      * @see XmlReader
@@ -415,13 +441,31 @@ public class GamePane extends SwingImagePanel implements Runnable {
         LOG.log(Level.INFO, StringResource.getResource("_initxml",
                 new String[] {"EntityFile :", file.getName()}));
         XmlReader xmlread = new XmlReader();
-        for (File xmlfile : file.listFiles()) { 
-            if (xmlfile.getName().substring(xmlfile.getName().length() - 3).equals("xml")) {
+        for (File xmlfile : file.listFiles(MainUtils.xmlFilter)) {             
                 xmlread.parseXmlFile(xmlfile);
                 for (Element elem : xmlread.parseElements(res)) {
                     EntityResource.newBundledResource(elem);
-                }
-            }                                    
+                }                                              
+        }        
+    }
+    
+    /**
+     * Metoda inicializuje vsetky efekty ktore sa nachadzaju v adresari effects.
+     * Parameter <b>file</b> sluzi ako adresar z ktoreho cerpame xml subory.
+     * Ked mame xml subor tak ho rozparsujeme s tym ze pozname rootelement/parameter.          
+     * @param file Adresar z ktoreho cerpame xml subory na rozparsovanie a vytvorenie resource s entitami.
+     * @param res Textove pole podla ktoreho urcujeme Root element v xml.
+     * @see XmlReader
+     */
+    private void initializeEffects(File file) {
+        LOG.log(Level.INFO, StringResource.getResource("_initxml",
+                new String[] {"EffectFile :", file.getName()}));
+        XmlReader xmlread = new XmlReader();
+        for (File xmlfile : file.listFiles(MainUtils.xmlFilter)) {             
+            xmlread.parseXmlFile(xmlfile);
+            for (Element elem : xmlread.parseElements(EffectXML.EFFECT)) {
+                EffectResource.newBundledResource(elem);
+            }                                                
         }        
     }
     
@@ -556,7 +600,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
                 XmlSavePriority groupDir = XmlSavePriority.valueOf(xmlfile.getName());
                 
                 if (groupDir == XmlSavePriority.groups) {
-                    initializeGroups(file);
+                    initializeGroups(xmlfile);
                 } else {
                     continue;
                 }
@@ -727,10 +771,14 @@ public class GamePane extends SwingImagePanel implements Runnable {
             if (menu!=null) {
                 //System.out.println(Thread.currentThread().getName());
                 menu.update();
-                if (input.clickedKeys.size() != 0 || input.runningKeys.size() != 0) {
-                    //System.out.println("Handling Input for Menu");
-                    menu.inputHandling();
-                    input.freeKeys();
+                try {
+                    if (input.clickedKeys.size() != 0 || input.runningKeys.size() != 0) {
+                        //System.out.println("Handling Input for Menu");
+                        menu.inputHandling();
+                        input.freeKeys();
+                    }
+                } catch (Exception e) {
+                    
                 }
             }            
         }
@@ -797,7 +845,7 @@ public class GamePane extends SwingImagePanel implements Runnable {
       * @see GamePane#initializeTiles(java.io.File) 
       * @see GamePane#initializeUI(java.io.File) 
       */
-    public void initializeXmlFiles(File[] files) { 
+    public void initializeXmlFiles(File[] files) throws Exception { 
         LOG.log(Level.INFO, "Xml files started to initialize...");            
         
         
@@ -823,6 +871,8 @@ public class GamePane extends SwingImagePanel implements Runnable {
             }
             
             switch (xml) {
+                case effects : initializeEffects(file);
+                    break;
                 case entities : initializeEntities(file, EntityXML.MOB);
                     break;
                 case tiles : initializeTiles(file);
@@ -838,7 +888,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
                 case quests : initializeQuests(file);
                     break;
                 case conversations : initializeConversations(file);
-                    break;                
+                    break;   
+                case groups : initializeGroups(file);
+                    break;
                 default : break;
             }
         }
@@ -849,8 +901,8 @@ public class GamePane extends SwingImagePanel implements Runnable {
     }                 
     
     /**
-     * Metoda ktora inicializuje pluginy. Medzi pluginy patria generatory map ale aj skriptovacie moduly do lua.
-     * 
+     * Metoda ktora inicializuje pluginy. Medzi pluginy patria generatory od map, menu
+     * ale aj skriptovacie moduly do lua, ci listenery.     
      * @see ScriptLibraryPlugin
      * @see rpgcraft.plugins.GeneratorPlugin
      */
@@ -881,7 +933,9 @@ public class GamePane extends SwingImagePanel implements Runnable {
                 case PathManager.ITEMGENPLUG : {
                     initializeItemGeneratorPlugins(f);
                 } break;
-                    
+                case PathManager.LISTPLUG : {
+                    initializeListenerPlugins(f);
+                } break; 
                 default : break;                    
             }
             

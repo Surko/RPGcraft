@@ -1,7 +1,19 @@
 <conversations>
+
 <conversation>
 <id>id1</id>
-<text></text>
+<text>Do you want to feel the static?</text>
+<conditions>
+</conditions>
+<answers>Greetings</answers>
+<actions>
+<action></action>
+</actions>
+</conversation>
+
+<conversation>
+<id>id2</id>
+<text>Hello my son</text>
 <conditions>
 </conditions>
 <answers>
@@ -10,4 +22,5 @@
 <action></action>
 </actions>
 </conversation>
+
 </conversations>

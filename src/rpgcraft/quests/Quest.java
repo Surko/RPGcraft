@@ -87,6 +87,10 @@ public class Quest implements Externalizable {
         return questRes.getLabel();
     }
     
+    public int getState() {
+        return questState;
+    }
+    
     public String getText() {
         return questRes.getQuestText();
     }

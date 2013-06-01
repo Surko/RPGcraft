@@ -5,11 +5,15 @@
 package rpgcraft.entities;
 
 import java.awt.Image;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.map.SaveMap;
 import rpgcraft.plugins.ItemGeneratorPlugin;
 import rpgcraft.resource.EntityResource;
+import rpgcraft.resource.StatResource.Stat;
 import rpgcraft.resource.StringResource;
 
 /**
@@ -48,21 +52,27 @@ public abstract class Item extends StaticEntity {
      */
     public interface TypeofItems {                                
         
-        public Object getValue();
+        public String getValue();
         
     }
     
     public enum ItemType implements TypeofItems {
-        WEAPON,
-        ARMOR,
-        MISC,
-        TILE;
+        WEAPON(StringResource.getResource("weapon")),
+        ARMOR(StringResource.getResource("armor")),
+        MISC(StringResource.getResource("misc")),
+        TILE(StringResource.getResource("tile")),
+        NOTYPE(StringResource.getResource("notype"));                
         
         private TypeofItems subType;
+        private String value;
+        
+        private ItemType(String value) {
+            this.value = value;
+        }
         
         @Override
-        public Object getValue() {
-            return null;
+        public String getValue() {
+            return value;
         }
         
         public void setSubType(TypeofItems subType) {
@@ -72,6 +82,12 @@ public abstract class Item extends StaticEntity {
         public TypeofItems getSubType() {
             return subType;
         }
+        
+        @Override
+        public String toString() {
+            return this.value + ":" +subType;
+        }
+              
     }
     
     private long seed;
@@ -89,17 +105,9 @@ public abstract class Item extends StaticEntity {
     protected boolean usable;
     protected boolean activable;
     protected boolean equipped;
-    protected boolean placeable;
+    protected boolean placeable;        
     
-    protected int aBaseDamage = 0;
-    protected int baseMaxDurability = 0;
-    protected int durability = 0;
-    
-    protected boolean levelable = false;
-    protected boolean flame = false;
-    protected boolean ice = false;
-    protected boolean paralyze = false;
-    protected boolean poison = false;
+    protected boolean levelable = false;    
 
     public Item() {
     }   
@@ -107,13 +115,29 @@ public abstract class Item extends StaticEntity {
     public Item(String name, EntityResource res) {
         this.name = name == null ? res.getName() : name;
         this.res = res;
+        this.activable = true;
         this.id = res.getId();
         this.count = 1;
         this.spriteType = Sprite.Type.ITEM;
-        this.itemSprites = res.getEntitySprites().get(spriteType);
-        System.out.println("Konstruktor");
+        this.itemSprites = res.getEntitySprites().get(spriteType);                
+        initialize();
     }
 
+    @Override
+    public void initialize() {                
+        super.initialize();        
+        this.dropable = true;
+        this.health = doubleStats.get(Stat.HEALTHMAX);
+    }
+    
+    @Override
+    public void reinitialize() {
+        super.reinitialize();
+        if (res != null) {
+            this.itemSprites = res.getEntitySprites().get(spriteType);
+        }
+    }
+    
     /**
      *
      * @param switcher Urcuje ci sa bude predmet generovat podla daneho mena
@@ -129,6 +153,9 @@ public abstract class Item extends StaticEntity {
      * @return 
      */
     public static Item createItem(String name, SaveMap map, EntityResource res) {
+        if (res == null) {
+            return null;
+        }
         ArrayList<ItemType> types = res.getItemType();
         Item item = null;
         if (types.size() > 1) {            
@@ -166,7 +193,7 @@ public abstract class Item extends StaticEntity {
         if (types.size() == 1) {
             switch (types.get(0)) {
                 case ARMOR : {
-                    item = new Armor(name, res);                    
+                    item = new Armor(name, res);                     
                 } break;
                 case WEAPON : {
                     item = new Weapon(name, res);                                        
@@ -255,13 +282,16 @@ public abstract class Item extends StaticEntity {
      * @return Typ entity.     
      * @see ItemType
      */    
-    public ItemType getItemType() {          
+    public ItemType getItemType() {      
+        if (itemType == null) {
+            return ItemType.NOTYPE;
+        }
         return itemType;
     }
     
     @Override
     public boolean isDestroyed() {
-        return durability == 0;
+        return health == 0;
     }
 
     public boolean isUsable() {
@@ -286,8 +316,8 @@ public abstract class Item extends StaticEntity {
     
     public boolean isPlaceable() {
         return placeable;
-    }
-
+    }   
+    
     public void equip() {
         this.equipped = true;
     }
@@ -341,25 +371,10 @@ public abstract class Item extends StaticEntity {
     @Override
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setBaseDamage(int damage) {
-        this.aBaseDamage = damage;
-    }
-
-    public void setBaseMaxDurability(int durability) {
-        this.baseMaxDurability = durability;
-    }
+    }   
 
     public void setDurability(int durability) {
-        this.durability = durability;
-    }
-
-    public void setElement(boolean fl, boolean ic, boolean pa, boolean po) {
-        this.flame = fl;
-        this.ice = ic;
-        this.paralyze = pa;
-        this.poison = po;
+        this.health = durability;
     }
 
     public void setSeed(long seed) {
@@ -369,18 +384,37 @@ public abstract class Item extends StaticEntity {
     public long getSeed() {
         return seed;
     }
-    
+
     @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 73 * hash + this.durability;
-        hash = 73 * hash + (this.levelable ? 1 : 0);
-        hash = 73 * hash + (this.flame ? 1 : 0);
-        hash = 73 * hash + (this.ice ? 1 : 0);
-        hash = 73 * hash + (this.paralyze ? 1 : 0);
-        hash = 73 * hash + (this.poison ? 1 : 0);
-        return hash;
+    public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out);
+        out.writeObject(itemType);        
+        out.writeBoolean(active);
+        out.writeBoolean(activable);
+        out.writeBoolean(equipped);
+        out.writeBoolean(equipable);
+        out.writeBoolean(placeable);
+        out.writeBoolean(dropable);
+        out.writeBoolean(usable);
+        out.writeLong(seed);
+        out.writeInt(count);
     }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in);
+        this.itemType = (ItemType) in.readObject();        
+        active = in.readBoolean();
+        activable = in.readBoolean();
+        equipped = in.readBoolean();
+        equipable = in.readBoolean();
+        placeable = in.readBoolean();
+        dropable = in.readBoolean();
+        usable = in.readBoolean();
+        this.seed = in.readLong();
+        this.count = in.readInt();
+        reinitialize();
+    }               
 
     @Override
     public boolean equals(Object obj) {
@@ -396,24 +430,29 @@ public abstract class Item extends StaticEntity {
             return false;
         }
 
-        if (this.durability != other.durability) {
-            return false;
-        }
         if (this.levelable != other.levelable) {
             return false;
-        }
-        if (this.flame != other.flame) {
-            return false;
-        }
-        if (this.ice != other.ice) {
-            return false;
-        }
-        if (this.paralyze != other.paralyze) {
-            return false;
-        }
-        if (this.poison != other.poison) {
-            return false;
-        }
+        }        
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 23 * hash + (int) (this.seed ^ (this.seed >>> 32));
+        hash = 23 * hash + (this.itemType != null ? this.itemType.hashCode() : 0);
+        hash = 23 * hash + (this.equipable ? 1 : 0);
+        hash = 23 * hash + (this.dropable ? 1 : 0);
+        hash = 23 * hash + (this.usable ? 1 : 0);
+        hash = 23 * hash + (this.activable ? 1 : 0);
+        hash = 23 * hash + (this.placeable ? 1 : 0);
+        hash = 23 * hash + (this.levelable ? 1 : 0);
+        return hash;
+    }
+    
+    @Override
+    public String toString() {
+        return count + " " + name + " " + (equipped == true ? StringResource.getResource("_equipped") : "") +
+                (active == true ? StringResource.getResource("_activated") : "");
     }
 }

@@ -21,7 +21,7 @@ import rpgcraft.plugins.AbstractMenu;
  *
  * @author doma
  */
-public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
+public abstract class AbstractInMenu<T extends AbstractInMenu> implements Menu<AbstractInMenu> {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     // Menu list so vsetkymi definovanymi menu.
@@ -80,35 +80,17 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
      * Metoda ktora initializuje toto menu s novou entitou zadanou parametrom <b>e</b>.
      * Kazda dediaca trieda moze mat svoju vlastnu implementaciu.      
      * @param origMenu Originalne menu z ktoreho initializujeme nove menu
-     * @param e Entita pre ktoru robime menu
+     * @param e1 Entita pre ktoru robime menu
+     * @param e2 Entita ktora ma nieco docinenie s menu
      * 
      */
-    public abstract AbstractInMenu initialize(AbstractInMenu origMenu, Entity e);
+    public abstract T initialize(T origMenu, Entity e1, Entity e2);
     
     /**
      * Metoda ktora prepocitava pozicie menu v GameMenu alebo mozne doplnit aj na ine AbstractMenu.
      */
     public abstract void recalculatePositions();
-    
-    /**     
-     * Metoda ktora nastavi graficky vyzor pre menu. Kazdy potomok moze byt rozny ked si tuto
-     * metodu potomok implementuje, ale v konecnom dosledku by mali mat pozadie spolocne.
-     * Telo metody sa sklada z vytvorenia obrazku <b>toDraw</b> ktory vykreslujeme v metode paintMenu.
-     * Tento obrazok je vyplneny dvoma vyplnenymi obdlznikmi (jeden od druheho trochu posunuty <=> wGap, hGap)
-     * na vytvorenie efektu tienu.
-     */
-    protected void setGraphics() {
-        toDraw = new BufferedImage(getWidth(), getHeight(), BufferedImage.TRANSLUCENT);
-        Graphics g = toDraw.getGraphics();
-       
-        g.setColor(Colors.getColor(Colors.invBackColor));
-        g.fillRoundRect(0, 0, getWidth() - getWGap(), getHeight() - getHGap(), getWGap(), getHGap());
-
-        g.setColor(Colors.getColor(Colors.invOnTopColor));
-        g.fillRoundRect(getWGap(), getHGap(), getWidth() - getWGap(), getHeight() - getHGap(), getWGap(), getHGap());
-        
-    }        
-    
+                    
     /**
      * Metoda ktora vykona update nad menu. Kazdy potomok moze inak aktualizovat menu.
      */
@@ -166,19 +148,10 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
      */
     @Override
     public abstract void mouseHandling(MouseEvent e);
-    
+        
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
-    /**
-     * Metoda ktora vrati podla parametru sMenu take AbstractInMenu ktore zodpoveda 
-     * tomuto parametru. Tieto menu su ulozene v HashMape menuList.
-     * @param sMenu Textovy retazec/kluc z menuList
-     * @return AbstractInMenu zodpovedajuce parametru
-     */
-    public static AbstractInMenu getMenu(String sMenu) {
-        return menuList.get(sMenu);
-    }
     
     /**
      * Metoda ktora vrati ci je menu aktivovane tym padom interakcie mozne.
@@ -273,7 +246,9 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
      */
     @Override
     public void setMenu(AbstractInMenu menu) {
-        
+        this.subMenu = menu;
+        menu.visible = true;
+        menu.activated = true;
     }
     
     /**
@@ -285,9 +260,38 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
         this.changedState = state;
     }
     
+    /**
+     * Metoda ktora je preurcena na nastavenie fontov a velkosti k tymto fontom.
+     * Kazde dediace menu si hu moze pretazit no nie je to nutne kedze vela dediacich
+     * menu nemusi vyuzivat fonty.
+     */
+    public void setFonts() {
+        
+    }        
+        
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Update ">
+    
+    /**     
+     * Metoda ktora nastavi graficky vyzor pre menu. Kazdy potomok moze byt rozny ked si tuto
+     * metodu potomok implementuje, ale v konecnom dosledku by mali mat pozadie spolocne.
+     * Telo metody sa sklada z vytvorenia obrazku <b>toDraw</b> ktory vykreslujeme v metode paintMenu.
+     * Tento obrazok je vyplneny dvoma vyplnenymi obdlznikmi (jeden od druheho trochu posunuty <=> wGap, hGap)
+     * na vytvorenie efektu tienu.
+     */
+    protected void setGraphics() {
+        toDraw = new BufferedImage(getWidth(), getHeight(), BufferedImage.TRANSLUCENT);
+        Graphics g = toDraw.getGraphics();
+       
+        g.setColor(Colors.getColor(Colors.invBackColor));
+        g.fillRoundRect(0, 0, getWidth() - getWGap(), getHeight() - getHGap(), getWGap(), getHGap());
+
+        g.setColor(Colors.getColor(Colors.invOnTopColor));
+        g.fillRoundRect(getWGap(), getHGap(), getWidth() - getWGap(), getHeight() - getHGap(), getWGap(), getHGap());
+        
+    }
+    
     /**
      * Metoda ktora ukonci cinnost menu. Defaultne nastavuje viditelnost a ci je menu aktivne na false.
      * Vacsinou je tato metoda pretazovana v potomkoch. Netreba zabudat ze ked ukoncujeme nejake hlavne menu (nie submenu)
@@ -311,6 +315,17 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
     }
     
     /**
+     * Metoda ktora prida do menu subMenu zadane parametrom <b>submenu</b>.
+     * Aby bolo subMenu zobrazene tak musime zavolat metodu setVisible.
+     * @param subMenu Submenu ktore pridavame do tohoto menu
+     */
+    public void addSubMenu(AbstractInMenu subMenu) {
+        this.subMenu = subMenu;        
+        subMenu.setVisible(true);                
+                
+    }
+    
+    /**
      * Metoda ktora deaktivuje menu
      */
     public void deactivate() {
@@ -323,24 +338,18 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
     public void activate() {
         this.activated = true;
     }        
-    
-    /**
-     * Staticka metoda prida do hashmapy <b>menuList</b> nove menu 
-     * s menom ziskanym z metody getName (metoda getMenu musi byt implementovana v tomto menu).
-     * @param inMenu Nove menu do hashmapy.
-     */
-    public static void addMenu(AbstractInMenu inMenu) {
-        menuList.put(inMenu.getName(), inMenu);
-    }
-    
+        
     /**
      * Metoda ktora reinicializuje menu. Robi to iste co konstruktor.
      * @param entity Entita pre ktoru vytvarame menu
      * @param input InputHandler ovladanie klavesnice  pre toto menu
      */
-    public void reinitialize(Entity entity, InputHandle input) {
+    public void reinitialize(Entity entity, InputHandle input, AbstractMenu menu) {
         this.entity = entity;
         this.input = input;
+        this.menu = menu;        
+        this.changedState = true;
+        setGraphics();
     }
     
     // </editor-fold> 
@@ -351,18 +360,38 @@ public abstract class AbstractInMenu implements Menu<AbstractInMenu> {
      * znamena ze to bude instancia AbstractInMenu alebo jeho potomkov (vsetko si zisti z typu triedy).
      * Po vytvoreni novej instancie zavola initialize co prenastavi entitu pre ktoru vytvarame menu.
      * Vyhoda volani tejto metody pri volani konstruktora je ta ze nevolame metody setGraphics ale vyuzivame spolocny obrazok.
-     * @param name Meno predmetu ktory bude instancia vytvarat.
-     * @param itemType Typ predmetu ktory bude instancia vytvarat.
-     * @return Instanciu typu ItemGeneratorPlugin alebo jeho potomkov.
+     * @param e1 Entita pre ktoru robime menu
+     * @param e2 Entita ktora ma nieco docinenie s menu
+     * @return Instanciu potomka AbstractInMenu.
      */
-    public final AbstractInMenu newInstance(Entity e) {
-        try {
-            System.out.println(this.getClass().newInstance());
-            return this.getClass().newInstance().initialize(this, e);
+    public final AbstractInMenu newInstance(Entity e1, Entity e2) {
+        try {            
+            return this.getClass().newInstance().initialize(this, e1, e2);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     } 
+    
+    /**
+     * Metoda ktora vrati podla parametru sMenu take AbstractInMenu ktore zodpoveda 
+     * tomuto parametru. Tieto menu su ulozene v HashMape menuList.
+     * @param sMenu Textovy retazec/kluc z menuList
+     * @return AbstractInMenu zodpovedajuce parametru
+     */
+    public static AbstractInMenu getMenu(String sMenu) {
+        return menuList.get(sMenu);
+    }
+    
+    
+    /**
+     * Staticka metoda prida do hashmapy <b>menuList</b> nove menu 
+     * s menom ziskanym z metody getName (metoda getMenu musi byt implementovana v tomto menu).
+     * @param inMenu Nove menu do hashmapy.
+     */
+    public static void addMenu(AbstractInMenu inMenu) {
+        menuList.put(inMenu.getName(), inMenu);
+    }
+    
     
     // </editor-fold>
     

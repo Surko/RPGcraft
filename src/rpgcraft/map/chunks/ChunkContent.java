@@ -46,6 +46,15 @@ public class ChunkContent {
         return chunkArray[d][w][h];
     }
     
+    public boolean setTileOnPosition(int d, int w, int h, int value, int meta) {
+        if (chunkArray[d][w][h] != DefaultTiles.BLANK_ID) {
+            return false;
+        }
+        chunkArray[d][w][h] = value;
+        metaData[d][w][h] = meta;
+        return true;
+    }
+    
     public boolean setIntOnPosition(int d, int w, int h, int value) {
         if (chunkArray[d][w][h] != DefaultTiles.BLANK_ID) {
             return false;

@@ -3,6 +3,12 @@
     <recipe>
         <id>stick</id>
         <shaped>true</shaped>
+        <craft-recipe>3,|3,</craft-recipe>
+        <result>stick/2</result>
+    </recipe>
+    <recipe>
+        <id>test</id>
+        <shaped>true</shaped>
         <craft-recipe>healing1,healing1|healing1,healing1</craft-recipe>
         <result>healing1,tile:1</result>
     </recipe>

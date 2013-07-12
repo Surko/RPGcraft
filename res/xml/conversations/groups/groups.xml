@@ -4,5 +4,15 @@
         <id>Greetings</id>
         <label>Greetings</label>
         <msgs>id1,id2</msgs>
-    </group>    
+    </group>
+    <group>
+        <id>Tutorial2</id>
+        <label>What's next?</label>
+        <msgs>tut2</msgs>
+    </group>
+    <group>
+        <id>Tutorial1</id>
+        <label>I've been sent to you</label>
+        <msgs>tut1</msgs>
+    </group>
 </groups>

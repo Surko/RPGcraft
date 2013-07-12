@@ -16,6 +16,7 @@ import rpgcraft.entities.Entity;
 import rpgcraft.entities.Item;
 import rpgcraft.entities.MovingEntity;
 import rpgcraft.entities.Player;
+import rpgcraft.entities.TileItem;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.ui.menu.CharInfo;
@@ -505,11 +506,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         _saveMap.loadMapAround(player); 
         //player.setImpassableTile(1);
         
-        Item item = Item.createItem("Healing Potion",EntityResource.getResource("healing1"));                 
-        player.addItem(item);
-        player.addItem(item);
-        player.addItem(item);
-        player.addItem(item);                        
+        Item item = Item.createItem("Healing Potion",EntityResource.getResource("healing1"));
+        item.setCount(4);
+        player.addItem(item);        
+        item = new TileItem(null, Tile.getTile("3"));
+        item.setCount(2);
+        player.addItem(item);        
                 
         saveMap = _saveMap;
         setWidthHeight(gamePane.getWidth(), gamePane.getHeight());                 

@@ -7,5 +7,22 @@
     <conversation>
         <id>id2</id>
         <text>@welcome2</text>
-    </conversation>    
+    </conversation>
+    <conversation>
+        <id>tut2</id>
+        <text>@welcometut2</text>
+        <actions>
+            <action>DATA@ASSIGN(ITEM@CREATEITEM(TutorialHealing,healing1),tutasgn)
+GAME@SPAWN_ENTITY(INT#64,INT#100,INT#100,VAR#tutasgn)
+ENTITY@SET_QUESTSTATE(fetch,INT#30)</action>
+        </actions>
+    </conversation>
+    <conversation>
+        <id>tut1</id>
+        <text>@welcometut</text>
+        <answers>Tutorial2</answers>
+        <conditions>
+            <condition>DATA@EQUAL(ENTITY@GET_QUESTSTATE(fetch),INT#20)</condition>
+        </conditions>
+    </conversation>
 </conversations>

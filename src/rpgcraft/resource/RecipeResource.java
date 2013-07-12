@@ -140,6 +140,13 @@ public class RecipeResource extends AbstractResource<RecipeResource>{
     private static boolean isValidRecipe(RecipeResource res, Item[][] cells) {
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++) {
+                if ((res.resCells.length <= i || res.resCells[i].length <= j)) {
+                    if (cells[i][j] == null) {
+                        continue;
+                    } else {
+                        return false;
+                    }
+                }
                 if (cells[i][j] == null) {
                     if (res.resCells[i][j] == null) {
                         continue;
@@ -173,12 +180,27 @@ public class RecipeResource extends AbstractResource<RecipeResource>{
     public ArrayList<Item> getCraftedItems() {
         ArrayList<Item> _resultItems = new ArrayList<>();
         
+        int count = 1;
         for (String sItem : resultItems) {
+            String[] parsedCraft = sItem.split("/");
+            if (parsedCraft.length == 2) {
+                sItem = parsedCraft[0];
+                try {
+                    count = Integer.parseInt(parsedCraft[1]);
+                } catch (Exception e) {
+                    count = 1;
+                }
+            }            
+                    
             if (sItem.startsWith("tile:")) {
                 int tileId = Integer.parseInt(sItem.substring(5));
-                _resultItems.add(new TileItem(null, Tile.tiles.get(tileId)));
+                Item newItem = new TileItem(null, Tile.tiles.get(tileId));
+                newItem.setCount(count);
+                _resultItems.add(newItem);
             } else {
-                _resultItems.add(Item.createItem(null, EntityResource.getResource(sItem)));
+                Item newItem = Item.createItem(null, EntityResource.getResource(sItem));
+                newItem.setCount(count);
+                _resultItems.add(newItem);
             }
         }
         return _resultItems;

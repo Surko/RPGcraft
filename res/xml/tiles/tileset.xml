@@ -19,6 +19,7 @@
         <globalw>32</globalw>
         <globalh>32</globalh>
         <passable>True</passable>
+        <item-type>12</item-type>
         <anim>
             <sheet>tileset.png</sheet>
             <x>0</x>
@@ -31,6 +32,7 @@
         <globalw>32</globalw>
         <globalh>32</globalh>
         <passable>True</passable>
+        <item-type>12</item-type>
         <anim>
             <sheet>tileset.png</sheet>
             <x>1</x>

@@ -11,8 +11,36 @@
                     <action type="START">GAME@SHOW_DONE_DIALOG(LOCAL#tutorial1)
 DATA@IF(DATA@EQUAL(GAME@CHECK_STATUS(),1),ENTITY@SET_QUESTSTATE(fetch,INT#10))
 </action>
-</state-actions>
-</state>
+                </state-actions>
+            </state>
+            <state id="10">
+                <state-text>@tutorial2</state-text>
+                <state-actions>
+                    <action type="START">GAME@SHOW_DONE_DIALOG(LOCAL#tutorial2)</action>
+                    <action type="THROUGHT">DATA@IF(ENTITY@ISAT_XYZ(INT#50,INT#50,INT#64),ENTITY@SET_QUESTSTATE(fetch,INT#20))
+DATA@TIME_SLEEP(INT#1000)</action>
+                </state-actions>
+            </state>
+            <state id="20">
+                <state-text>@tutorial3</state-text>
+                <state-actions>
+                    <action type="START">GAME@SHOW_DONE_DIALOG(LOCAL#tutorial3)</action>
+                </state-actions>
+            </state>
+            <state id="30">
+                <state-text>@tutorial4</state-text>
+                <state-actions>
+                    <action type="START">GAME@SHOW_DONE_DIALOG(LOCAL#tutorial4)</action>
+                    <action type="THROUGHT">DATA@IF(ENTITY@HAS_ITEM(healing1,TutorialHealing),ENTITY@SET_QUESTSTATE(fetch,INT#40))
+DATA@TIME_SLEEP(INT#1000)</action>
+                </state-actions>
+            </state>
+            <state id="40">
+                <state-text>@tutorial5</state-text>
+                <state-actions>
+                    <action type="START">GAME@SHOW_DONE_DIALOG(LOCAL#tutorial5)</action>                    
+                </state-actions>
+            </state>
         </quest-states>
     </quest>
 </quests>

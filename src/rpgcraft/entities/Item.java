@@ -570,6 +570,14 @@ public abstract class Item extends StaticEntity {
     }
 
     /**
+     * Metoda ktora nastavi pocet predmetov.
+     * @param value Novy pocet predmetov
+     */
+    public void setCount(int value) {
+        this.count = value;
+    }
+    
+    /**
      * Metoda ktora nastavi seed pre predmet.
      * @param seed Seed predmetu
      */

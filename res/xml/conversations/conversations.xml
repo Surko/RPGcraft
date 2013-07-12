@@ -1,26 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <conversations>
-
-<conversation>
-<id>id1</id>
-<text>Do you want to feel the static?</text>
-<conditions>
-</conditions>
-<answers>Greetings</answers>
-<actions>
-<action></action>
-</actions>
-</conversation>
-
-<conversation>
-<id>id2</id>
-<text>Hello my son</text>
-<conditions>
-</conditions>
-<answers>
-</answers>
-<actions>
-<action></action>
-</actions>
-</conversation>
-
+    <conversation>
+        <id>id1</id>
+        <text>Hello</text>
+    </conversation>
+    <conversation>
+        <id>id2</id>
+        <text>@welcome2</text>
+    </conversation>    
 </conversations>

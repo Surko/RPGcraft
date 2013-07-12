@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author doma
+ * Interface ktory zdruzuje nazvy tagov v entitovych xml-kach
  */
 public interface EntityXML {    
     public static final String MOB = "mob";
@@ -15,10 +14,16 @@ public interface EntityXML {
     public static final String MOVE = "move";
     public static final String NAME = "name";
     public static final String INFO = "info";
+    public static final String MOVEABLE = "moveable";
+    public static final String CANSPAWN = "canspawn";
+    public static final String CANDESPAWN = "candespawn";
     public static final String GROUP = "group";
+    public static final String INVENTORY = "inventory";
+    public static final String LUA = "lua";
     public static final String AI = "ai";
     public static final String SHEET = "sheet";
     public static final String ENTITYTYPE = "entity-type";
+    public static final String ITEMLEVELTYPE = "itemlevel-type";
     public static final String CONVERSATIONS = "conversations";
     public static final String TYPES = "types";
     public static final String TYPE = "type";
@@ -32,6 +37,7 @@ public interface EntityXML {
     public static final String IMAGE = "image";
     public static final String GLOBALW = "globalw";
     public static final String GLOBALH = "globalh";
+    public static final String KNOCKBACK = "knockback";
     public static final String HEALTH = "basehealth";    
     public static final String STAMINA = "basestamina";
     public static final String HEALTHPER = "healthper";    

@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author kirrie
+ * Interface ktory zdruzuje nazvy tagov v ulohovych xml-kach
  */
 public class QuestXML {
     public static final String ROOT = "quests";

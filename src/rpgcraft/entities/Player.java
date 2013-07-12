@@ -10,26 +10,23 @@ import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import rpgcraft.MainGameFrame;
-import rpgcraft.effects.Effect;
 import rpgcraft.entities.Armor.ArmorType;
 import rpgcraft.entities.Item.ItemType;
 import rpgcraft.entities.types.ItemLevelType;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.spriteoperation.Sprite;
 import rpgcraft.graphics.ui.particles.BarParticle;
+import rpgcraft.handlers.InputHandle;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.Chunk;
 import rpgcraft.map.tiles.AttackedTile;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.quests.Quest;
-import rpgcraft.resource.EffectResource;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.QuestsResource;
 import rpgcraft.resource.StatResource.Stat;
 import rpgcraft.utils.DataUtils;
-import rpgcraft.utils.Pair;
 /**
  * Trieda Player ktora dedi od MovingEntity je kontajner pre hraca a metody
  * ktore sa s hracom daju robit. Oproti MovingEntity ma pridane Questy a podla hraca sa taktiez 
@@ -40,7 +37,13 @@ public class Player extends MovingEntity {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final long serialVersionUID = 912804676578087866L;
     
+    // Premenna akumulovanej sily pri utoku na dlazdicu.
     private double acumTilePower;
+    
+    // Pocitadlo zabiti
+    private HashMap<String,Integer> killCounter;
+    
+    // Premenne tykajuce sa questov.
     private HashMap<String,Quest> activeQuests;
     private HashMap<String,Quest> completedQuests;
     // </editor-fold>
@@ -84,6 +87,7 @@ public class Player extends MovingEntity {
         this.staminaDischarger = maxStamina;
         this.attackRadius = intStats.get(Stat.ATKRADIUS);        
         this.health = maxHealth;  
+        this.killCounter = new HashMap<>();
         map.addParticle(poweringBar);
         
         this.xPix = entity.xPix;
@@ -95,9 +99,9 @@ public class Player extends MovingEntity {
         super(name, map, res);
         //System.out.println("Player constructor called");
         this.poweringBar = new BarParticle();
+        this.killCounter = new HashMap<>();
         this.activeQuests = new HashMap();
-        this.completedQuests = new HashMap();
-        this.levelType = ItemLevelType.HAND;
+        this.completedQuests = new HashMap();        
         map.addParticle(poweringBar);        
     }
     
@@ -117,6 +121,20 @@ public class Player extends MovingEntity {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    
+    /**
+     * Metoda ktora vrati pocet zabiti urcitej entity ktorej id je zadane parametrom <b>id</b>
+     * @param id Id entity ktorej pocet zabiti hladame
+     * @return Pocet zabiti pre specificku entitu
+     */
+    public int getKills(String id) {        
+        Integer killCount = killCounter.get(id);
+        if (killCount == null) {
+            return 0;
+        }
+        return killCount;
+    }
+    
     /**
      * Metoda ktora vrati quest z aktivnych questov s id rovnym parametru <b>id</b>.
      * @param id Id questu ktory vratime
@@ -208,31 +226,37 @@ public class Player extends MovingEntity {
                 
             }*/
             
-            if ((acumPower > 0)&&(!input.runningKeys.contains(input.attack.getKeyCode()))) {                                                                            
+            if ((acumPower > 0)&&(!input.runningKeys.contains(InputHandle.DefinedKey.ATTACK.getKeyCode()))) {                                                                            
                     poweringBar.setDeactivated();                                        
                     attack(acumPower / maxPower);                    
                     acumPower = 0;
             }
             
             
-            if ((acumDefense > 0)&&(!input.runningKeys.contains(input.defense.getKeyCode()))) {
+            if ((acumDefense > 0)&&(!input.runningKeys.contains(InputHandle.DefinedKey.DEFENSE.getKeyCode()))) {
                 poweringBar.setDeactivated();                                        
                 stamina -= defend();                    
                 acumDefense = 0;                
             }
             
-            if ((acumTilePower > 0)&&(!input.runningKeys.contains(input.tileattack.getKeyCode()))) {                
-                poweringBar.setDeactivated();                                        
-                attackTile(acumTilePower / maxPower, 0, -1);                      
-                acumTilePower = 0d;
-            }                                   
+            if (acumTilePower > 0) {
+                if (input.clickedKeys.contains(InputHandle.DefinedKey.TILEATTACKHOR.getKeyCode())) {
+                    poweringBar.setDeactivated();
+                    attackTile(acumTilePower / maxPower, 32, 0);                    
+                    acumTilePower = 0d;
+                    return true;
+                }
+            
+                if (!input.runningKeys.contains(InputHandle.DefinedKey.TILEATTACKVER.getKeyCode())) {                              
+                    poweringBar.setDeactivated();
+                    attackTile(acumTilePower / maxPower, 0, -1);
+                    acumTilePower = 0d;
+                }
+            }
             
             if (updateCoordinates()) {
                 recalculatePositions();
             }
-            
-            updateQuests();
-                        
         }
         
         return true;
@@ -242,7 +266,7 @@ public class Player extends MovingEntity {
      * Metoda ktora aktualizuje questy => zavola pre kazdy aktivny quest metodu update.
      * Ked bol quest dokonceny tak ho premiestni do kompletnych questov.
      */
-    private void updateQuests() {
+    public void updateQuests() {
         if (activeQuests != null) {
             Iterator<Quest> iter = activeQuests.values().iterator();
             while (iter.hasNext()) {
@@ -385,8 +409,34 @@ public class Player extends MovingEntity {
                 map.removeEntity(e);
                 return;
             }
-        }
+        }      
     }
+
+    /**
+     * <i>{@inheritDoc }</i>
+     * <p>
+     * Metoda este navyse skontroluje ci je entita mrtva. Pri mrtvej entite zvysime 
+     * pocet zabiti pre entitu.
+     * </p>
+     * @param e {@inheritDoc }
+     * @param modifier {@inheritDoc }
+     * @return Kolko sme ublizili entite
+     */
+    @Override
+    protected double tryHurt(Entity e, double modifier) {
+        double hurtValue = super.tryHurt(e, modifier);
+        if (e.isDestroyed()) {
+            Integer killCount = this.killCounter.get(e.getId());
+            if (killCount == null) {
+                this.killCounter.put(e.getId(), 1);
+            } else {
+                killCount++;
+            }
+        }
+        return hurtValue;
+    }
+    
+    
     
     /**
      * Metoda ktora sa snazi o "ublizenie" dlazdici zadanej parametrom <b>tile</b> (dlazdica je typu AttackedTile).
@@ -399,28 +449,44 @@ public class Player extends MovingEntity {
      */
     @Override
     protected double tryHurt(AttackedTile tile, Chunk chunk, double modifier) {         
-        if ((levelType.getValue() & tile.getDurability()) > 0) {
-            double tileDmg = damage * modifier;
-            if (tile.hit(tileDmg) <= 0) {
-                addItem(new TileItem(null, tile));
-                targetedTile = null;
-                if (tile.getX() == getTileX() && tile.getY() == getTileY() &&
-                        tile.getLevel() == level - 1) {
-                    level--;
-                    map.setLevel(level);
-                }
-            }            
-            return tileDmg;
+        if ((levelType & tile.getDurability()) > 0) {
+            if (activeItem != null && (activeItem instanceof Weapon)
+                    && ((((Weapon)activeItem).getWeaponType().getIntValue() & tile.getItemType()) > 0)) {
+                double tileDmg = damage * modifier;
+                if (tile.hit(tileDmg) <= 0) {
+                    addItem(new TileItem(null, tile));
+                    targetedTile = null;
+                    if (tile.getX() == getTileX() && tile.getY() == getTileY() &&
+                            tile.getLevel() == level - 1) {
+                        level--;
+                        map.setLevel(level);
+                    }
+                }            
+                return tileDmg;
+            }
+            if (activeItem == null && (Weapon.WeaponType.HAND.getIntValue() & tile.getItemType())  > 0) {
+                double tileDmg = damage * modifier;
+                if (tile.hit(tileDmg) <= 0) {
+                    addItem(new TileItem(null, tile));
+                    targetedTile = null;
+                    if (tile.getX() == getTileX() && tile.getY() == getTileY() &&
+                            tile.getLevel() == level - 1) {
+                        level--;
+                        map.setLevel(level);
+                    }
+                }            
+                return tileDmg;
+            }
         }
         return 0d;
     }
     
     /**
-     * Metoda ktora sa pokusi o posadenie hraca na mapu a aktulizovanie okolia hraca.
+     * Metoda ktora sa pokusi o posadenie/vytvorenia hraca na mapu a aktulizovanie okolia hraca.
      */
     public void trySpawn() {
-        this.xPix = 0;
-        this.yPix = 0;
+        this.xPix = 32;
+        this.yPix = 32;
         this.level = 64;
         this.actualChunk = map.chunkPixExist(xPix, yPix);        
         /*
@@ -521,24 +587,24 @@ public class Player extends MovingEntity {
      */
     @Override
     public void inputHandling() { 
-            if (input.runningKeys.contains(input.up.getKeyCode())) {
+            if (input.runningKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {
                 doubleyGo -= fullSpeed;                
             }
-            if (input.runningKeys.contains(input.down.getKeyCode())) {
+            if (input.runningKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {
                 doubleyGo += fullSpeed;  
             }
-            if (input.runningKeys.contains(input.left.getKeyCode())) {
+            if (input.runningKeys.contains(InputHandle.DefinedKey.LEFT.getKeyCode())) {
                 doublexGo -= fullSpeed; 
             }        
-            if (input.runningKeys.contains(input.right.getKeyCode())) {
+            if (input.runningKeys.contains(InputHandle.DefinedKey.RIGHT.getKeyCode())) {
                 doublexGo += fullSpeed;  
             }                        
             
-            if ((input.clickedKeys.contains(input.active.getKeyCode()))) {
+            if ((input.clickedKeys.contains(InputHandle.DefinedKey.ACTIVE.getKeyCode()))) {
                 activate();
             }
             
-            if ((input.runningKeys.contains(input.attack.getKeyCode())) && stamina>0) {
+            if ((input.runningKeys.contains(InputHandle.DefinedKey.ATTACK.getKeyCode())) && stamina>0) {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.healthColor));
                 }
@@ -550,7 +616,7 @@ public class Player extends MovingEntity {
                 }
             }
             
-            if ((input.runningKeys.contains(input.tileattack.getKeyCode())) && stamina>0) {
+            if ((input.runningKeys.contains(InputHandle.DefinedKey.TILEATTACKVER.getKeyCode())) && stamina>0) {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.tileAttackColor));
                 }
@@ -560,25 +626,25 @@ public class Player extends MovingEntity {
                     poweringBar.setValue(acumTilePower);
                     return;
                 }
-            }
+            }            
 
-            if (input.runningKeys.contains(input.defense.getKeyCode())&&(stamina>0)) {
+            if (input.runningKeys.contains(InputHandle.DefinedKey.DEFENSE.getKeyCode())&&(stamina>0)) {
                 if (!poweringBar.isActivated()) {
                     poweringBar.setActivated(Colors.getColor(Colors.defenseColor));                
                 }
                 if (acumDefense < maxPower) {
-                    stamina-= defensePower;
-                    acumPower += defensePower;
+                    stamina -= defensePower;
+                    acumDefense += defensePower;
                     poweringBar.setValue(acumDefense); 
                     return;
                 }
             } 
             
-            if (input.clickedKeys.contains(input.enter.getKeyCode())) {                
+            if (input.clickedKeys.contains(InputHandle.DefinedKey.ENTER.getKeyCode())) {                
                 tryGrabItems();
             }
                         
-            if (input.clickedKeys.contains(input.jump.getKeyCode())) {                                                
+            if (input.clickedKeys.contains(InputHandle.DefinedKey.JUMP.getKeyCode())) {                                                
                 if (autoMove(1)) {
                     map.setLevel(level);
                 }
@@ -601,7 +667,9 @@ public class Player extends MovingEntity {
         super.writeExternal(out); //To change body of generated methods, choose Tools | Templates.
         out.writeInt(lightRadius);
         out.writeInt(sound);
-        out.writeObject(activeQuests);        
+        out.writeObject(killCounter);
+        out.writeObject(activeQuests);   
+        out.writeObject(completedQuests);
     }
 
     /**
@@ -609,7 +677,7 @@ public class Player extends MovingEntity {
      * Volana je super metoda z MovingEntity ktora nacita spolocne udaje pre moving entity a player.
      * Ostatok udajov dolezite len pre playera su nacitane priamo tu. Udaje su rovnake a v rovnakom
      * poradi ako pri writeExternal.
-     * @param out Output file odkial nacitavame data.
+     * @param in Input file odkial nacitavame data.
      * @throws IOException Ked doslo k chybe v streame.
      */
     @Override
@@ -617,7 +685,9 @@ public class Player extends MovingEntity {
         super.readExternal(in); //To change body of generated methods, choose Tools | Templates.
         this.lightRadius = in.readInt();
         this.sound = in.readInt();
-        this.activeQuests = (HashMap<String, Quest>) in.readObject();        
+        this.killCounter = (HashMap<String, Integer>) in.readObject();        
+        this.activeQuests = (HashMap<String, Quest>) in.readObject();
+        this.completedQuests = (HashMap<String, Quest>) in.readObject();
     }
     
     // </editor-fold>

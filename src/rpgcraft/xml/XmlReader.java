@@ -4,21 +4,26 @@
  */
 package rpgcraft.xml;
 
-import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import rpgcraft.errors.MissingFile;
+import rpgcraft.resource.StringResource;
+
 /**
- *
- * @author Kirrie
+ * Trieda XMLReader ktora pri vytvoreni instancie zdruzuje metody na rozparsovanie
+ * suboru ktory zadavame v konstruktore (alebo priamym parsovanim suboru). Vacsinou
+ * sa vyuziva pri inicializovani xml suborov v GamePane, ktory vytvara pre kazdy xml subor
+ * instanciu tejto triedy a rozparsovanim ziskame elementy, v ktorych sa nachadzaju data,
+ * ktore potrebujeme. V triede takisto existuju rozne druhy parserov (rozparsuju iba plytke elementy,
+ * vsetky elementy, od nejakeho elementu).
  */
 public class XmlReader {
     
     private File file;
     private Document doc;
-    private ArrayList<Element> elements = new ArrayList<Element>();   
+    private ArrayList<Element> elements = new ArrayList<>();   
     
     /**
      * Enum XmlSavePriority ktory ma definovane mena xml suborov s priradenymi cislami
@@ -38,39 +43,71 @@ public class XmlReader {
         entities(7),
         recipes(8),        
         quests(9),
-        groups(10);        
+        sounds(10);
                
         
         private int priority;
         
+        /**
+         * Privatny konstruktor pre vytvorenie priority pre enum
+         * @param priority Priorita jednej polozky enumu
+         */
         private XmlSavePriority(int priority) {
             this.priority = priority;
         }
         
+        /**
+         * Metoda ktora vrati prioritu pre jednu polozku enumu.
+         * @return Priorita polozky enumu
+         */
         public int getPriority() {
             return priority;                    
         }
     }
     
+    /**
+     * Konstruktory pre vytvorenie instancie XMLReaderu kde inicializujeme xml subor
+     * na rozparsovanie parametrom <b>file</b>. Metody parseXmlFile sa postaraju
+     * o nasledne rozparsovanie.
+     * @param file Subor na rozparsovanie.
+     */
     public XmlReader(String file) {
         this.file = new File(file);
     }
 
+    /**
+     * Prazdny konstruktor pre vytvorenie instancie XMLReaderu.
+     */
     public XmlReader() {
         
     }
     
+    /**
+     * Metoda ktora rozparsuje subor ktoreho meno dostaneme ako parameter <b>sFile</b>.
+     * Na rozparsovanie posluzi metoda parseXmlFile.
+     * @param sFile Meno suboru ktory chceme rozparsovat
+     */
     public void parseXmlFile(String sFile) {
         elements.clear();
         this.file = new File(sFile);
         parseXmlFile();
     }
     
+    /**
+     * Metoda ktora rozparsuje subor zadany parametrom <b>file</b>. Na rozparsovanie
+     * sluzi metoda parseXmlFile.
+     * @param file Subor na rozparsovanie
+     */
     public void parseXmlFile(File file) {
+        elements.clear();
         this.file = file;
         parseXmlFile();
     }
     
+    /**
+     * Metoda ktora rozparsuje xml subor dany parametrom <b>file</b>.  Na rozparsovanie
+     * pouzivame DocumentBuilder.
+     */
     private void parseXmlFile(){
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	try {
@@ -79,10 +116,16 @@ public class XmlReader {
         	doc = db.parse(file);
 
 	}catch (Exception e) {
-		new MissingFile(e, "Chyba pri citani XML").render();                                              
+		new MissingFile(e, StringResource.getResource("_exmlread")).render();                                              
 	}
     }
     
+    /**
+     * Metoda ktora vrati vrcholy s urcitym menom <b>tagName</b>. Prehladavame od 
+     * root vrcholu rozparsovanim podla mena metodou getELementsByTagName.
+     * @param tagName Meno pre element ktory hladame
+     * @return List s vrcholmi vyhovujuce menu
+     */
     public ArrayList<Element> parseElements(String tagName) {
         NodeList nl = doc.getElementsByTagName(tagName);
 	if(nl != null && nl.getLength() > 0) {
@@ -132,13 +175,10 @@ public class XmlReader {
         }
         return elements;
     }
-    
-    
-    
+            
     /**
-     * 
-     * @param tagName
-     * @return 
+     * Metoda ktora prehlada zadany elementy a vrati vypis vsetkych atributov s menom
+     * rovnym <b>tagName</b>.
      */
     public ArrayList<String> parseAttributes(String tagName) {
         ArrayList<String> attributes = new ArrayList<>();
@@ -164,6 +204,12 @@ public class XmlReader {
         return nValue.getNodeValue();
     }
     
+    /**
+     * Metoda ktora  vrati prvy vrchol v strome s menom <b>name</b>. Xml prechadzame 
+     * odvrchu.
+     * @param name Meno vrcholu ktory hladame
+     * @return Vrchol s urcitym menom.
+     */
     public Element getFirstElementByName(String name) {
         NodeList nl = doc.getElementsByTagName(name);
         if (nl.getLength()> 0) {
@@ -172,6 +218,13 @@ public class XmlReader {
         return null;
     } 
     
+    /**
+     * Metoda ktora vrati prvy vrchol v strome s menom <b>name</b>, ktoreho root element je zadany
+     * parametrom <b>elem</b> 
+     * @param name Meno vrcholu ktory hladame
+     * @param elem Vrchol/Root element stromu v ktorom vyhladavame urcity tag.
+     * @return Element s urcitym menom.
+     */
     public static Element getFirstElementByName(String name, Element elem) {
         NodeList nl = elem.getElementsByTagName(name);
         if (nl.getLength()> 0) {
@@ -180,6 +233,13 @@ public class XmlReader {
         return null;
     } 
     
+    /**
+     * Metoda ktora vrati textovu hodnotu z tagu ktoreho meno je <b>tagName</b>.
+     * Tag hladame vo vrchole zadanom parametrom <b>elem</b>
+     * @param elem Vrchol v ktorom hladame text
+     * @param tagName Nazov tagu
+     * @return Text s hodnotou v urcitom tagu.
+     */
     public String getTextValue(Element elem, String tagName) {
 	String textVal = null;
 	NodeList nl = elem.getElementsByTagName(tagName);
@@ -190,10 +250,24 @@ public class XmlReader {
 	return textVal;
     }   
     
+    /**
+     * Metoda ktora vrati ciselnu reprezentaciu hodnoty ktora sa nachadza 
+     * vo vrchole/tagu <b>ele</b s menom <b>tagName</b>.
+     * @param ele Vrchol/tag xml suboru
+     * @param tagName Meno tagu ktory chceme ziskat
+     * @return Ciselna hodnota hodnoty v tagu
+     */
     public int getIntValue(Element ele, String tagName) {		
         return Integer.parseInt(getTextValue(ele,tagName));
     }
     
+    /**
+     * Metoda ktora vrati atributu vo vrchole v xmlku zadanom parametrom <b>ele</b>.
+     * Meno atributu je v parametri <b>tagName</b>.
+     * @param ele Element/Vrchol v xml subore
+     * @param tagName Meno atributu ktory chceme
+     * @return Text s navratovym atributom
+     */
     public String getAttribute(Element ele, String tagName) {
         return ele.getAttribute(tagName);
     }

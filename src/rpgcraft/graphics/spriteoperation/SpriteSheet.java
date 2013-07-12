@@ -12,8 +12,8 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
 /**
- * Trieda ktora uchovava SpriteSheet a jej zakladne udaje. Obrazok, sirku a vysku SpriteSheet
- * 
+ * Trieda ktora uchovava SpriteSheet a jej zakladne udaje (Obrazok, sirku a vysku SpriteSheet)
+ * spolu s metodami na vyber jednotlivych obrazkov zo sheetu.
  */
 public class SpriteSheet {
         // Sirka a vyska SpriteSheet

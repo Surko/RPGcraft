@@ -24,34 +24,76 @@ import rpgcraft.xml.ImagesXML;
 import rpgcraft.xml.XmlReader;
 
 /**
- *
- * @author doma
+ * ImageResource ktore dedi od AbstraktnehoResource je trieda ktora umoznuje
+ * vytvorit obrazkove resources z xml suborov, ktore sa daju v dalsich resource podporujuce obrazky pouzit
+ * ako mozne obrazky. Na vytvorenie nam pomaha metoda parse,
+ * ktorej predavame jeden vrchol z xmlka na rozparsovanie. Vytvaranie noveho resource
+ * prevadzame volanim metody newBundledResource. Navrat nejakeho resource pomocou metody
+ * getResource. 
+ * @see AbstractResource
  */
 public class ImageResource extends AbstractResource<ImageResource>{        
-    private static HashMap<String, ImageResource> imageResources = new HashMap<>();
-    
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne triedy/enumy ">
     public interface ImageLengths {
         public static final String ORIG = "ORIG";
     }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    private static HashMap<String, ImageResource> imageResources = new HashMap<>();
     
     private String id;
     
     private int x, y, w, h, globalW, globalH;
     private Image backImage, topImage;
     
-    public static ImageResource getResource(String name) {
-        return imageResources.get(name);
-    }    
-    
+    // </editor-fold>
+        
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Konstruktor (privatny) ktory vytvori instanciu ImageResource z xml suboru.
+     * Prvy element ktory parsujeme/prechadzame je zadany v parametri <b>elem</b>.
+     * Po rozparsovani zvalidujeme obrazok a vlozime ho do listu k dalsim.
+     * @param elem Xml element z ktoreho vytvarame resource
+     */
     private ImageResource(Element elem) {
-        parse(elem);        
+        parse(elem); 
+        validate();
         imageResources.put(id, this);
     }
     
+    // </editor-fold>
+        
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
+    /**
+     * Metoda ktora vytvori novy objekt typu ImageResource. Kedze je staticka a public
+     * tak sa tymto padom stava jediny sposob ako vytvorit instanciu ImageResource.
+     * @param elem Element z ktoreho vytvarame obrazkovy resource
+     * @return ImageResource z daneeho elementu
+     */
     public static ImageResource newBundledResource(Element elem) {
         return new ImageResource(elem);                
-    }      
+    }     
     
+    /**
+     * Metoda ktora vrati ImageResource podla parametru <b>name</b>.
+     * @param name Meno obrazkoveho resource ktory hladame (meno je id v xml)
+     * @return ImageResource s danym menom
+     */
+    public static ImageResource getResource(String name) {
+        return imageResources.get(name);
+    }            
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Parsovanie ">
+    /**
+     * Metoda ktora rozparsuvava xml subor takym sposobom ze dostava ako parameter <b>elem</b>
+     * co je jeden elem z xml suboru aj so vsetkymi jeho podelementami. Ulohou je prejst vsetky
+     * tieto podelementy a podla mien tychto podelemntov vykonat definovane akcie.
+     * (ImageXML.BTEXTURE -> rozparsuje to co je medzi tagmi. Z informacii ziska obrazok nacitanim
+     * do resource.)
+     * @param elem Element z xml ktory rozparsovavame do ConversationGroupResource
+     */
     @Override
     protected void parse(Element elem) {
         
@@ -161,33 +203,77 @@ public class ImageResource extends AbstractResource<ImageResource>{
         }
     }
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * Metoda ktora vrati x-ovu poziciu v sheete
+     * @return X-ova pozicia v sheete
+     */
     public int getX() {
         return x;        
     }
     
+    /**
+     * Metoda ktora vrati y-ovu poziciu v sheete
+     * @return Y-ova pozicia v sheete
+     */
     public int getY() {
         return y;
     }
     
+    /**
+     * Metoda ktora vrati sirku obrazku
+     * @return Sirka obrazku
+     */
     public int getWidth() {
         return w;
     }
     
+    /**
+     * Metoda ktora vrati vysku obrazku
+     * @return Vyska obrazku
+     */
     public int getHeight() {
         return h;
     }
     
+    /**
+     * Metoda ktora vrati obrazok tohoto resource
+     * @return Zadny obrazok resource
+     */
     public Image getBackImage() {
         return backImage;                
     }
     
+    /**
+     * Metoda ktora vrati predny obrazok tohoto resource
+     * @return Predny obrazok resource
+     */
     public Image getOnTopImage() {
         return topImage;
     }
 
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne metody ">
+    
+    /**
+     * Metoda ktora okopiruje image resource z parametra <b>res</b> do tohoto resource.
+     * @param res Resource z ktoreho kopirujeme
+     * @throws Exception Chyba pri kopirovanie
+     */
     @Override
     protected void copy(ImageResource res) throws Exception {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
+    /**
+     * Validacna metoda ktora zvaliduje resource aby bol pouzitelny.
+     */
+    private void validate() {
+        
+    }
+ 
+    // </editor-fold>
 }

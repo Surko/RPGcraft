@@ -7,23 +7,38 @@ package rpgcraft.graphics;
 import java.awt.Color;
 
 /**
- *
- * @author doma
+ * Trieda ktorej instancia ma na starosti vratit ake farby svetla sa maju pouzivat pre jednotlive
+ * casy v ramci dna. Vacsinou vyuzivane v Render objektoch ktore pracuju so svetlom.
  */
 public class DayLighting {
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">    
     private static final float MORNING = 0.5f;
     private static final float LUNCH = 1f;
     private static final float EVENING = 0.5f;
     private static final float NIGHT = 0.0f;
     
+    // Pole Farieb pouzite pre svetlo
     private Color[] colors;
+    // Pole pokial siaha gradient pre jednotlive farby. Percentualne rozdelenie
     private float[] fractions;
+    // Modifikator ako daleko dosiahne svetlo
     private int radBuff = 0;
+    // </editor-fold>
             
+    /**
+     * Konstruktor ktory vytvori instanciu triedy pricom nastavi aktualny cas podla
+     * parametru.
+     * @param gameTime Aktualny cas (0-24)
+     */
     public DayLighting(int gameTime) {
         init(gameTime);
     }
     
+    /**
+     * Metoda ktora zinicializuje farby a fractions ktore urcuju pokial jednotlive farby maju dosah
+     * (napr. v GradientBush). Parameter radBuff urcuje o kolko pixelov vidi entita dalej ci menej.
+     * @param time Aktualny cas podla ktoreho inicializujeme farby.
+     */
     public final void init(int time) {
         if ((time < 6)||(time >= 20)) {
             this.colors = new Color[] {Colors.getColor(Colors.eveningColor),
@@ -57,15 +72,27 @@ public class DayLighting {
         
     }    
 
-    
+    /**
+     * Metoda ktora vrati modifikator videnia
+     * @return Modifikator videnia (v pixeloch)
+     */
     public int getRadiusBuff() {
         return radBuff;
     }
     
+    /**
+     * Metoda ktora vrati farby pre aktualny cas v hre
+     * @return Farby pre aktualny cas
+     */
     public Color[] getColors() {
         return colors;
     }
     
+    /**
+     * Metoda ktora vrati fractions (ako daleko farby maju dosah) pre aktualny
+     * cas v hre
+     * @return Fractions pre aktualny cas
+     */
     public float[] getFractions() {
         return fractions;
     }

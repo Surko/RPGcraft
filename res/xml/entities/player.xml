@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 	
 	<!-- Tileset XML to edit tiles on map -->
-	
 <mob>
    <id>_player</id>
-   <name>Player</name>
-   <group>1</group>
    <entity-type>MOVING</entity-type>
+   <group>1</group>
+   <name>Player</name>
    <sheet>characters.png</sheet>
    <globalw>32</globalw>
    <globalh>32</globalh>
@@ -85,6 +84,7 @@
       <y>2</y>
      </anim>
    </move>
+   <inventory>axe</inventory>
    <stats>
     <basehealth>5-20</basehealth>
     <basestamina>50-100</basestamina>

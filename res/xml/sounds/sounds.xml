@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sounds>
+    <sound>
+        <id>menu</id>
+        <path>themes/pageturn1.wav,themes/MenuTheme2.wav</path>
+        <shuffle>true</shuffle>
+        <repeat>true</repeat>
+    </sound>
+</sounds>

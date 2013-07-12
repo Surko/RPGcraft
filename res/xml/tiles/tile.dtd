@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT tileset (tile)+>
+<!ELEMENT tile (id,name,globalw,globalh,passable,anim)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT globalw (#PCDATA)>
+<!ELEMENT globalh (#PCDATA)>
+<!ELEMENT passable (#PCDATA)>
+<!ELEMENT anim (sheet,x,y)>
+<!ELEMENT sheet (#PCDATA)>
+<!ELEMENT x (#PCDATA)>
+<!ELEMENT y (#PCDATA)>

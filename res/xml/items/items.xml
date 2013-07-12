@@ -1,31 +1,51 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-	
-	<!-- Tileset XML to edit tiles on map -->
-	
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tileset XML to edit tiles on map -->
 <Entities>
-<item>
-   <id>healing1</id>
-   <entity-type>ITEM</entity-type>
-   <types>MISC:OTHER</types>
-   <name>Healing Potion</name>
-   <sheet>healingpotion.png</sheet>
-   <globalw>32</globalw>
-   <globalh>32</globalh>
-   <move>
-   <type>ITEM</type>
-      <anim>
-      <duration>2</duration>
-      <x>0</x>
-      <y>0</y>
-      </anim>      
-   </move>	
-	 <stats>
-	    <basestrength>2-2</basestrength>
-	    <basehealth>3-3</basehealth>
-      <healthbonus>2</healthbonus>
-	 </stats>
-   <effects>
-    <effect type="ONUSE">HEAL</effect>
-   </effects>	   
-</item>
+    <item>
+        <id>healing1</id>
+        <entity-type>ITEM</entity-type>
+        <types>MISC:OTHER</types>
+        <name>Healing Potion</name>
+        <sheet>healingpotion.png</sheet>
+        <globalw>32</globalw>
+        <globalh>32</globalh>
+        <move>
+            <type>ITEM</type>
+            <anim>
+                <duration>2</duration>
+                <x>0</x>
+                <y>0</y>
+            </anim>
+        </move>
+        <stats>
+            <basestrength>2-2</basestrength>
+            <basehealth>3-3</basehealth>
+            <healthbonus>2</healthbonus>
+        </stats>
+        <effects>
+            <effect type="ONUSE">HEAL</effect>
+        </effects>
+    </item>
+    <item>
+        <id>axe</id>
+        <entity-type>ITEM</entity-type>
+        <types>WEAPON:ONEHAXE</types>
+        <name>Sharp Axe</name>
+        <sheet>healingpotion.png</sheet>
+        <globalw>32</globalw>
+        <globalh>32</globalh>
+        <move>
+            <type>ITEM</type>
+            <anim>
+                <duration>2</duration>
+                <x>0</x>
+                <y>0</y>
+            </anim>
+        </move>
+        <stats>
+            <basestrength>2-2</basestrength>
+            <basehealth>3-3</basehealth>
+            <healthbonus>2</healthbonus>
+        </stats>        
+    </item>
 </Entities>

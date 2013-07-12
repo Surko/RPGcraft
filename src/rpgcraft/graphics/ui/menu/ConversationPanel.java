@@ -10,14 +10,13 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 import rpgcraft.entities.Entity;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
-import rpgcraft.panels.listeners.Listener;
+import rpgcraft.plugins.Listener;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.resource.ConversationGroupResource;
@@ -28,17 +27,19 @@ import rpgcraft.utils.Pair;
 import rpgcraft.utils.TextUtils;
 
 /**
- *
- * @author kirrie
+ * ConversationPanel je trieda ktora sa stara o vytvorenie a zobrazenie konverzacneho panelu.
+ * Trieda dedi od AbstractInMenu cim sme donuteni implementovat zakladne 
+ * abstraktne metody z AbstractInMenu.
  */
 public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final String TEST = "Testing";
+    private static final String CONVID = "_convid";  
     private static final int wGap = 5, hGap = 5;
     private static final int itemHeight = 30;
-    private static final int convWidth = 600, convHeight = 400;
-    private static final String CONVID = "_convid";            
+    private static final int convWidth = 600, convHeight = 400;              
     private static final String CONVER = StringResource.getResource(CONVID); 
+    private static final char LOCALPREFIX = '@';
     
     protected int width = convWidth, height = convHeight;
     protected Font font,boldTitleFont,italicFont, boldNormalFont;
@@ -57,10 +58,24 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
     // </editor-fold>
     
     // <editor-fold defaultstate="Collapsed" desc=" Konstruktory ">
+    /**
+     * Default konstruktor pre vytvorenie instancie konverzacneho panela. Dolezity
+     * pri volani newInstance.
+     */
     public ConversationPanel() {
         super(null, null);
     }
     
+    /**
+     * Konstruktor pre vytvorenie konverzacneho panelu. Konverzacny panel je tvoreny medzi dvoma
+     * entitami ktore su zadane parametrani <b>entity, convEntity</b>. Z tychto entit vytvorime par
+     * a zavolame metodu setGraphics na nastavenie toDraw obrazku. Nakonci pridame konverzacny panel
+     * do menuListu.
+     * @param entity Entita ktora vyvolala konverzaciu
+     * @param convEntity Entita s ktorou sa rozpravame
+     * @param input Vstup podla ktoreho spracovavame
+     * @param menu Menu v ktorom sme toto menu vytvorili.
+     */
     public ConversationPanel(Entity entity, Entity convEntity, InputHandle input, AbstractMenu menu) {
         super(entity, input);
         this.convEntity = convEntity;        
@@ -173,9 +188,13 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
         int sPaint = hGap + italicSize[1];
         g.setColor(Color.WHITE);
         g.setFont(italicFont);
-        ArrayList<String> parsedTexts = TextUtils.parseToSize(convImage.getWidth(), res.getText(), italicFont);                
-        for (String s : parsedTexts) {                    
-            g.drawString(s, wGap, sPaint);
+        String text = res.getText();
+        if (text.charAt(0) == LOCALPREFIX) {
+            text = StringResource.getResource(text.substring(1));
+        }
+        ArrayList<Pair<String,Integer>> parsedTexts = TextUtils.parseToSize(convImage.getWidth(), text, italicFont);                
+        for (Pair<String,Integer> pair : parsedTexts) {                    
+            g.drawString(pair.getFirst(), wGap, sPaint);
             sPaint += italicSize[1];
         }
 
@@ -183,18 +202,21 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
             changedState = true;
         }
 
+        removeTempConversation();
         if (tempGroups == null) {
             tempGroups = new ArrayList<>();
-        }
-        for (String s : res.getAnswerConversations()) { 
-            ConversationGroupResource groupRes = ConversationGroupResource.getResource(s);
-            if (groupRes != null) {
-                if (!allGroups.contains(groupRes)) {
-                    tempGroups.add(groupRes);
-                    allGroups.add(groupRes);
+        }        
+        if (res.getAnswerConversations() != null) {
+            for (String s : res.getAnswerConversations()) { 
+                ConversationGroupResource groupRes = ConversationGroupResource.getResource(s);
+                if (groupRes != null) {
+                    if (!allGroups.contains(groupRes)) {
+                        tempGroups.add(groupRes);
+                        allGroups.add(groupRes);
+                    }
                 }
             }
-        }
+        }        
     }
     
     /**
@@ -211,7 +233,7 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
             if (res.getConditions() == null || checkConditions(res.getConditions())) {
                 possible.add(res);                                                                
             }                        
-        }        
+        }           
         if (!possible.isEmpty()) {
             Random random = new Random();
             int index = random.nextInt(possible.size());
@@ -222,11 +244,24 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
                     action.setActionEvent(new ActionEvent(menu, 0, -1, null, pair));
                     DataUtils.execute(action);
                 }
-            }
-            
+            }            
+        } else {
+            Graphics g = convImage.getGraphics();   
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, convImage.getWidth(), convImage.getHeight());
+
+            int sPaint = hGap + italicSize[1];
+            g.setColor(Color.WHITE);
+            g.setFont(italicFont);
+            String text = StringResource.getResource("notalk");
+            g.drawString(text, wGap, sPaint);            
         }        
     }
     
+    /**
+     * Metoda ktora vykona aktualizaciu konverzacneho panelu, co znamena prepisanie moznych konverzacii
+     * medzi dvoma entitami
+     */
     private void updateListImage() {
         listImage = new BufferedImage((getWidth() - 3 * wGap)/2, getHeight() - 2*hGap,
                 BufferedImage.TYPE_INT_ARGB);
@@ -267,9 +302,14 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
                 localSelect = selection;
             }
 
+            String text;
             for (int i = 0; i < groupsToShow.size(); i++) {
-                ConversationGroupResource item = groupsToShow.get(i);                 
-                g.drawString(item.getLabel(), 0, (i + 1) * itemHeight - itemHeight / 2);                
+                ConversationGroupResource item = groupsToShow.get(i); 
+                text = item.getLabel();                
+                if (text.charAt(0) == LOCALPREFIX) {
+                    text = StringResource.getResource(text.substring(1));
+                }
+                g.drawString(text, 0, (i + 1) * itemHeight - itemHeight / 2);                
             }            
                 
             g.setColor(Colors.getColor(Colors.selectedColor));
@@ -280,6 +320,11 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
         }        
     }
     
+    /**
+     * Metoda ktora aktualizuje konverzacny panel. Dochadza k nemu iba pri zmene stavu
+     * (changedState). Pri zmene volame aktualizaciu obrazku updateListImage ktora nastavi
+     * mozne konverzacie s entitou.
+     */
     @Override
     public void update() {
         if (changedState) {
@@ -374,7 +419,7 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
 
     /**
      * Metoda ktora vrati meno tohoto menu.
-     * @return 
+     * @return Meno konverzacneho panelu
      */
     @Override
     public String getName() {
@@ -385,6 +430,11 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
     
     // <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">
     
+    /**
+     * Metoda ktora vykresli konverzacny panel. Ked je menu viditelne tak najprv vykreslime
+     * toDraw image a donho vykreslime listImage s convImage.
+     * @param g Graficky kontext do ktoreho kreslime.
+     */
     @Override
     public void paintMenu(Graphics g) {
         if (visible) {
@@ -397,36 +447,46 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
     // </editor-fold>
         
     // <editor-fold defaultstate="collapsed" desc=" Handling ">
+    /**
+     * Metoda ktora spracovava vstup od uzivatela. Pri stlacenie ESC ukoncujeme menu.
+     * Stlacenie tlacidla UP alebo DOWN nasledne zvysi alebo znici oznacenu konverzaciu
+     * Stlacenim ENTER vyvolame konverzaciu tohoto typu, odstranime docasne pridane konverzacie
+     * v paneli (kedze sa rozpravame uz o niecom inom tak docasne konverzacie uz nemaju zmysel
+     * plus by mohli poskodit korektnost uloh alebo deju hry), a vykreslenie vybranej konverzacie.
+     */
     @Override
     public void inputHandling() {
-        if (input.clickedKeys.contains(input.escape.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())) {
             exit();
             menu.setInMenu(null);
         }
         
-        if (input.clickedKeys.contains(input.up.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {
             if (selection > 0) {
                 selection--;
                 changedState = true;
             }
         }
 
-        if (input.clickedKeys.contains(input.down.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {
             if (selection < allGroups.size()) {
                 selection++;
                 changedState = true;
             }
         }
         
-        if (input.clickedKeys.contains(input.enter.getKeyCode())) {             
-            if (selection >= 0 && entity.getInventory().size() != 0) {                
-                removeTempConversation();
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ENTER.getKeyCode())) {             
+            if (selection >= 0 && allGroups.size() != 0) {                                
                 paintSomeConversation();
             }
         }
         
     }
 
+    /**
+     * <i>{@inheritDoc}</i>
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseHandling(MouseEvent e) {
         
@@ -435,6 +495,10 @@ public class ConversationPanel extends AbstractInMenu<ConversationPanel> {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
+    /**
+     * Metoda ktora vrati Konverzacny panel z listu menuList.
+     * @return Konverzacny panel
+     */
     public static ConversationPanel getConversationPanel() {
         return (ConversationPanel)menuList.get(CONVID);
     }

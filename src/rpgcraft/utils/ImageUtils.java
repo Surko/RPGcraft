@@ -4,38 +4,37 @@
  */
 package rpgcraft.utils;
 
-import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.ImageOperation;
-import rpgcraft.graphics.Images;
 import rpgcraft.manager.PathManager;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.ImageResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 
+
 /**
- *
- * @author Surko
+ * Utility trieda ktora v sebe zdruzuje rozne metody pre pracu s obrazkami. Trieda je cela staticka =>
+ * mozne k nej pristupovat z kazdej inej triedy ci instancie. 
+ * Metody dokazy rotovat obrazky, prekreslovat obrazky v kontajnery, vytvarat aktualny
+ * obrazok okna ci menit velkosti obrazku
  */
 public class ImageUtils {
-    
+    // Uchovavanie docasnych obrazko.
+    private static HashMap<String, Image> images = new HashMap<>(); 
     private static final Logger LOG = Logger.getLogger(ImageUtils.class.getName());
     private static final int[] THUMBSIZE = new int[] {128,128};
     
@@ -63,6 +62,16 @@ public class ImageUtils {
     
     }
     
+    /**
+     * Metoda ktora vykona prekresluje obrazok v kontajneri. Obrazok ziskame z resource,
+     * po urceni pozicii vykreslime obrazok priamo do grafickeho kontextu podla ziskanych
+     * pozicii.     
+     * @param g Graficky kontext
+     * @param resource UiResource kontajneru
+     * @param cont Kontajner
+     * @param pos Nepouzite pozicie. Do uvahy berieme nami vytvorene.
+     * @deprecated Nepouzivane pre vykreslovani komponent skrz awt vykreslovanie
+     */
     public static void overpaintBackgroundImage(Graphics g, UiResource resource, Container cont, int[] pos) {
                 
         if (resource.getBackgroundTextureId() != null) {
@@ -90,13 +99,26 @@ public class ImageUtils {
      */
     public static Image rotatedImage(UiResource res, int orientation) {
         if (orientation > 0) {
-            return Images.getImage(res.getBackgroundTextureId()) == null ? makeTemporaryImage(res.getBackgroundTextureId(),orientation) : 
-                    Images.getImage(res.getBackgroundTextureId());
+            return getImage(res.getBackgroundTextureId()) == null ? makeTemporaryImage(res.getBackgroundTextureId(),orientation) : 
+                    getImage(res.getBackgroundTextureId());
         } else {
             return ImageResource.getResource(res.getBackgroundTextureId()).getBackImage();
         }
     }
     
+    /**
+     * Metoda ktora vykona vykreslovanie obrazku v kontajneri podla modu zadanom v resource <b>res</b>.
+     * Pri normalnom vykreslovani a nenulovom obrazku v kontajneri musime vykreslovat obrazok priamo do grafickeho kontextu
+     * <b>g</b>. Pri nulovom obrazku najprv vykreslime obrazok do kontajneru a nasledne do grafickeho kontextu.
+     * V takomto pripade beriem do uvahy pozicie <b>pos</b>
+     * Pri type OVERLAP vykreslujeme kontajnerovy obrazok do grafickeho kontextu podla 
+     * pozicii ziskanych v metode overPaintBackground.
+     * @param g Graficky kontext
+     * @param res UiResource kontajneru
+     * @param cont Kontajner
+     * @param pos Pozicie
+     * @deprecated Nepouzivane pre vykreslovani komponent skrz awt vykreslovanie
+     */
     public void modePainting(Graphics g, UiResource res, Container cont, int[] pos) {
         Image img = cont.getImage();
         switch (res.getPaintMode()) {
@@ -125,8 +147,7 @@ public class ImageUtils {
      * pretoze tieto obrazky existuju len pocas zivotnosti tohoto Menu.
      * @param name Meno noveho obrazku
      * @param o O kolko bude otoceny obrazok
-     * @return Novo inicializovany obrazok z triedy Images
-     * @see Images
+     * @return Novo inicializovany obrazok z triedy Images     
      * @see ImageOperation
      */
     public static Image makeTemporaryImage(String name,int o) {
@@ -134,7 +155,7 @@ public class ImageUtils {
         io.setOrigImage(ImageResource.getResource(name).getBackImage());
         io.createBufferedImages(BufferedImage.TYPE_INT_ARGB);
         io.rotate(o);
-        return Images.newImage(name,io.getShowImg());  
+        return newImage(name,io.getShowImg());  
         
     }           
     
@@ -168,6 +189,15 @@ public class ImageUtils {
                         
     }
     
+    /**
+     * Metoda operateImage spracovava obrazok zadany parametrom <b>img</b>. Rotujeme
+     * ho podla parametru <b>o</b> a zvacsujeme podla velkosti urcenej v poli <b>resize</b>.
+     * Na tieto operaciu sluzi trieda ImageOperation.
+     * @param img Obrazok ktory prerabame
+     * @param o Stupne na zrotovanie
+     * @param resize Pole s velkostmi na zvacsenie
+     * @return Obrazok s nastavenymi parametrami.
+     */
     public static BufferedImage operateImage(Image img, int o, int[] resize) {
         if (img != null) {
             ImageOperation io = ImageOperation.getInstance();
@@ -190,14 +220,30 @@ public class ImageUtils {
         return null;
     }
 
+    /**
+     * Metoda ktora vytvori maly obrazok z aktualneho obrazku aplikacie velkosti THUMBSIZE.
+     * @param comp Komponenta z ktorej ziskame obrazok
+     * @return Obrazok s vytvorenym thumbnail komponenty.
+     */
     public static BufferedImage makeThumbnailImage(Component comp) {
         return operateImage(getScreenImage(comp),0, THUMBSIZE);
     }
     
+    /**
+     * Metoda ktora vytvori maly obrazok velkosti THUMBSIZE z obrazku zadaneho parametrom <b>image</b>
+     * @param image Obrazok z ktoreho spravime maly obrazok
+     * @return Zmenseny obrazok
+     */
     public static BufferedImage makeThumbnailImage(Image image) {
         return operateImage(image, 0, THUMBSIZE);
     }
     
+    /**
+     * Metoda ktora ziska obrazok z komponenty zadanej parametrom <b>comp</b>.
+     * O vykreslenie sa postara metoda getScreenImage s 2 parametrami.
+     * @param comp Komponenta zktorej ziskavame obrazok
+     * @return Zmenseny obrazok komponenty
+     */
     public static BufferedImage getScreenImage(Component comp) {
         
         Dimension d = comp.getSize();
@@ -211,6 +257,13 @@ public class ImageUtils {
         return getScreenImage(comp, region);        
     }
     
+    /**
+     * Metoda ktora vrati obrazok podla komponenty. Region urcuje odkial v obrazku vykreslujeme
+     * komponentu. Na vykreslenie do obrazku pouzijeme metodu paint pri komponente.
+     * @param comp Komponenta ktoru vykreslujeme
+     * @param region Region ktory urcuje odkial vykreslujeme.
+     * @return Obrazok s vykreslenou komponentou
+     */
     public static BufferedImage getScreenImage(Component comp, Rectangle region) {
         BufferedImage image = new BufferedImage(region.width, region.height, BufferedImage.TYPE_INT_ARGB);   
         Graphics g2d = image.createGraphics();
@@ -225,12 +278,50 @@ public class ImageUtils {
         g2d.dispose();
         return image;
         
+    }        
+        
+    /**
+     * Metoda ktora vrati obrazok podla mena ktory vystupuje ako kluc v hash mape images.
+     * @param image Kluc obrazku ktory chceme
+     * @return Obrazok z hashmapy
+     */
+    public static Image getImage(String image) {
+        return images.get(image);
     }
     
-    public static BufferedImage imageFromContainer(Container cont) {
-        return null;
+    /**
+     * Metoda ktora prida novy obrazok do hashmapy.
+     * @param name Kluc pod ktorym bude obrazok vystupovat v hashmape
+     * @param image Obrazok pod urcitym klucom
+     * @return Obrazok ktory sme pridali
+     */
+    public static Image newImage(String name, Image image) {
+        images.put(name, image);
+        return image;
     }
     
+    /**
+     * Metoda ktora vymaze vsetky obrazky z hashmapy pre docasne ukladanie.
+     */
+    public static void removeAllImages() {
+        images.clear();
+    }
+    
+    /**
+     * Metoda ktora vymaze obrazok z hashmapy
+     * @param name Meno obrazku ktory vymazavame
+     * @return True/false ci bol pod existuje takato dvojica
+     */
+    public static boolean deleteImage(String name) {
+        return images.remove(name)!=null;
+    }
+    
+    /**
+     * Metoda ktora zapise zadany obrazok <b>image</b> na disk pod menom <b>name</b>.
+     * Vypisujeme ho do nastaveneho root suboru.
+     * @param name Meno suboru s obrazkom
+     * @param image Obrazok na zapisanie.
+     */
     public static void writeImageToDisc(String name, BufferedImage image) {        
         try {
             ImageIO.write(image, "PNG", new File(PathManager.getInstance().getRootPath(),name + ".png"));

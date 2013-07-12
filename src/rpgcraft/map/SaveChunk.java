@@ -4,23 +4,25 @@
  */
 package rpgcraft.map;
 
-import java.awt.Color;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
 import rpgcraft.entities.Entity;
-import rpgcraft.entities.Player;
-import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.map.chunks.Chunk;
 
 /**
- *
+ * Trieda ktora pri vytvoreni objektu tvori kontajner pre 
+ * Chunk a entity ktore sa nachadzaju v nom. Vytvarane su vacsinou v SaveMap pri skorsom
+ * ukladani chunkov na disk. Trieda dovoluje nacitanie aj ukladanie skrz metody writeExternal a
+ * readExternal. Tymito metodami ukladame chunk aj entity postupne + nakonci priznak EOF ako koniec
+ * suboru. Kedze trieda je Externalizable tak musi mat prazdny konstruktor.
+ * @see Chunk
  * @author kirrie
  */
 public class SaveChunk implements Externalizable {
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Premenne + Pomocne triedy" >
     // Serializacne premenne, UID a verzia pre buducnost pri zmene archivov.
     private static final long serialVersionUID = 912804676578087866L;
@@ -57,7 +59,7 @@ public class SaveChunk implements Externalizable {
     
     
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
     
     /**
@@ -81,8 +83,14 @@ public class SaveChunk implements Externalizable {
     } 
     
     // </editor-fold>
-         
+
     // <editor-fold defaultstate="collapsed" desc=" Externalizacne metody ">
+    /**
+     * Metoda ktora uklada Chunk spolu aj s entitami ktore boli k nemu pridruzene.
+     * Nakoniec vypiseme objekt EOF ktory znamena ze to je koniec vypisu
+     * @param out Vystupny subor/stream
+     * @throws IOException IO vynimka pri neexistencii suboru
+     */
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(serializationVersion);        
@@ -94,6 +102,13 @@ public class SaveChunk implements Externalizable {
         
     }
 
+    /**
+     * Metoda ktora nacita chunk aj s entitami ktore boli ulozene spolu s chunkom.
+     * Pri narazeni na EOF mozme ukoncit nacitavanie.
+     * @param in Vstupny subor
+     * @throws IOException IO vynimka pri chybe suboru
+     * @throws ClassNotFoundException 
+     */
     @Override
     @SuppressWarnings("empty-statement")
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
@@ -120,7 +135,7 @@ public class SaveChunk implements Externalizable {
     }
     
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     
     /**

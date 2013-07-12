@@ -7,18 +7,30 @@ package rpgcraft.graphics.ui.particles;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import rpgcraft.graphics.Colors;
 
 /**
- *
- * @author doma
+ * Trieda ktora dedi od Particle sa automaticky stava casticou ktora sa moze nachadzat v
+ * liste castic na vykreslenie. Instancia triedy ma podedene vsetky metody z rodica
+ * + ma premenne ktore vystihuju tuto textovu casticu. Najzakladnejsie su text na zobrazenie
+ * a font ktorym vypisujeme.
  */
 public class TextParticle extends Particle{
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    private static final int LIFE = 2;
     private String msg;
     private Font font = new Font("Tahoma", Font.PLAIN, 15);
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Konstruktor textovej castice ktory vytvori instanciu TextParticle. Inicializujeme
+     * x-ovu a y-ovu poziciu vzhladom od hraca, spravuna zobrazenie, sirku a vysku castice
+     * a obrazok na vykreslenie.
+     * @param msg Sprava na ukazanie
+     * @param x Relativna x-ova pozicia
+     * @param y Relativna y-ova pozicia
+     */
     public TextParticle(String msg, int x, int y) {
         this.x = x;
         this.y = y;
@@ -29,8 +41,13 @@ public class TextParticle extends Particle{
         this.toDraw = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);        
         setGraphics();
     }
+    // </editor-fold>
     
-    
+    // <editor-fold defaultstate="collapsed" desc=" Update ">
+    /**
+     * Metoda ktora nastavi vnutornu grafiku tejto textovej castice. Vykreslujeme 
+     * podla zakladnych udajov s nastavenim fontu a farby s vypisom spravy.
+     */
     private void setGraphics() {
         Graphics g = toDraw.getGraphics();
         g.setFont(font);
@@ -47,12 +64,14 @@ public class TextParticle extends Particle{
     @Override
     public boolean update() {
         if (!activation) return false;
+            
         span++;
-        if (span > 100) {
+        if (span > LIFE) {
             return false;
         }
         
         return true;
     }
+    // </editor-fold>
     
 }

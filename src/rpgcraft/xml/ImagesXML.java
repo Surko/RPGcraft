@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author Surko
+ * Interface ktory zdruzuje nazvy tagov v obrazkovych xml-kach
  */
 public interface ImagesXML {
     public static final String IMAGE = "ui-image";

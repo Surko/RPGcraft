@@ -14,15 +14,11 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import rpgcraft.MainGameFrame;
-import rpgcraft.entities.Entity;
-import rpgcraft.entities.Item;
-import rpgcraft.entities.Player;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.ui.menu.Menu;
-import rpgcraft.map.Save;
-import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
@@ -35,25 +31,25 @@ import rpgcraft.panels.components.swing.SwingInputText;
 import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
-import rpgcraft.panels.listeners.Listener;
 import rpgcraft.panels.listeners.ListenerFactory;
-import rpgcraft.plugins.RenderPlugin;
+import rpgcraft.plugins.AbstractMenu;
+import rpgcraft.plugins.DataPlugin;
+import rpgcraft.plugins.Listener;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 
 /**
- *
- * @author kirrie
+ * Utility trieda ktora v sebe zdruzuje rozne metody pre pracu s datami. Trieda je cela staticka =>
+ * mozne k nej pristupovat z kazdej inej triedy ci instancie. 
+ * Metoda dokaze rozparsovavat text a vytvori polia s datami, ci rozdelovat text
+ * a vratit jednotlive rozparsovane casti.
  */
 public class DataUtils {        
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne triedy a enumy ">           
     
-    public enum Data {
-        SAVE,
-        PLAYER_ITEMS,
-        RENDER,
-        ITEM
-    }        
-    
+    /**
+     * Mozne datove polozky napriklad v SwingBare.
+     */
     public enum DataValues {
         HEALTH,
         MAXHEALTH,
@@ -62,7 +58,9 @@ public class DataUtils {
         MANA,
         MAXMANA
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());    
     
     private volatile static ExecutorService es = Executors.newCachedThreadPool();
@@ -70,16 +68,37 @@ public class DataUtils {
     private volatile static int cycleCounter;
     
     public static ConcurrentHashMap<String, Object> variables = new ConcurrentHashMap<>();
+    // </editor-fold>
     
-    public static String[] split(String data, char delim) {
+    /**
+     * Metoda ktora rozparsuje text zadany parametrom <b>data</b>. Text rozparsuvavame
+     * pomocou rozdelovaca <b>delim</b>. Metoda rozparsovava iba plytko, co znamena 
+     * ze ked najdeme znak ktory naznacuje hlbku parameter <b>sDepth</b> tak najdene oddelovace
+     * v takej hlbke vynechavame.
+     * @param data Text ktory rozparsovavame
+     * @param delim Oddelovac ktorym rozdelujeme
+     * @param sDepth Zaciatocny znak pre hlbkovost
+     * @param eDepth Konecny znak pre hlbkovost
+     * @return Plytko rozparsovany text
+     */
+    public static String[] split(String data, char delim, char sDepth, char eDepth) {
         if (data.equals("")) {
             return null;
         }
+        int depth = 0;
         
         ArrayList<String> retList = new ArrayList<>();
         int beg = 0;
         for (int i = 0; i < data.length(); i++) {
-            if (data.charAt(i) == delim) {                
+            if (data.charAt(i) == sDepth) {
+                depth++;
+                continue;
+            }
+            if (data.charAt(i) == eDepth) {
+                depth--;
+                continue;
+            }
+            if (data.charAt(i) == delim && depth == 0) {                
                 retList.add(data.substring(beg,i));
                 beg = i + 1;
             }
@@ -89,6 +108,14 @@ public class DataUtils {
         
     }
     
+    /**
+     * Metoda ktora rozparsuje data zadane v parametri <b>data</b>. O rozparsovanie
+     * sa postarametoda getDataFromString ktora vrati list listov s jednotlivymi riadkami
+     * v ktorych su jednotlive data ziskane z textu.
+     * @param data Text na rozparsovanie a ziskanie dat
+     * @param srcObject Zdrojovy objekt z ktoreho ziskavame data
+     * @return 2D pole objektov ktore ziskame z listu listov z metody getDataFromString.
+     */
     public synchronized static Object[][] getDataArrays(String data, Object srcObject) {                
         ArrayList<ArrayList<Object>> resultList = new ArrayList<>();
         
@@ -119,6 +146,22 @@ public class DataUtils {
         return resultArray;
     }    
     
+    /**
+     * Metoda ktora rozparsuje data zadane v parametri <b>data</b>. V texte sa mozu nachadzat rozne znaky
+     * ( '[]#' ), podla ktorych rozhodujeme ako vytvarame list s datami (viac popisane v manuali
+     * ako tvorit data). Metoda je vacsinou volana z inych metod na ziskanie listu listov.<br>
+     * <p>
+     * Zakladny popis znakov : <br>
+     * '@' : pouzitie StringResource na ziskanie textu <br>
+     * '[]' : zacatie/ukoncenie jedneho riadku pola <br>
+     * '#' : pouzitie nadefinovanych dat z DataPluginov.
+     * ',' : oddelovac jednotlivych stlpcov v riadku
+     * </p>
+     * @param data Data z ktorych ziskavame polia
+     * @param srcObject Zdrojovy objekt z ktoreho ziskavame udaje
+     * @param result Navratovy list listov s riadkami s jednotlivymi datami
+     * @return Index na ktorom sme skoncili parsovanie.
+     */
     private static int getDataFromString(String data, Object srcObject, ArrayList<ArrayList<Object>> result) {
         int index = 0;
         
@@ -190,6 +233,23 @@ public class DataUtils {
         return index;
     }
     
+    /**
+     * Metoda ktora rozparsuje data zadane v parametri <b>data</b>. V texte sa mozu nachadzat rozne znaky
+     * ( '[]#' ), podla ktorych rozhodujeme ako vytvarame list s datami (viac popisane v manuali
+     * ako tvorit data). Metoda je vacsinou volana z inych metod na ziskanie zanorovacich
+     * poli len do jedneho.<br>
+     * <p>
+     * Zakladny popis znakov : <br>
+     * '@' : pouzitie StringResource na ziskanie textu <br>
+     * '[]' : zacatie/ukoncenie jedneho riadku pola <br>
+     * '#' : pouzitie nadefinovanych dat z DataPluginov.
+     * ',' : oddelovac jednotlivych stlpcov v riadku
+     * </p>
+     * @param data Data z ktorych ziskavame polia
+     * @param srcObject Zdrojovy objekt z ktoreho ziskavame udaje
+     * @param result Navratovy list s jednotlivymi datami
+     * @return Index na ktorom sme skoncili parsovanie.
+     */
     private static int getDataArray(String data, Object srcObject, ArrayList<Object> result) {
         int index = 0;
         
@@ -278,78 +338,24 @@ public class DataUtils {
     
     /**
      * Metoda ma za ulohu poskladat do jedneho ArrayListu result informacie podla daneho tagu
-     * SAVE, PLAYER_ITEMS, etc... . Moznost pridat dalsie tagy je len na programatorovi.
      * Informacie mozme dostat dvoma sposobmi : <br>
      * - v liste <b>result1</b> je list listov. Tato moznost pouzivana ked volame tuto metodu
      * z metody getDataFromString. <br>
      * - v liste <b>result2</b> je list s datami. Tato moznost je pouzivane ked volame tuto metodu
-     * z metody getDataArray. <br>
-     * Dolezite je vediet ze cele data su vzdy predavane ako 2-dimenzionalne pole (rows, cols) a pri metode getDataFromString
-     * mozme pouzivat priamo ziskavanie informacii z tagov. Kedze ale informacie z tagov su tiez uz
-     * v 2-dimenzionalnom poli tak musime pouzivat referenciu na list listov aby sme to vedeli rozpoznat.
-     * V druhom pripade pri volani z metody getDaraArray uz mame vytvorene pole poli a pracujeme
-     * len s jednym riadkom a ked sa tam nachadza nejaky tag tak nevytvarame dalsie pole
-     * ale iba naskladame vsetky informacie ako keby do jedneho riadku.
-     * List s tymto musi ale vediet pracovat, preto je dolezite aby sa nezabudlo
-     * ze keby nahodou list ma podelement dalsi list tak Cursor v liste musi pracovat sekvencne 
-     * aby vyplnil ten podelement.    
+     * z metody getDataArray. <br> 
      * Pocitame s tym ze jeden z listov predanych ako parameter je nenulovy.
      * @param inf Tag podla ktoreho vyberie informacie do listu
      * @param param Parametre podla ktorych vyplni vysledny list.
      * @param result1 List listov v ktorom su ulozene informacie po riadkoch.
      * @param result2 List s informaciami/datami v ktorom su ulozene informacie sekvencne.List sluzi ako jeden riadok
-     * @return V jednom z poli vsetky data
      */    
     private static void getInfToList(String inf, ArrayList<String> param, Object srcObject,  
-            ArrayList<ArrayList<Object>> result1, ArrayList<Object> result2) {  
-        
-        ArrayList<ArrayList<Object>> infList = null;
-        try {
-            switch (Data.valueOf(inf)) {
-                case SAVE : {
-                    infList = Save.getGameSavesParam(param);                    
-                } break;                
-                case PLAYER_ITEMS : {
-                    // Tolerovany srcObject - Entity alebo Gamemenu z ktoreho si vytiahneme Playera.
-                    if (srcObject instanceof Entity) {                                                
-                        infList = Player.getInventoryItemsParam((Entity)srcObject, param);
-                        break;
-                    }
-                    if (srcObject instanceof GameMenu) {
-                        infList = Player.getInventoryItemsParam(((GameMenu)srcObject).player, param);
-                        break;
-                    }
-                    LOG.log(Level.SEVERE, StringResource.getResource(null));
-                    new MultiTypeWrn(null, Color.red, StringResource.getResource(null),
-                            null).renderSpecific(StringResource.getResource(null));                    
-                } break;
-                case RENDER : {
-                    if (srcObject instanceof GameMenu) {                        
-                        infList = RenderPlugin.getRenderParam(param);
-                    }
-                } break;
-                case ITEM : {
-                    if (srcObject instanceof Item) {
-                        infList = Item.getItemInfo((Item)srcObject);
-                    }
-                } break;
+            ArrayList<ArrayList<Object>> result1, ArrayList<Object> result2) {         
+        for (DataPlugin plug : DataPlugin.getAllPlugins()) {
+            if (plug.getData(inf, param, srcObject, result1, result2)) {
+                return;
             }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, StringResource.getResource("_ndinfo"));
-            new MultiTypeWrn(e, Color.red, StringResource.getResource("_ndinfo"),
-                null).renderSpecific(StringResource.getResource("_label_parsingerror")); 
-            return;                
         }
-        
-        if (result1 != null) {
-            for (ArrayList<Object> list : infList) {
-                result1.add(list);
-            }
-        } else {
-            for (ArrayList<Object> list : infList) {
-                result2.addAll(list);
-            }
-        }                       
     }
     
     /**
@@ -433,12 +439,15 @@ public class DataUtils {
     }
     
     /**
-     * 
-     * @param resource
-     * @param menu
-     * @param src
-     * @param parent
-     * @return 
+     * Metoda ktora vrati Kontajner ktory v sebe obsahuje komponentu ktoru vytvarame
+     * z UiResource zadaneho parametrom <b>resource</b>. Novemu kontajneru pridavame rodicovsky kontajner
+     * zadany v parametri <b>parent</b> a podla toho ci je parameter <b>src</b> null 
+     * sa rozhodneme ci vytvarame novy kontajner alebo menime uz vytvoreny.
+     * @param resource UiResource z ktoreho vytvarame kontajner
+     * @param menu Menu v ktoom je kontajner.
+     * @param src Zdrojovy kontajner ktory menime
+     * @param parent Rodicovsky kontajner ktory pridavame novo vytvorenemu kontajneru
+     * @return Novo vytvoreny kontajner
      */
     public static Container getComponentFromResource(UiResource resource, AbstractMenu menu, Container src, Container parent) {
         Component c = null;
@@ -480,6 +489,14 @@ public class DataUtils {
         return src;
     }        
     
+    /**
+     * Metoda ktora vrati data do SwingBar. Mozne hodnoty su iba HEALTH, MAXHEALTH,
+     * STAMINA, MAXSTAMINA kedze ostatne hodnoty nie su tak casto menitelne alebo nie su
+     * dostatocne zaujimave do SwingBaru.
+     * @param c Komponenta z ktorej ziskavame udaje o hracovi.
+     * @param dataValue DataValues co sa hodnotu chceme vratit
+     * @return Objekt ktory vystihuje aktualnu hodnotu hladaneho atributu.
+     */
     public static Object getData(Component c, DataValues dataValue) {
         
         switch (dataValue) {
@@ -510,53 +527,68 @@ public class DataUtils {
             default : return null;
                 
         }
-        return null;
-        
-        
+        return null;                
     }
     
-    
+    /**
+     * Metoda ktora vrati hodnotu premennej zadanej v liste variables. Metoda je
+     * dolezita pre pristup k premennym nastavenych z listenerov ci lua skriptov.
+     * @param var Premennu ktorej hodnotu chceme
+     * @return Hodnota premennej ako objekt
+     */
     public static Object getValueOfVariable(String var) {
         return variables.get(var);
     }
     
+    /**
+     * Metoda ktora nastavuje hodnotu premennej v liste variables. Metoda je dolezita
+     * pre nastavenie premenncyh z listenerov ci lua skriptov.
+     * @param val Hodnota premennej ako objekt
+     * @param var Premenna v ktorej bude ulozena hodnota
+     */
     public static void setValueOfVariable(Object val, Object var) {
         variables.put(var.toString(), val);
     }       
     
     /**
-     * 
-     * @param parsedOp
-     * @param e
-     * @return 
+     * Metoda ktora vrati z pola (2 prvkoveho) parsedOp porovnavatelne hodnoty.
+     * Pre ziskanie takychto hodnot porovnavame objekty z pola ci su typu Integer
+     * co je automaticky podedeny Comparable. Pri type String volame listener
+     * na ziskanie navratovej hodnoty ktoru pretypovavame na Comparable, ked taky listener nefunguje
+     * tak musi byt text cislo v stringovej podobe => musime parsovat.
+     * @param parsedOp Objekty z ktorych ziskavame Comparable
+     * @param e ActionEvent ktorym volame potencialny listener. 
+     * @return Pole porovnavatelnych hodnot
+     * @throws Vynimka pri pretypovavani
      */
-    public static Comparable[] getComparableValues(Object[] parsedOp, ActionEvent e) {
+    public static Comparable[] getComparableValues(Object[] parsedOp, ActionEvent e) throws Exception {
         Comparable[] compValues = new Comparable[2];
-        Listener fst = ListenerFactory.getListener(parsedOp[0],false);
-        if (fst != null) {
-            fst.actionPerformed(e);
-            compValues[0] = (Comparable) e.getReturnValue();
-        } else {                          
-            if (parsedOp[0] instanceof Integer) {
-                compValues[0] = (Integer)parsedOp[0];        
-            }
-            if (parsedOp[0] instanceof String) {
+        
+        if (parsedOp[0] instanceof Integer) {
+            compValues[0] = (Integer)parsedOp[0];        
+        }
+        if (parsedOp[0] instanceof String) {
+            Listener fst = ListenerFactory.getListener(parsedOp[0],false);        
+            if (fst != null) {
+                fst.actionPerformed(e);
+                compValues[0] = (Comparable) e.getReturnValue();
+            } else {
                 compValues[0] = Integer.parseInt((String)parsedOp[0]);
-            }            
-        }
-
-        Listener snd = ListenerFactory.getListener(parsedOp[1], false);
-        if (snd != null) {
-            snd.actionPerformed(e);
-            compValues[1] = (Comparable) e.getReturnValue();
-        } else {                          
-            if (parsedOp[1] instanceof Integer) {
-                compValues[1] = (Integer)parsedOp[1];
             }
-            if (parsedOp[1] instanceof String) {
-                compValues[1] = Integer.parseInt((String)parsedOp[1]);
-            }            
+        }        
+
+        if (parsedOp[1] instanceof Integer) {
+            compValues[1] = (Integer)parsedOp[1];        
         }
+        if (parsedOp[1] instanceof String) {
+            Listener snd = ListenerFactory.getListener(parsedOp[1],false);        
+            if (snd != null) {
+                snd.actionPerformed(e);
+                compValues[1] = (Comparable) e.getReturnValue();
+            } else {
+                compValues[1] = Integer.parseInt((String)parsedOp[1]);
+            }
+        } 
         
         return compValues;
         

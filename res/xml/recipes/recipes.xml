@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <recipes>
-<recipe>
-<id>stick</id>
-<shaped>true</shaped>
-<craft-recipe>healing1,healing1|healing1,healing1</craft-recipe>
-<result>healing1,tile:1</result>
-</recipe>
+    <recipe>
+        <id>stick</id>
+        <shaped>true</shaped>
+        <craft-recipe>healing1,healing1|healing1,healing1</craft-recipe>
+        <result>healing1,tile:1</result>
+    </recipe>
 </recipes>

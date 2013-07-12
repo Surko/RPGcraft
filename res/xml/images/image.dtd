@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT Images (ui-image)+>
+<!ELEMENT ui-image (id,globalw,globalh,(trans-x,trans-y,orientation)?,x,
+                    y,back-texture)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT globalw (#PCDATA)>
+<!ELEMENT globalh (#PCDATA)>
+<!ELEMENT trans-x EMPTY>
+<!ELEMENT trans-y EMPTY>
+<!ELEMENT orientation EMPTY>
+<!ELEMENT x (#PCDATA)>
+<!ELEMENT y (#PCDATA)>
+<!ELEMENT back-texture (#PCDATA)>

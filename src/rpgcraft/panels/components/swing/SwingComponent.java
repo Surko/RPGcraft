@@ -19,8 +19,6 @@ import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
-import rpgcraft.panels.listeners.Listener;
-import rpgcraft.panels.listeners.ListenerFactory;
 import rpgcraft.resource.types.AbstractType;
 import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.MathUtils;
@@ -66,9 +64,14 @@ public abstract class SwingComponent extends JPanel implements Component {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Abstraktne metody ">
+    /**
+     * Metoda ktora zrekonstruuje komponentu pri okopirovani komponenty z inej.
+     * Treba hu volat po kazdom kopirovani metodou copy.
+     */
     protected abstract void reconstructComponent();  
     /**
      * Metoda clone ktora skopiruje obsah Componenty a vrati novu instanciu tohoto objektu.
+     * Pre zinicializovanie komponenty je dolezite volat metodu reconstruComponent.
      * @return Nova instancia objektu SwingComponent
      */
     @Override
@@ -79,7 +82,8 @@ public abstract class SwingComponent extends JPanel implements Component {
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
     
     /**
-     * Prazdny konstruktor pre vytvorenie komponenty.
+     * Prazdny konstruktor pre vytvorenie komponenty. Prazdny konstruktor je vacsionu
+     * volany z copy metod.
      */
     protected SwingComponent() { 
     }
@@ -299,7 +303,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     
     /**
      * Metoda ktora vrati s kontajneru preferovane velkosti komponenty.
-     * @return 
+     * @return Preferovana velkost
      */
     @Override
     public Dimension getPreferredSize() {
@@ -314,7 +318,7 @@ public abstract class SwingComponent extends JPanel implements Component {
      * Override metoda ktora vrati velkost komponenty. Rozhoduje sa 
      * podla toho ci je komponenta s kontajnerom alebo bez neho (napriklad keby zmizol kontajner nejakym sposobom tak nedojde k chybe).
      * Ked ma tak vrati velkost z kontajneru inak vrati nastavene velkosti komponenty.
-     * @return 
+     * @return Normalna velkost
      */
     @Override
     public Dimension getSize() {
@@ -326,7 +330,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     
     /**
      * Metoda ktora vrati kontajner v ktorom sa komponenta nachadza
-     * @return 
+     * @return Kontajner pre komponentu
      */
     @Override
     public Container getContainer() {
@@ -344,13 +348,17 @@ public abstract class SwingComponent extends JPanel implements Component {
     
     /**
      * Metoda ktora vrati menu v ktorom sa komponenta nachadza
-     * @return 
+     * @return Menu v ktorom je komponenta
      */
     @Override
     public AbstractMenu getOriginMenu() {
         return menu;        
     }
     
+    /**
+     * Metoda ktora vrati sirku komponenty
+     * @return Sirka komponenty
+     */
     @Override
     public int getWidth() {
         if (componentContainer != null) {
@@ -359,6 +367,10 @@ public abstract class SwingComponent extends JPanel implements Component {
         return w;
     }
     
+    /**
+     * Metoda ktora vrati vysku komponenty
+     * @return Vyska komponenty
+     */
     @Override
     public int getHeight() {
         if (componentContainer != null) {
@@ -369,7 +381,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     
     /**
      * Metoda ktora ma za ulohu vratit otcovsku komponentu komponenty ktora metodu vola.
-     * @return 
+     * @return Rodicovska komponenta tejto komponenty
      */
     @Override
     public Component getParentComponent() {
@@ -510,20 +522,35 @@ public abstract class SwingComponent extends JPanel implements Component {
             }
         }
     }
-        
-    
+          
+    /**
+     * Override metoda ktora spracovava udalost drzania mysi.
+     * @param e MouseEvent ktory vyvolal metodu
+     */
     @Override
     public void mousePressed(MouseEvent e) {        
     }
 
+    /**
+     * Override metoda ktora spracovava udalost upustenia tlacidla mysi.
+     * @param e MouseEvent ktory vyvolal metodu
+     */
     @Override
     public void mouseReleased(MouseEvent e) {        
     }
 
+    /**
+     * Override metoda ktora spracovava udalost mysi pri vstupeni do komponenty
+     * @param e MouseEvent ktory vyvolal metodu
+     */
     @Override
     public void mouseEntered(MouseEvent e) {        
     }
 
+    /**
+     * Override metoda ktora spracovava udalost mysi pri vystupeni z komponenty
+     * @param e MouseEvent ktory vyvolal metodu
+     */
     @Override
     public void mouseExited(MouseEvent e) {        
     }
@@ -558,13 +585,17 @@ public abstract class SwingComponent extends JPanel implements Component {
     public void update() {};
     
     /**
+     * <i>{@inheritDoc }</i>
+     * <p>
      * Override metoda updateUI ktora vykona to iste ako originalna updateUI definovana
      * v AWT.     
+     * </p>
      */
     @Override
-    public void updateUI() {
+    public void updateUI() {       
         super.updateUI(); 
     }
+    
     /**
      * Metoda refreshPositions je rovnaka pre vsetky zdedene komponenty od tejto.
      * Ma za ulohu nastavit pozicie komponenty podla rozmiestnenie resource (CENTER, LEFT, atd...)
@@ -579,6 +610,7 @@ public abstract class SwingComponent extends JPanel implements Component {
     public void refreshPositions(int w, int h, int pw, int ph) {
         int[] _rpos = MathUtils.getStartPositions(componentContainer.getResource(),
                       pw, ph, w , h);
+
         componentContainer.setPositions(_rpos);
         // Musi byt porovnavanie s null, lebo uplne prva komponenta nie je rozvrhnuta podla xml.
         if (componentContainer.getParentContainer().getComponent().getLayout() == null) {

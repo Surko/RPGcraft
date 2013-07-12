@@ -11,9 +11,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.manager.PathManager;
+
+
 
 /**
  * Trieda StringResource ma za ulohu v sebe uchovavat vsetky textove hodnoty pouzite v programe.
@@ -29,6 +32,7 @@ import rpgcraft.manager.PathManager;
  */
 public class StringResource {    
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    private static final Logger LOG = Logger.getLogger(StringResource.class.getName());
     private static final String init = "String Resource initialising";
     private static final String done = "DONE ";
     private static final String missing = "String Resource is missing";
@@ -45,9 +49,10 @@ public class StringResource {
      * kde vytvori class loader ktory pouzijeme v metode getBundle. Nakonci skonvertujeme
      * tieto stringove hodnoty do hashmap stringResources z ktorej hra cerpa vsetky udaje.
      * @param locale Lokalizacia suboru ktory nacitavame.
+     * @throws Exception Vynimka pri zlom nacitani string resource
      */
-    public static void initializeResources(Locale locale) {        
-        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, init);
+    public static void initializeResources(Locale locale) throws Exception{         
+        LOG.log(Level.INFO, init);
         File resFile = PathManager.getInstance().getLocalizationPath();           
         try {
             URL[] urls = {resFile.toURI().toURL()};
@@ -56,7 +61,8 @@ public class StringResource {
             stringResources = convertBundleToMap(rb);
             Logger.getLogger(StringResource.class.getName()).log(Level.INFO, done);
         } catch (Exception e) {
-            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, missing);        
+            Logger.getLogger(StringResource.class.getName()).log(Level.SEVERE, missing);
+            throw e;
         }
     }
     
@@ -64,8 +70,9 @@ public class StringResource {
      * Nastavenie string resource s defaultnou lokalizaciou. Metoda je inak rovnaka
      * ako initializeResources s parametrom locale.
      * @see #initializeResources(java.util.Locale) 
+     * @throws Exception Vynimka pri zlom nacitani string resource
      */
-    public static void initializeResources() {  
+    public static void initializeResources() throws Exception{  
         initializeResources(Locale.getDefault());        
     }
     
@@ -75,7 +82,7 @@ public class StringResource {
      * @see ResourceBundle
      */
     public static void initializeResources(ResourceBundle rb) {
-        Logger.getLogger(StringResource.class.getName()).log(Level.INFO, init);
+        LOG.log(Level.INFO, init);
         
         try { 
             stringResources = convertBundleToMap(rb);
@@ -94,9 +101,9 @@ public class StringResource {
      * @param name Kluc na hashmapu a v nej text ktory sa v hashmape nachadza.
      * @return Textovu hodnotu z hashmapy
      */
-    public static String getResource(Object name) {
+    public static String getResource(String name) {
         if (stringResources.containsKey(name)) {
-            return String.format(stringResources.get(name), null);
+            return stringResources.get(name);
         } else {
             Logger.getLogger(StringResource.class.getName()).log(Level.WARNING, nores + name);
             return nores + name;

@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author Surko
+ * Interface ktory zdruzuje nazvy tagov v ui xml-kach
  */
 public interface UiXML {
     public static final String ELEMENT = "element";

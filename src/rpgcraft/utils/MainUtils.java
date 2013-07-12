@@ -8,16 +8,16 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Random;
 import rpgcraft.graphics.Colors;
-import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Container;
 import rpgcraft.panels.components.swing.SwingText;
+import rpgcraft.plugins.AbstractMenu;
 
 /**
  * Trieda Framer v sebe zdruzuje zakladne moznosti pre pracu s pocitanim vykreslenych framov.
  * Definuje si privatnu staticku triedu FramePanel, ktora zarucuje vykreslovanie framov.
- * Instancia tohoto objektu je definovana v statickom bloku.
- * @see FramePanel
+ * Instancia tohoto objektu je definovana v statickom bloku. 
  * @author Surko
  */
 public class MainUtils {
@@ -34,6 +34,13 @@ public class MainUtils {
         }
     };
     
+    public static final FileFilter dirFilter = new FileFilter() {
+        @Override
+        public boolean accept(File file) {
+            return file.isDirectory();
+        }
+    };
+    
     public static final FileFilter xmlFilter = new FileFilter() {
 
         @Override
@@ -44,27 +51,33 @@ public class MainUtils {
     };
     
     // FramePanel pre frame pocitadlo
+    // Bool hodnota ci bol updatovani context    
+    public static boolean rendered = false;
+    
     public static final FramePanel FPSCOUNTER;        
     public static volatile int TICK = 0;
     public static volatile long START_TIME;
     public static long SECONDTIMER;
     public static boolean stopped;
     
-    public static volatile boolean DEBUG = true;
+    public static volatile boolean DEBUG = false;
+    public static volatile boolean DEFAULTMENU = true;
     
     //FPS junk
     public static int fShow;
     public static final boolean SHOWFPS = true;
-    public static final long fpsProhibitor = 10;
+    public static final long fpsProhibitor = 5;
     public static volatile int framing; 
     public static volatile long fpsTimer;     
     public static volatile int debugint;
     
+    public static volatile Random random = new Random();
     // Pocitadlo objektov
     public static long objectId;
     
     // </editor-fold>
        
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne triedy ">
     /**
      * Definovana staticka trieda FramePanel dediaca od SwingText. Vytvara komponentu pre 
      * zobrazovanie framov, ktora podla toho co je v nej napisane zvacsuje zmensuje tuto komponentu.
@@ -112,11 +125,10 @@ public class MainUtils {
          * Velkosti su priamo zadane v konstruktore preto nevolame metody setTextSize atd.
          * @param text Text na zobrazenie
          * @param parsing nepouzity parameter parsing
-         */
+         */        
         @Override
         public void setText(String text, boolean parsing) {
-            this.title = text;
-            
+            this.title = text;            
         }
         
         
@@ -272,8 +284,7 @@ public class MainUtils {
         /**
          * Metoda ktora prida potomka s hodnotou <br>value</br> ku korenu. Zaobstaranie tejto cinnosti ma na starosti
          * metoda vo vnutornej triede Node.
-         * @param value Hodnota noveho potomka.
-         * @see Node#addChild(java.lang.Comparable) 
+         * @param value Hodnota noveho potomka.          
          */
         public void addChild(O value) {
             root.addChild(value);
@@ -304,10 +315,18 @@ public class MainUtils {
         
     }
     
+    // </editor-fold>
+    
+    /**
+     * Metoda ktora nastartuje casovac
+     */
     public static void timerStart() {
         START_TIME = System.nanoTime();
     }
     
+    /**
+     * Metoda ktora vypise kolko ubehlo od zaciatku casovaca.
+     */
     public static void timerEnd() {
         System.out.println(System.nanoTime() - START_TIME);
     }

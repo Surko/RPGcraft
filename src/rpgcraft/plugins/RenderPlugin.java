@@ -128,7 +128,7 @@ public abstract class RenderPlugin {
      * Metoda ktora vytvori osvetlovaciu mapu podla parametru dayLight.
      * @param dayLighting Objekt s roznymi hodnotami pre specificku hodinu v dni. <br>
      * Zavisle na implementacii.
-     * @see DayLight
+     * @see DayLighting
      */    
     public abstract void makeLightingMap(DayLighting dayLighting);
     /**

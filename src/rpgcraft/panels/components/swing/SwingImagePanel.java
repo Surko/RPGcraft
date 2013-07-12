@@ -5,29 +5,31 @@
 package rpgcraft.panels.components.swing;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
-
-import java.awt.event.MouseEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.GameMenu;
-import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.PanelType;
-import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.ImageUtils;
 import rpgcraft.utils.MathUtils;
 
 /**
- *
- * @author Surko
+ * Trieda dediaca od SwingComponenty ktora sa pri vytvoreni instancie stara o spravne zobrazenie
+ * panelu. Trieda obsahuje triedy pre zobrazenie panelu, ci refreshnutie
+ * velkosti komponenty podla dlzky vnutorneho obrazku. Taktiez obsahuje moznost priradit komponente
+ * akcie ktore sa vykonaju pri stlaceni mysi a moznost kopirovat komponentu do inej komponenty.
+ * Pri instancovani, kedze trieda implementuje interface Component, je mozne pridat instanciu
+ * ci do hracieho panelu ako aj do inych hracich panelov ktore si nadefinujeme. V paneli sa mozu
+ * nachadzat dalsie komponenty typu Component.
+ * @see SwingComponent
  */
-public class SwingImagePanel extends SwingComponent{
+public class SwingImagePanel extends SwingComponent {
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(SwingImagePanel.class.getName());
     protected static final int wGap = 5, hGap = 5;
     protected Image backImage;
@@ -36,7 +38,9 @@ public class SwingImagePanel extends SwingComponent{
     protected int[] rpos;
     protected PanelType pType;
     protected boolean gamePanel;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
     protected SwingImagePanel() {
     }
     
@@ -61,27 +65,14 @@ public class SwingImagePanel extends SwingComponent{
             
         }
     }
+    // </editor-fold>
     
-    /**
-     * Override metoda zo AWT ktora nastavi pozadie komponenty podla farby.
-     * Ked ma komponenta definovany kontajner tak zoberie farbu z neho, inak 
-     * pouzije metodu z predka.
-     * @param color Farba ako sa ma zafarbit pozadie
-     */
-    @Override
-    public void setBackground(Color color) {
-        if (componentContainer != null) {
-            super.setBackground(backColor);
-        } else {
-            super.setBackground(color);            
-        }
-    }
-    
+    // <editor-fold defaultstate="collapsed" desc=" Update + Kresliace metody ">       
     /**
      * Metoda reconstructComponent ma za ulohu zrekonstruovat komponentu podla 
      * resource z ktoreho komponenta cerpa. Na ziskanie resource potrebujeme aby
      * componentContainer nebol null. Ostatne casti su rovnake ako v konstruktore
-     * @see SwingImagePanel#SwingImagePanel(rpgcraft.panels.components.Container, rpgcraft.panels.AbstractMenu) 
+     * @see SwingImagePanel#SwingImagePanel(rpgcraft.panels.components.Container, rpgcraft.plugins.AbstractMenu) 
      */
     @Override
     protected void reconstructComponent() {        
@@ -150,24 +141,20 @@ public class SwingImagePanel extends SwingComponent{
             g.fillRect(0, 0, getWidth(), getHeight());
         }
         
-    }          
+    }    
     
-    @Override
-    public Component copy(Container cont, AbstractMenu menu) {
-        SwingImagePanel result = new SwingImagePanel();          
-        result.componentContainer = cont;
-        result.menu = menu;
-        if (_mlisteners != null && !_mlisteners.isEmpty()) {
-            result.addOwnMouseListener();
-        }
-        result._mlisteners = _mlisteners;        
-        result._klisteners = _klisteners;
-        result.reconstructComponent();
-        
-        return result;
-    }
-
-    
+    /**
+     * Metoda ktora spravi refresh komponenty podla toho ako je komponenta usadena
+     * v ostatnych rodicovskych kontajnerov. Na refresh pozicii pouzivame metodu refreshPositions.
+     * Sirka a vyska komponenty je urcena podla toho ci ma byt komponenta predlzovana automaticky
+     * alebo ma pevne dlzky. Pri automatickom predlzovanie skontrolujeme velkost
+     * vsetkych vnutornych komponent v tomto paneli a s porovnanim s dlzkami obrazku
+     * urcime ake ma komponenta dlzky. Oproti inym refresh metodam v inych komponentach
+     * je navyse doplnena o kontrolovanie a nastavenie pozicii pre bezpozicne komponenty ktore sme nahromadili pri
+     * refreshovani vnutornych komponent. Bezpozicne komponenty su take, ktore
+     * sme nemohli urcit lebo boli odkazane na sirky a vysky panelu (FILL_PARENT).
+     * Po urceni bezpozicnych komponent ich vymazeme z kontajneru.
+     */
     @Override
     public void refresh() { 
         super.refresh();                
@@ -216,6 +203,48 @@ public class SwingImagePanel extends SwingComponent{
             componentContainer.clearPositionsless();
         }  
         
-    }            
+    }  
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
+     /**
+     * Override metoda zo AWT ktora nastavi pozadie komponenty podla farby.
+     * Ked ma komponenta definovany kontajner tak zoberie farbu z neho, inak 
+     * pouzije metodu z predka.
+     * @param color Farba ako sa ma zafarbit pozadie
+     */
+    @Override
+    public void setBackground(Color color) {
+        if (componentContainer != null) {
+            super.setBackground(backColor);
+        } else {
+            super.setBackground(color);            
+        }
+    }                     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Copy ">
+    /**
+     * <i>{@inheritDoc }</i>
+     * @param cont Kontajner ktory priradujeme novej komponente
+     * @param menu Menu ktory priradujeme novej komponente
+     * @return Novu SwingImage komponentu
+     */
+    @Override
+    public SwingImagePanel copy(Container cont, AbstractMenu menu) {
+        SwingImagePanel result = new SwingImagePanel();          
+        result.componentContainer = cont;
+        result.menu = menu;
+        if (_mlisteners != null && !_mlisteners.isEmpty()) {
+            result.addOwnMouseListener();
+        }
+        result._mlisteners = _mlisteners;        
+        result._klisteners = _klisteners;
+        result.reconstructComponent();
+        
+        return result;
+    }
+    // </editor-fold>
     
 }

@@ -1,0 +1,26 @@
+// <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    
+// </editor-fold>
+    
+    
+// <editor-fold defaultstate="collapsed" desc=" Konstruktory ">        
+
+// </editor-fold>
+    
+    
+// <editor-fold defaultstate="collapsed" desc=" Update ">    
+    
+// </editor-fold>
+        
+// <editor-fold defaultstate="collapsed" desc=" Settery ">
+        
+// </editor-fold>
+        
+// <editor-fold defaultstate="collapsed" desc=" Gettery ">
+        
+// </editor-fold>
+        
+// <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">    
+    
+// </editor-fold>
+    

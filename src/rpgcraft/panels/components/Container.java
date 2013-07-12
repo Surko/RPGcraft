@@ -14,7 +14,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JPanel;
 import rpgcraft.GamePane;
 import rpgcraft.panels.components.swing.SwingComponent;
 import rpgcraft.resource.StringResource;
@@ -48,7 +47,7 @@ import rpgcraft.utils.MainUtils;
  * Pouziva sa ako hodnota v HashMape pre pristup k nemu skrz resource.
  */   
 public class Container {
-    
+
         // <editor-fold defaultstate="collapsed" desc=" Premenne ">    
         public static Container mainContainer;
     
@@ -65,7 +64,7 @@ public class Container {
         private boolean visible;
         private ArrayList<Container> positionslessCont;
         // </editor-fold>
-        
+
         // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
         /**
          * Konstruktor ktory vytvori novy kontajner uchovavajuci si informacie <br>
@@ -73,21 +72,18 @@ public class Container {
          * - o sirke a vyske komponenty : parametre w,h <br>
          * - o sirke a vyske rodicovskej komponenty : parametre pw, ph <br>
          * - o minimalnej sirke a vyske komponenty : parametre mw, mh
-         * @param x x pozicia v komponente
-         * @param y y pozicia v komponente
+         * @param resource UiResource ktory tvori vzor pre komponentu ulozenu v kontajneri
          * @param w Sirka komponenty
          * @param h Vyska komponenty
-         * @param pw Sirka otcovskej komponenty
-         * @param ph Vyska otcovskej komponenty
          * @param mw Minimalna sirka tejto komponenty
          * @param mh Minimalna vyska tejto komponenty
-         */        
-        
+         * @param parent Rodicovsky kontajner
+         */                
         public Container(UiResource resource, int w, int h, int mw, int mh, Container parent) {
             this.resource = resource;
             this.x = resource == null ? 0 : resource.getX();
             this.y = resource == null ? 0 : resource.getY();
-            this.positionslessCont = null;
+            this.positionslessCont = null;            
             minDimension = new Dimension(mw, mh);
             prefDimension = new Dimension(w, h);            
             this.parent = parent;
@@ -96,14 +92,19 @@ public class Container {
             this.visible = resource == null ? true : resource.isVisible();
             this.autow = (w == -1);
             this.autoh = (h == -1);
-        }
+        }        
         
+        /**
+         * Konstruktor ktory vytvori novy kontajner ktory bude okopirovany od toho
+         * ktory zadavame ako parameter <b>srcCont</b>.
+         * @param srcCont Zdrojovy kontajner z ktoreho kopirujeme
+         */
         public Container(Container srcCont) {
             this.resource = srcCont.resource;
             this.x = srcCont.x;
             this.y = srcCont.y;    
-            minDimension = new Dimension(srcCont.minDimension);
-            prefDimension = new Dimension(srcCont.prefDimension);  
+            this.minDimension = new Dimension(srcCont.minDimension);
+            this.prefDimension = new Dimension(srcCont.prefDimension);  
             this.top = srcCont.top;
             this.parent = srcCont.parent;            
             if (srcCont.childContainers != null) {
@@ -115,16 +116,19 @@ public class Container {
             this.changed = srcCont.changed;
             this.resImage = srcCont.resImage;
             this.visible = srcCont.visible;
-            setComponent(srcCont.c.copy(this, srcCont.c.getOriginMenu()));
-            
-            
+            setComponent(srcCont.c.copy(this, srcCont.c.getOriginMenu()));                        
         }
         
         // </editor-fold>
-        
+
         // <editor-fold defaultstate="collapsed" desc=" Public metody ">
         
         // <editor-fold defaultstate="collapsed" desc=" Funkcie nad kontajnerom ">
+        /**
+         * Metoda ktora zvysi pozicie kontajneru.
+         * @param x Zvysenie o x-ovu poziciu
+         * @param y Zvysenie o y-ovu poziciu
+         */
         public void increase(int x, int y) {
             
             if (this.x + x > parent.prefDimension.width) {
@@ -144,10 +148,18 @@ public class Container {
             }
         }
         
+        /**
+         * Metoda ktora vytvori kontajnerovy obrazok.
+         */
         public void makeBufferedImage() {
             this.resImage = new BufferedImage(prefDimension.width, prefDimension.height, BufferedImage.TYPE_4BYTE_ABGR);
         }
         
+        /**
+         * Metoda ktora prida novy kontajner zadany parametrom <b>cont</b> do tohoto
+         * kontajneru. S pridanim kontajneru pridavame aj komponentu ktoru obsahuje kontajner.
+         * @param cont Novy kontajner na pridanie 
+         */
         public void addChildComponent(Container cont) {
             if (c instanceof GamePane) {
                 if (childContainers.contains(cont)) {
@@ -165,6 +177,10 @@ public class Container {
                 
         }
         
+        /**
+         * Metoda ktora prida vsetky detske komponenty z kontajnerov ktore su ulozene
+         * v liste childContainers. 
+         */
         public void addChildComponents() {
             if (c instanceof GamePane) {
                 //System.out.println(Thread.currentThread());
@@ -187,6 +203,10 @@ public class Container {
             }
         }
         
+        /**
+         * Metoda ktora prida iba kontajner do listu childContainers (nie komponenty)
+         * @param cont Kontajner ktory pridavame do detskych kontajnerov
+         */
         public void addChild(Container cont) {
             if (childContainers == null) {
                 childContainers = new ArrayList<>();                
@@ -197,6 +217,11 @@ public class Container {
             childContainers.add(cont);                         
         }
                 
+        /**
+         * Metoda ktora prida kontajner do detskych kontajnerov. Po pridani kontajneru
+         * pridame aj komponentu v tomto pridanom kontajneri do rodicovskeho kontajneru.
+         * @param cont 
+         */
         public void addContainer(Container cont) {
             if (childContainers == null) {
                 childContainers = new ArrayList<>();                
@@ -220,14 +245,24 @@ public class Container {
             
         }
         
+        /**
+         * Metoda ktora vymaze kontajner z listu kontajnerov + vymaze aj komponenty
+         * ktore boli v tomto kontajneri.
+         * @param cont Kontajner ktory vymazavame.
+         */
         public void removeContainer(Container cont) {
             if (childContainers != null) {
                 this.c.removeComponent(cont.c);
                 childContainers.remove(cont);
-                changed = true;
+                setChanged();
             }
         }
         
+        /**
+         * Metoda ktora spravne odstrani vsetky detske kontajnery v tomto kontajnery.
+         * Spravnym odstranenim sa mysli, ze odstranujeme aj komponenty ktore boli
+         * v tychto kontajneroch (na vymazanie staci metoda removeAll)
+         */
         public void clear() {
             if (childContainers == null) return;
             this.childContainers.clear();
@@ -340,6 +375,15 @@ public class Container {
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Settery ">
+        /**
+         * Metoda ktora nastavi minimalne a normalne vysky a sirky kontajneru. Pri 
+         * zmene dlzok nastavime kontajner na zmeneny metodou setChanged ktora postupne nastavi
+         * aj rodicovsky kontajner na zmeneny (keby boli kontajnery od seba zavisle)
+         * @param w Normaln sirka kontajneru
+         * @param h Normaln vyska kontajneru
+         * @param mw Minimalna sirka kontajneru
+         * @param mh Minimalna vyska kontajneru
+         */
         public void set(int w, int h, int mw, int mh) {            
             if (this.prefDimension.width != w || this.minDimension.width != mw || 
                     this.prefDimension.height != h || this.minDimension.height != mh) {
@@ -373,6 +417,13 @@ public class Container {
             
         }
         
+        /**
+         * Metoda ktora nastavi iba normalnu sirku a vysku. Pri 
+         * zmene dlzok nastavime kontajner na zmeneny metodou setChanged ktora postupne nastavi
+         * aj rodicovsky kontajner na zmeneny (keby boli kontajnery od seba zavisle)
+         * @param w Normalna sirka kontajneru
+         * @param h Normalna vyska kontajneru
+         */
         public void set(int w, int h) {
             if (this.prefDimension.width != w || this.prefDimension.height != h) {
                 this.changed = true;
@@ -393,10 +444,19 @@ public class Container {
             }
         }
         
+        /**
+         * Metoda ktora vymaze vynuluje list s kontajnermi ktore este nemaju urcene
+         * pozicie.
+         */
         public void clearPositionsless() {
             positionslessCont = null;
         }
         
+        /**
+         * Metoda ktora prida ku bezpozicnym kontajnerom novy kontajner zadany
+         * parametrom <b>cont</b>
+         * @param cont Kontajner ktory pridavame do list bezpozicnych kontajnerov.
+         */
         public void addPositionslessCont(Container cont) {
             if (positionslessCont == null) {
                 positionslessCont = new ArrayList<>();                
@@ -404,13 +464,18 @@ public class Container {
             positionslessCont.add(cont);
         }
         
+        /**
+         * Metoda ktora nastavi komponentu v tomto kontajnery. K nastavenie komponenty
+         * patri aj urcenie layoutu a nastavenie min a normalnych vysok.
+         * @param c Komponenta ktoru nastavujeme kontajneru.
+         */
         public void setComponent(Component c) {
             this.c = c;                       
             
             if ((resource != null) &&(c instanceof SwingComponent)) {
-                JPanel swn = (JPanel)c;
+                SwingComponent swn = (SwingComponent) c;
                 swn.setVisible(visible);
-                setLayout((JPanel)c);   
+                setLayout(swn);   
                                 
                 swn.setMinimumSize(minDimension);
                 swn.setPreferredSize(prefDimension);                
@@ -418,19 +483,31 @@ public class Container {
             }
         }
         
+        /**
+         * Metoda ktora nastavuje pozicie kontajneru v rodicovskom kontajneri
+         * @param positions Pozicie kontajneru
+         */
         public void setPositions(int[] positions) {
             this.x = positions[0];
             this.y = positions[1];
         }
         
-        public void hasChanged() {
-            this.changed = true;
+        /**
+         * Metoda ktora nastavi ze sa kontajner zmenil
+         */
+        public void setChanged() {
+            this.changed = true;            
+            if (parent != null && !(parent.c instanceof GamePane)) {
+                parent.setChanged(true);
+            }
         }
-        
-        public void setTop(boolean top) {
-            this.top = top;
-        }
-        
+               
+        /**
+         * Metoda ktora nastavi ci sa kontajner zmenil podla parametru <b>changed</b>.
+         * Ked ma kontajner rodica tak zavola tuto metodu aj nanho (vytvori sa cesta
+         * zmenenych kontajnerov)
+         * @param changed True/false ci sa zmenil kontajner.
+         */
         public void setChanged(boolean changed) {
             this.changed = changed;
             if (parent != null && !(parent.c instanceof GamePane)) {
@@ -438,14 +515,27 @@ public class Container {
             }
         }
         
+        /**
+         * Metoda ktora nastavi obrazok tohoto kontajneru
+         * @param resImage 
+         */
         public void setImage(BufferedImage resImage) {
             this.resImage = resImage;
         }
         
+        /**
+         * Metoda ktora nastavi detske kontajnery tohoto kontajneru. Kontajnery predane parametrom
+         * <b>containers</b>
+         * @param containers Nove detske kontajnery pre tento kontajner. 
+         */
         public void setChildContainers(ArrayList<Container> containers) {
             this.childContainers = containers;            
         }
         
+        /**
+         * Metoda ktora nastavi rodicovsky kontajner tohoto kontajneru
+         * @param parent Novy rodicovsky kontajner 
+         */
         public void setParentContainer(Container parent) {
             this.parent = parent;
         }
@@ -453,41 +543,39 @@ public class Container {
         // </editor-fold>
         
         // </editor-fold>
-        
+
         // <editor-fold defaultstate="collapsed" desc=" Privatne metody ">
         
         /**
-        * Metoda ktora nastavi Layout hlavneho panelu hry podla toho, co sa nachadza 
-        * v UiResource ktory zodpoveda tomuto menu.
+        * Metoda ktora nastavi Layout pre komponentu zadanu parametrom <b>component</b>.
+        * Layout na pridanie ziskame podla toho co sa nachadza 
+        * v UiResource priradenemu k tomuto kontajneru, 
         */
-        private void setLayout(JPanel panel) {
+        private void setLayout(SwingComponent component) {
         switch (resource.getLayoutType()) {
             case GRIDBAGSWING : {
-                panel.setLayout(new GridBagLayout());                
+                component.setLayout(new GridBagLayout());                
             } break;
             case GRIDSWING : {
                 try {                
-                panel.setLayout(new GridLayout(resource.getX(), resource.getY()));
+                component.setLayout(new GridLayout(resource.getX(), resource.getY()));
                 } catch (Exception e) {
                     Logger.getLogger(getClass().getName()).log(Level.WARNING, StringResource.getResource("_iparam"), "width/height in GridLayout");
                 }                
             } break;
             case BORDERSWING : {
-                panel.setLayout(new BorderLayout(resource.getHGap(), resource.getVGap()));                
+                component.setLayout(new BorderLayout(resource.getHGap(), resource.getVGap()));                
             } break;
             case FLOWSWING : {
-                panel.setLayout(new FlowLayout(resource.getAlign(), resource.getHGap(), resource.getVGap()));
+                component.setLayout(new FlowLayout(resource.getAlign(), resource.getHGap(), resource.getVGap()));
             } break;
             case INGAME : {      
-                panel.setLayout(null);
-                panel.setBackground(Color.BLACK);
+                component.setLayout(null);
+                component.setBackground(Color.BLACK);
             } break;
         }              
 
     }
     // </editor-fold>
-
-    
-        
 }
 

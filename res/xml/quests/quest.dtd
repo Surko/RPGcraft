@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT quests (quest)>
+<!ELEMENT quest (id,label,quest-text,quest-states)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT label (#PCDATA)>
+<!ELEMENT quest-text (#PCDATA)>
+<!ELEMENT quest-states (state)+>
+<!ELEMENT state (state-text,state-actions)>
+<!ELEMENT state-text (#PCDATA)>
+<!ELEMENT state-actions (action)+>
+<!ELEMENT action (#PCDATA)>
+<!ATTLIST action
+  click CDATA #IMPLIED
+  clicktype CDATA #IMPLIED
+  code CDATA #IMPLIED
+  type CDATA #IMPLIED>
+<!ATTLIST state
+  id  CDATA #REQUIRED>

@@ -1,402 +1,443 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
 <layout-elements>
-
-  <element>
- <id>abstract_swing_button</id>
-    <type>BUTTON</type>
-    <layout>
-      <layout-type>GRIDBAGSWING</layout-type>    
-      <insets>5,5,5,5</insets>    
-      <weightx>0</weightx> 
-      <weighty>0</weighty>
-      <width>300</width>
-      <height>20</height> 
-    </layout>
-    <background>
-      <background-color>Black</background-color>
-      <background-image>mainButtonTexture</background-image>
-      <orientation>0</orientation>      
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
-      <image-position>CENTER</image-position>
-    </background>   
-    <event-active>true</event-active>
-  </element>
-  <element>
- <id>abstract_ingame_button</id>
-    <type>BUTTON</type>
-    <layout>
-      <layout-type>INGAME</layout-type>          
-      <width>300</width>
-      <height>20</height> 
-    </layout>
-    <background>
-      <background-color>Black</background-color>
-      <background-image>mainButtonTexture</background-image>
-      <orientation>0</orientation>      
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
-      <image-position>CENTER</image-position>
-    </background>   
-    <event-active>true</event-active>
-  </element>
-  <element>
+    <element>
+        <id>abstract_swing_button</id>
+        <type>BUTTON</type>
+        <layout>
+            <layout-type>GRIDBAGSWING</layout-type>
+            <insets>5,5,5,5</insets>
+            <weightx>0</weightx>
+            <weighty>0</weighty>
+            <width>300</width>
+            <height>20</height>
+        </layout>
+        <background>
+            <background-color>Black</background-color>
+            <background-image>mainButtonTexture</background-image>
+            <orientation>0</orientation>
+            <image-width>FILL</image-width>
+            <image-height>FILL</image-height>
+            <image-position>CENTER</image-position>
+        </background>
+        <event-active>true</event-active>
+    </element>
+    <element>
+        <id>abstract_ingame_button</id>
+        <type>BUTTON</type>
+        <layout>
+            <layout-type>INGAME</layout-type>
+            <width>300</width>
+            <height>20</height>
+        </layout>
+        <background>
+            <background-color>Black</background-color>
+            <background-image>mainButtonTexture</background-image>
+            <orientation>0</orientation>
+            <image-width>FILL</image-width>
+            <image-height>FILL</image-height>
+            <image-position>CENTER</image-position>
+        </background>
+        <event-active>true</event-active>
+    </element>
+    <element>
         <id>text_ss</id>
         <type>EDITTEXT</type>
-        <text textcolor="fpsColor">@textabout</text>        
+        <text textcolor="fpsColor">@textabout</text>
         <layout>
-          <width>AUTO</width>
-          <height>AUTO</height>               
+            <width>AUTO</width>
+            <height>AUTO</height>
         </layout>
         <background>
-              <background-color>transColor</background-color>
+            <background-color>transColor</background-color>
         </background>
         <event-active>true</event-active>
         <actions>
-          <action>DATA@LOG(AHOJ)</action>      
+            <action>DATA@LOG(AHOJ)</action>
         </actions>
         <position>TOP</position>
-  </element>
-
-
-  <element>
-    <id>aboutMenu</id>
-    <type>PANEL</type>
-    <layout>
-      <width>FILL_PARENT</width>
-      <height>FILL_PARENT</height>
-    </layout>
-    <background>
-      <background-color>Black</background-color>
-      <background-image>about</background-image>
-      <orientation>0</orientation>
-      <image-width>ORIGINAL</image-width>
-      <image-height>ORIGINAL</image-height>
-      <image-position>CENTER</image-position>
-    </background>
-    <position>CENTER</position>
-    <elements>
-      <element>
-        <id>text_about</id>
-        <type>TEXT</type>
-        <text textcolor="fpsColor">@textabout</text>        
+    </element>
+    <element>
+        <id>aboutMenu</id>
+        <type>PANEL</type>
         <layout>
-          <width>AUTO</width>
-          <height>AUTO</height>
-          <scrolling speedy="2"/>          
+            <width>FILL_PARENT</width>
+            <height>FILL_PARENT</height>
         </layout>
         <background>
-              <background-color>transColor</background-color>
+            <background-color>Black</background-color>
+            <background-image>about</background-image>
+            <orientation>0</orientation>
+            <image-width>ORIGINAL</image-width>
+            <image-height>ORIGINAL</image-height>
+            <image-position>CENTER</image-position>
         </background>
         <position>CENTER</position>
-      </element>
-      <element>
-        <id>text_edit</id>
-        <type>EDITTEXT</type>
-        <text textcolor="fpsColor">@textabout</text>        
+        <elements>
+            <element>
+                <id>text_about</id>
+                <type>TEXT</type>
+                <text textcolor="fpsColor">@textabout</text>
+                <layout>
+                    <width>AUTO</width>
+                    <height>AUTO</height>
+                    <scrolling speedy="2"/>
+                </layout>
+                <background>
+                    <background-color>transColor</background-color>
+                </background>
+                <position>CENTER</position>
+            </element>
+            <element>
+                <id>text_edit</id>
+                <type>EDITTEXT</type>
+                <text textcolor="fpsColor">@textabout</text>
+                <layout>
+                    <width>AUTO</width>
+                    <height>AUTO</height>
+                </layout>
+                <background>
+                    <background-color>Black</background-color>
+                </background>
+                <position>TOP</position>
+            </element>
+        </elements>
+    </element>
+    <element>
+        <id>about2Menu</id>
+        <type>PANEL</type>
         <layout>
-          <width>AUTO</width>
-          <height>AUTO</height>                  
+            <width>FILL_PARENT</width>
+            <height>FILL_PARENT</height>
         </layout>
         <background>
-              <background-color>Black</background-color>
+            <background-color>Black</background-color>
+            <background-image>about</background-image>
+            <orientation>0</orientation>
+            <image-width>ORIGINAL</image-width>
+            <image-height>ORIGINAL</image-height>
+            <image-position>CENTER</image-position>
         </background>
-        <position>TOP</position>
-      </element>
-    </elements>    
-  </element>
-  
-  <element>
-    <id>introMenu</id>
-    <type>PANEL</type>
-    <layout>
-      <layout-type>GRIDBAGSWING</layout-type>
-      <width>AUTO</width>      
-      <height>AUTO</height>
-      <minwidth>AUTO</minwidth>
-      <minheight>AUTO</minheight>
-      <weightx>1</weightx>
-      <weighty>1</weighty>
-    </layout>
-    <event-active>true</event-active>
-    <actions>
-      <action type="KEY" code="VK_W">COMPOP@REINITIALIZE</action>
-      <action type="KEY" code="VK_A">COMPOP@ADD_COMP_TO(text_ss,MAINCONTAINER)</action>
-      <action type="KEY" code="VK_1">GAME@SHOW_DONE_DIALOG(ahojahojahojahojahoja hojahojahojaho jahojahojahojahojahojahoj ahojahoj,2000)</action>
-      <action type="KEY" code="VK_S">COMPOP@REMOVE_COMP_ALLEXCEPTMENU
+        <position>CENTER</position>
+        <elements>
+            <element>
+                <id>text2_about</id>
+                <type>TEXT</type>
+                <text textcolor="fpsColor">@textabout</text>
+                <layout>
+                    <width>AUTO</width>
+                    <height>AUTO</height>
+                    <scrolling speedy="2"/>
+                </layout>
+                <background>
+                    <background-color>transColor</background-color>
+                </background>
+                <position>CENTER</position>
+            </element>
+            <element>
+                <id>text2_edit</id>
+                <type>EDITTEXT</type>
+                <text textcolor="fpsColor">@textabout</text>
+                <layout>
+                    <width>AUTO</width>
+                    <height>AUTO</height>
+                </layout>
+                <background>
+                    <background-color>Black</background-color>
+                </background>
+                <position>TOP</position>
+            </element>
+        </elements>
+    </element>
+    <element>
+        <id>introMenu</id>
+        <type>PANEL</type>
+        <layout>
+            <layout-type>GRIDBAGSWING</layout-type>
+            <width>AUTO</width>
+            <height>AUTO</height>
+            <minwidth>AUTO</minwidth>
+            <minheight>AUTO</minheight>
+            <weightx>1</weightx>
+            <weighty>1</weighty>
+        </layout>
+        <event-active>true</event-active>
+        <actions>
+            <action code="VK_W" type="KEY">COMPOP@REINITIALIZE</action>
+            <action code="VK_A" type="KEY">COMPOP@ADD_COMP_TO(text_ss,MAINCONTAINER)</action>
+            <action code="VK_1" type="KEY">GAME@SHOW_DONE_DIALOG(ahojahojahojahojahoja hojahojahojaho jahojahojahojahojahojahoj ahojahoj,2000)</action>
+            <action code="VK_S" type="KEY">COMPOP@REMOVE_COMP_ALLEXCEPTMENU
 DATA@ASSIGN(ahoj,a)
-DATA@ASSIGN(VAR#a,b)</action>   
-      <action type="KEY" code="VK_Q">GAME@SHOW_JOURNAL()</action>
-      <action type="KEY" code="VK_P">DATA@LUA(hello.lua)</action>
-      <action type="KEY" code="VK_S">COMPOP@SELECTME</action>
-      <action type="KEY" code="VK_U">COMPOP@UNSELECTME</action>         
-    </actions>
-    <background>
-      <background-color>Black</background-color>
-      <background-image>intro</background-image>
-      <orientation>0</orientation>
-      <image-width>ORIGINAL</image-width>
-      <image-height>ORIGINAL</image-height>
-      <image-position>CENTER</image-position>
-    </background>
-    <position>CENTER</position>    
-  </element>
-  
-  <element>
-  <id>gameMenu</id>
-    <type>PANEL</type>
-    <layout>
-      <layout-type>INGAME</layout-type>
-      <width>FILL_PARENT</width>
-      <height>FILL_PARENT</height>
-    </layout>       
-    <background>
-      <background-image>GAME</background-image>
-    </background>
-    <actions>
-      <action type="KEY" code="VK_P">DATA@IF(COMPOP@IS_VISIBLE(inventory),COMPOP@SET_INVISIBLE(inventory),COMPOP@SET_VISIBLE(inventory))</action>      
-    </actions>     
-    <elements>                                
-      <element>
-      <id>playerstats</id>
-      <type>PANEL</type>
-      <layout>
-        <width>AUTO</width>
-        <height>AUTO</height>
-      </layout>      
-      <background>
-        <background-image>player-stat</background-image>
-        <image-width>ORIGINAL</image-width>
-        <image-height>ORIGINAL</image-height>
-      </background>
-      <position>BOTTOM_LEFT</position>      
-      </element>
-      <element>
-      <id>playerh</id>
-      <type>BAR</type>
-      <layout>        
-        <width>272</width>
-        <height>8</height>
-      </layout>    
-      <background>        
-        <background-color>healthColor</background-color>
-      </background>
-      <data>HEALTH/MAXHEALTH</data>
-      <position x="80" y="-72">BOTTOM_LEFT</position>
-      </element>
-      <element>
-      <id>players</id>
-      <type>BAR</type>
-      <layout>        
-        <width>272</width>
-        <height>8</height>
-      </layout>    
-      <background>        
-        <background-color>staminaColor</background-color>
-      </background>
-      <data>STAMINA/MAXSTAMINA</data>
-      <position x="80" y="-64">BOTTOM_LEFT</position>
-      </element>
-    </elements>        
-  </element>
-  
-  <element>
-    <id>loadcreateMenu</id>
-    <type>PANEL</type>
-    <layout>
-      <layout-type>GRIDBAGSWING</layout-type>
-      <width>FILL_PARENT</width>
-      <height>FILL_PARENT</height>
-      <weightx>1</weightx>
-      <weighty>1</weighty>
-    </layout>
-    <background>
-      <background-color>Black</background-color>
-      <background-image>load</background-image>
-      <orientation>0</orientation>
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
-      <image-position>CENTER</image-position>
-    </background>
-    <position>CENTER</position>
-    <elements>    
-      <element>
-        <id>CreateWorld1</id>
-        <template>abstract_swing_button</template>
-        <text size="20.0f">@newgame</text>
-        <actions>
-          <action>COMPOP@REMOVE_COMP_TEMP(SaveView01)</action>
-          <action>COMPOP@SET_VISIBLE(GameText1)</action>
-          <action>COMPOP@SET_VISIBLE(btn_createnewgame)</action>
-        </actions>   
-        <layout>   
-          <weightx>1</weightx>
-          <weighty>0</weighty>  
-          <x>0</x>      
-          <y>0</y>       
-        </layout>        
-        <position>CENTER</position>   
-      </element> 
-      <element>
-        <id>GameText1</id>
-        <type>EDITTEXT</type>
-        <text textcolor="fpsColor">@blank</text>        
-        <layout>
-          <layout-type>GRIDBAGSWING</layout-type>
-          <width>AUTO</width>
-          <height>AUTO</height>
-          <weightx>1</weightx>
-          <weighty>0</weighty>      
-          <x>1</x>
-          <y>0</y>                   
-        </layout>
-        <background>
-              <background-color>Black</background-color>
-        </background>
-        <visible>false</visible>
-        <position>CENTER</position>
-      </element> 
-      <element>
-        <id>btn_createnewgame</id>
-        <template>abstract_swing_button</template>
-        <text size="20.0f">@create</text>        
-        <action>LOAD@CREATE(TEXT#GameText1)</action>
-        <layout>          
-          <x>1</x>      
-          <y>1</y>
-        </layout>
-        <visible>false</visible>
-        <position>CENTER</position>
-      </element>           
-      <element>
-        <id>SaveView01</id>
-        <type>LIST</type>        
-        <layout>
-          <layout-type>GRIDBAGSWING</layout-type>    
-          <width>400</width>
-          <height>FILL_PARENT</height>          
-          <actions>
-            <action click="2" clicktype="onListElement">LOAD@LOAD(LIST#_id)</action>
-          </actions>
-          <weightx>1</weightx>
-          <weighty>0</weighty>      
-          <x>1</x>
-          <y>0</y> 
-          <rows-layout>HORIZONTALROWS</rows-layout>
-          <rows-max>AUTOTYPE</rows-max>
-          <cols-max>1</cols-max>
-        </layout>
-        <position>TOP</position>
-        <background>
-          <background-color>selectedColor</background-color>   
-        </background> 
-        <listdata data="[[gameMenu,@newgame]]">
-        <list-element>
-            <id>rowTextSaveView01</id>
-            <type>TEXT</type>
-            <text size="20.0f">No Data</text>
-            <layout>
-              <layout-type>GRIDBAGSWING</layout-type>
-              <width>100</width>
-              <height>20</height>
-            </layout>
-            <background>
-              <background-color>transColor</background-color>
-            </background>
-            <position>CENTER</position>                          
-          </list-element>          
-        </listdata>
-      </element>     
-    </elements>    
-  </element>
-  
-  <element>
-    <id>mainMenu</id>
-    <type>PANEL</type>
-    <layout>
-      <layout-type>GRIDBAGSWING</layout-type>
-      <width>800</width>
-      <height>600</height>
-      <fill>BOTH</fill>
-      <weightx>1</weightx>
-      <weighty>1</weighty>
-    </layout>
-    <background>
-      <background-color>Black</background-color>
-      <background-image>main</background-image>
-      <orientation>0</orientation>
-      <image-width>FILL</image-width>
-      <image-height>FILL</image-height>
-      <image-position>CENTER</image-position>      
-    </background> 
-    <event-active>true</event-active>
-    <position>CENTER</position>    
-    <elements>
-      <element>
-        <id>btn_newgame</id>
-        <template>abstract_swing_button</template>
-        <text size="20.0f">@newgame</text>        
-        <action>MENUOP@SETMENU(loadcreateMenu)</action>
-        <layout>
-          <x>0</x>      
-          <y>0</y>
-        </layout>
-        <position>CENTER</position>
-      </element>
-      <element>
-        <id>btn_about</id>
-        <template>abstract_swing_button</template>
-        <text>@about</text>        
-        <action>MENUOP@SETMENU(aboutMenu)</action>
-        <layout>
-          <x>0</x>      
-          <y>1</y>
-        </layout>
-      </element>
-      <element>
-        <id>ListView01</id>
-        <type>LIST</type>        
-        <layout>
-          <layout-type>GRIDBAGSWING</layout-type>    
-          <insets>5,5,5,5</insets>    
-          <weightx>0</weightx> 
-          <weighty>0</weighty>
-          <width>400</width>
-          <height>400</height>          
-          <x>1</x>
-          <y>0</y> 
-          <rows-layout>DIAGONALROWS</rows-layout>
-          <rows-max>2</rows-max>
-          <cols-max>3</cols-max>
-        </layout>
-        <actions>
-            <action click="2" clicktype="onListElement">LOAD@LOAD(LIST#_id)</action>
-            <action type="KEY" code="VK_W">COMPOP@INCMYSELECTION</action>  
-            <action type="KEY" code="VK_S">COMPOP@DECMYSELECTION</action> 
-            <action type="KEY" code="VK_ENTER" clicktype="onListElement">COMPOP@SELECTEDACTION(LIST#_id)</action>  
-            <action type="KEY" code="VK_DELETE">COMPOP@REMOVE_MYLISTELEM(COMPOP@GET_MYSELECTED)</action>          
+DATA@ASSIGN(VAR#a,b)</action>
+            <action code="VK_Q" type="KEY">GAME@SHOW_JOURNAL()</action>
+            <action code="VK_P" type="KEY">DATA@LUA(hello.lua)</action>
+            <action code="VK_S" type="KEY">COMPOP@SELECTME</action>
+            <action code="VK_U" type="KEY">COMPOP@UNSELECTME</action>
+            <action code="VK_O" type="KEY">MENUOP@CREATEMENU(about2Menu)</action>
         </actions>
         <background>
-          <background-color>fpsColor</background-color>
-        </background> 
+            <background-color>Black</background-color>
+            <background-image>intro</background-image>
+            <orientation>0</orientation>
+            <image-width>ORIGINAL</image-width>
+            <image-height>ORIGINAL</image-height>
+            <image-position>CENTER</image-position>
+        </background>
+        <position>CENTER</position>
+    </element>
+    <element>
+        <id>gameMenu</id>
+        <type>PANEL</type>
+        <layout>
+            <layout-type>INGAME</layout-type>
+            <width>FILL_PARENT</width>
+            <height>FILL_PARENT</height>
+        </layout>
+        <background>
+            <background-image>GAME</background-image>
+        </background>
+        <actions>
+            <action code="VK_P" type="KEY">DATA@IF(COMPOP@IS_VISIBLE(inventory),COMPOP@SET_INVISIBLE(inventory),COMPOP@SET_VISIBLE(inventory))</action>
+        </actions>
+        <elements>
+            <element>
+                <id>playerstats</id>
+                <type>PANEL</type>
+                <layout>
+                    <width>AUTO</width>
+                    <height>AUTO</height>
+                </layout>
+                <background>
+                    <background-image>player-stat</background-image>
+                    <image-width>ORIGINAL</image-width>
+                    <image-height>ORIGINAL</image-height>
+                </background>
+                <position>BOTTOM_LEFT</position>
+            </element>
+            <element>
+                <id>playerh</id>
+                <type>BAR</type>
+                <layout>
+                    <width>272</width>
+                    <height>8</height>
+                </layout>
+                <background>
+                    <background-color>healthColor</background-color>
+                </background>
+                <data>HEALTH/MAXHEALTH</data>
+                <position x="80" y="-72">BOTTOM_LEFT</position>
+            </element>
+            <element>
+                <id>players</id>
+                <type>BAR</type>
+                <layout>
+                    <width>272</width>
+                    <height>8</height>
+                </layout>
+                <background>
+                    <background-color>staminaColor</background-color>
+                </background>
+                <data>STAMINA/MAXSTAMINA</data>
+                <position x="80" y="-64">BOTTOM_LEFT</position>
+            </element>
+        </elements>
+    </element>
+    <element>
+        <id>loadcreateMenu</id>
+        <type>PANEL</type>
+        <layout>
+            <layout-type>GRIDBAGSWING</layout-type>
+            <width>FILL_PARENT</width>
+            <height>FILL_PARENT</height>
+            <weightx>1</weightx>
+            <weighty>1</weighty>
+        </layout>
+        <background>
+            <background-color>Black</background-color>
+            <background-image>load</background-image>
+            <orientation>0</orientation>
+            <image-width>FILL</image-width>
+            <image-height>FILL</image-height>
+            <image-position>CENTER</image-position>
+        </background>
+        <position>CENTER</position>
+        <elements>
+            <element>
+                <id>CreateWorld1</id>
+                <template>abstract_swing_button</template>
+                <text size="20.0f">@newgame</text>
+                <actions>
+                    <action>COMPOP@REMOVE_COMP_TEMP(SaveView01)</action>
+                    <action>COMPOP@SET_VISIBLE(GameText1)</action>
+                    <action>COMPOP@SET_VISIBLE(btn_createnewgame)</action>
+                </actions>
+                <layout>
+                    <weightx>1</weightx>
+                    <weighty>0</weighty>
+                    <x>0</x>
+                    <y>0</y>
+                </layout>
+                <position>CENTER</position>
+            </element>
+            <element>
+                <id>GameText1</id>
+                <type>EDITTEXT</type>
+                <text textcolor="fpsColor">@blank</text>
+                <layout>
+                    <layout-type>GRIDBAGSWING</layout-type>
+                    <width>AUTO</width>
+                    <height>AUTO</height>
+                    <weightx>1</weightx>
+                    <weighty>0</weighty>
+                    <x>1</x>
+                    <y>0</y>
+                </layout>
+                <background>
+                    <background-color>Black</background-color>
+                </background>
+                <visible>false</visible>
+                <position>CENTER</position>
+            </element>
+            <element>
+                <id>btn_createnewgame</id>
+                <template>abstract_swing_button</template>
+                <text size="20.0f">@create</text>
+                <action>LOAD@CREATE(TEXT#GameText1)</action>
+                <layout>
+                    <x>1</x>
+                    <y>1</y>
+                </layout>
+                <visible>false</visible>
+                <position>CENTER</position>
+            </element>
+            <element>
+                <id>SaveView01</id>
+                <type>LIST</type>
+                <layout>
+                    <layout-type>GRIDBAGSWING</layout-type>
+                    <width>400</width>
+                    <height>FILL_PARENT</height>
+                    <actions>
+                        <action click="2" clicktype="onListElement">LOAD@LOAD(LIST#_id)</action>
+                    </actions>
+                    <weightx>1</weightx>
+                    <weighty>0</weighty>
+                    <x>1</x>
+                    <y>0</y>
+                    <rows-layout>HORIZONTALROWS</rows-layout>
+                    <rows-max>AUTOTYPE</rows-max>
+                    <cols-max>1</cols-max>
+                </layout>
+                <position>TOP</position>
+                <background>
+                    <background-color>selectedColor</background-color>
+                </background>
+                <listdata data="[[gameMenu,@newgame]]">
+                    <list-element>
+                        <id>rowTextSaveView01</id>
+                        <type>TEXT</type>
+                        <text size="20.0f">No Data</text>
+                        <layout>
+                            <layout-type>GRIDBAGSWING</layout-type>
+                            <width>100</width>
+                            <height>20</height>
+                        </layout>
+                        <background>
+                            <background-color>transColor</background-color>
+                        </background>
+                        <position>CENTER</position>
+                    </list-element>
+                </listdata>
+            </element>
+        </elements>
+    </element>
+    <element>
+        <id>mainMenu</id>
+        <type>PANEL</type>
+        <sound>menu</sound>
+        <layout>
+            <layout-type>GRIDBAGSWING</layout-type>
+            <width>800</width>
+            <height>600</height>
+            <fill>BOTH</fill>
+            <weightx>1</weightx>
+            <weighty>1</weighty>
+        </layout>
+        <background>
+            <background-color>Black</background-color>
+            <background-image>main</background-image>
+            <orientation>0</orientation>
+            <image-width>FILL</image-width>
+            <image-height>FILL</image-height>
+            <image-position>CENTER</image-position>
+        </background>
         <event-active>true</event-active>
-        <listdata data="[#SAVE(NAME,NAME),[COMPOP@REMOVE_COMP_ALL,sk]]">
-          <list-element>
-            <id>rowTextListView01</id>
-            <type>TEXT</type>
-            <text>No Data</text>
-            <layout>
-              <layout-type>GRIDBAGSWING</layout-type>
-              <width>100</width>
-              <height>20</height>
-            </layout>
-            <background>
-              <background-color>transColor</background-color>
-            </background>
-            <position>CENTER</position>                          
-          </list-element>
-        </listdata>
-      </element>
-    </elements>
-  </element>
+        <position>CENTER</position>
+        <elements>
+            <element>
+                <id>btn_newgame</id>
+                <template>abstract_swing_button</template>
+                <text size="20.0f">@newgame</text>
+                <action>MENUOP@SETMENU(loadcreateMenu)</action>
+                <layout>
+                    <x>0</x>
+                    <y>0</y>
+                </layout>
+                <position>CENTER</position>
+            </element>
+            <element>
+                <id>btn_about</id>
+                <template>abstract_swing_button</template>
+                <text>@about</text>
+                <action>MENUOP@SETMENU(aboutMenu)</action>
+                <layout>
+                    <x>0</x>
+                    <y>1</y>
+                </layout>
+            </element>
+            <element>
+                <id>ListView01</id>
+                <type>LIST</type>
+                <layout>
+                    <layout-type>GRIDBAGSWING</layout-type>
+                    <insets>5,5,5,5</insets>
+                    <weightx>0</weightx>
+                    <weighty>0</weighty>
+                    <width>400</width>
+                    <height>400</height>
+                    <x>1</x>
+                    <y>0</y>
+                    <rows-layout>DIAGONALROWS</rows-layout>
+                    <rows-max>2</rows-max>
+                    <cols-max>3</cols-max>
+                </layout>
+                <actions>
+                    <action click="2" clicktype="onListElement">LOAD@LOAD(LIST#_id)</action>
+                    <action code="VK_W" type="KEY">COMPOP@INCMYSELECTION</action>
+                    <action code="VK_S" type="KEY">COMPOP@DECMYSELECTION</action>
+                    <action clicktype="onListElement" code="VK_ENTER" type="KEY">COMPOP@SELECTEDACTION(LIST#_id)</action>
+                    <action code="VK_DELETE" type="KEY">COMPOP@REMOVE_MYLISTELEM(COMPOP@GET_MYSELECTED)</action>
+                </actions>
+                <background>
+                    <background-color>fpsColor</background-color>
+                </background>
+                <event-active>true</event-active>
+                <listdata data="[#SAVE(NAME,NAME),[COMPOP@REMOVE_COMP_ALL,sk]]">
+                    <list-element>
+                        <id>rowTextListView01</id>
+                        <type>TEXT</type>
+                        <text>No Data</text>
+                        <layout>
+                            <layout-type>GRIDBAGSWING</layout-type>
+                            <width>100</width>
+                            <height>20</height>
+                        </layout>
+                        <background>
+                            <background-color>transColor</background-color>
+                        </background>
+                        <position>CENTER</position>
+                    </list-element>
+                </listdata>
+            </element>
+        </elements>
+    </element>
 </layout-elements>

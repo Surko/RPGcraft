@@ -10,19 +10,129 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- *
+ * Trieda InputHandle implementujuca KeyListener, ma reagovat na vstup z klavesnice.
+ * Vsetky vstupy su riadene z tejto triedy. Vsetky mozne klavesy su definovane v enume
+ * Keys. V enume DefinedKeys su nadefinovane klavesy ze maju meno ktore priblizne urcuje co 
+ * sa bude pri stlaceni diat. Trieda taktiez obsahuje listy clickedKeys (stlacene klavesove kody) a
+ * running keys (drzane klavesove kody). Kedze trieda implementuje od KeyListener
+ * tak musi obsahovat metody reagujuce na vstup ako keyType, keyPressed, ... v ktorych nastavujeme
+ * stlacene klavesy do listov clickedKeys a runningKeys.
+ * <p>
+ * HashMapa s menom charKeys v sebe obsahuje dvojice Integer, Character => pre kazdy klavesovy kod
+ * existuje char znak. Tento princip vyuzivame pri pisani do vstupnych boxov.
+ * </p>
  * @author Kirrie
  */
-public class InputHandle implements KeyListener {
-    private static ArrayList<Key> regKeys = new ArrayList<>();
+public class InputHandle implements KeyListener { 
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    // Hashmapa s dvojicou klavesovy kod a char znak
     private static HashMap<Integer, Character> charKeys = new HashMap();
     
     // Ovladanie hry definovane triedou
     private static InputHandle input;    
     
+    // Stlacene a drzane klavesy
     public ArrayList<Integer> clickedKeys;
     public ArrayList<Integer> runningKeys;
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne triedy a enumy ">
+    
+    /**
+     * Trieda kluc ktora v sebe obsahuje definiciu kluca
+     * s kodom ktory mu zodpoveda. Vyuzite pri enume DefineKey.
+     */
+    public static class Key {
+     
+        private int code;
+        
+        public Key(int code) {            
+            this.code = code;
+        }
+       
+        public int getKeyCode() {
+            return code;
+        }        
+                                
+    }
+    
+    /**
+     * Objekt s definovanymi klucmi. Kluce maju rozumenejsie nazvy, z ktorych
+     * mozno usudit co bude kluc robit. Do konstruktoru enumu pridavame instanciu Key s kodom 
+     * ktory mu zodpoveda. Viacero takychto enumovych klucov moze mat rovnaky kod.
+     */
+    public enum DefinedKey {
+        ENTER(new Key(KeyEvent.VK_ENTER)),
+        UP(new Key(KeyEvent.VK_W)),
+        DOWN(new Key(KeyEvent.VK_S)),
+        LEFT( new Key(KeyEvent.VK_A)),
+        RIGHT(new Key(KeyEvent.VK_D)),
+        ESCAPE(new Key(KeyEvent.VK_ESCAPE)),
+        ATTACK(new Key(KeyEvent.VK_SPACE)),
+        TILEATTACKVER(new Key(KeyEvent.VK_CONTROL)),
+        TILEATTACKHOR(new Key(KeyEvent.VK_L)),
+        INVENTORY(new Key(KeyEvent.VK_I)),
+        STAT( new Key(KeyEvent.VK_F3)),
+        DEBUG( new Key(KeyEvent.VK_F5)),
+        PARTICLES( new Key(KeyEvent.VK_F7)),
+        SCALING( new Key(KeyEvent.VK_F12)),
+        DEFENSE( new Key(KeyEvent.VK_CONTROL)),
+        PRINT( new Key(KeyEvent.VK_PRINTSCREEN)),
+        LEVELUP( new Key(KeyEvent.VK_PAGE_UP)),
+        LEVELDOWN( new Key(KeyEvent.VK_PAGE_DOWN)),
+        CRAFTING( new Key(KeyEvent.VK_C)),
+        QUEST( new Key(KeyEvent.VK_Q)),
+        JUMP(new Key(KeyEvent.VK_J)),
+        CHARACTER(new Key(KeyEvent.VK_C)),
+        ACTIVE( new Key(KeyEvent.VK_E)),
+        LIGHTING( new Key(KeyEvent.VK_F6));                
+        
+        private Key key;
+        
+        private DefinedKey(Key key) {
+            this.key = key;
+        }
+        
+        /**
+         * Metoda nastavi klavesovy kod pre kluc
+         * @param key Kod pre kluc
+         */
+        public void setKey(int key) {
+            this.key = new Key(key);
+        }
+        
+        /**
+         * Metoda nastavi novy Key objekt do definovaneho kluca.
+         * @param key Key ako objekt
+         */
+        public void setKey(Key key) {
+            this.key = key;
+        }
+        
+        /**
+         * Metoda vrati Key objekt v ktorom sa nachadza kod ktory mu zodpoveda
+         * @return Key objekt
+         */
+        public Key getKey() {
+            return key;
+        }
+        
+        /**
+         * Metoda vrati klavesnicovy kod zodpovedajuci Key objektu priradenemu
+         * k tomuto enumu.
+         * @return Klavesnicovy kod
+         */
+        public int getKeyCode() {
+            return key.code;
+        }
+    }                
+       
+    
+    /**
+     * Enum s definovanymi klavesami ktore sa daju stlacit. V konstruktore vzdy obsahuju
+     * co za kod a aky znak zodpoveda klavese
+     */
     public enum Keys {
         VK_W(KeyEvent.VK_W, 'w'),
         VK_A(KeyEvent.VK_A, 'a'),        
@@ -86,6 +196,27 @@ public class InputHandle implements KeyListener {
          
     }
     
+    // </editor-fold>
+      
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Privatny konstruktor na zostavenie vstupu. Vytvarame listy clickedKeys a runningKeys
+     * aby sme donich mohli pri stlaceni klaves pridavat kody tychto klaves.
+     */
+    private InputHandle() {
+        clickedKeys = new ArrayList<>();
+        runningKeys = new ArrayList<>();
+    }
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery " >
+    /**
+     * Metoda vrati char znak z definovanej hashmapy  charKeys. Pri neexistenci takeho 
+     * znaku vratime ziadny znak.
+     * @param keyCode Klavesovy kod ktoreho znak chcem
+     * @return Znak pre klavesu.
+     */
     public char getChar(int keyCode) {
         Character ch = charKeys.get(keyCode);
         if (ch == null) {
@@ -94,71 +225,24 @@ public class InputHandle implements KeyListener {
         
         return charKeys.get(keyCode);
         
-    }
-    
-    public static class Key {
-     
-        private int code;
-        
-        public Key(int code) {            
-            this.code = code;
-        }
-       
-        public int getKeyCode() {
-            return code;
-        }        
-                                
-    }
-    
-    private InputHandle() {
-        clickedKeys = new ArrayList<>();
-        runningKeys = new ArrayList<>();
-    }
-    
-    public static InputHandle getInstance() {
-        if (input == null) {
-            input = new InputHandle();
-        }
-        return input;
-    }
-    
-        
-    public static Key enter = new Key(KeyEvent.VK_ENTER);
-    public static Key up = new Key(KeyEvent.VK_W);
-    public static Key down = new Key(KeyEvent.VK_S);
-    public static Key left = new Key(KeyEvent.VK_A);
-    public static Key right = new Key(KeyEvent.VK_D);
-    public static Key escape = new Key(KeyEvent.VK_ESCAPE);
-    public static Key attack = new Key(KeyEvent.VK_SPACE);
-    public static Key tileattack = new Key(KeyEvent.VK_SHIFT);
-    public static Key inventory = new Key(KeyEvent.VK_I);
-    public static Key q = new Key(KeyEvent.VK_Q);
-    public static Key x = new Key(KeyEvent.VK_X);
-    public static Key stat = new Key(KeyEvent.VK_F3);
-    public static Key debug = new Key(KeyEvent.VK_F5);
-    public static Key particles = new Key(KeyEvent.VK_F4);
-    public static Key scaling = new Key(KeyEvent.VK_F12);
-    public static Key defense = new Key(KeyEvent.VK_CONTROL);
-    public static Key print = new Key(KeyEvent.VK_PRINTSCREEN);
-    public static Key levelUp = new Key(KeyEvent.VK_PAGE_UP);
-    public static Key levelDown = new Key(KeyEvent.VK_PAGE_DOWN);
-    public static Key crafting = new Key(KeyEvent.VK_C);
-    public static Key quest = new Key(KeyEvent.VK_Q);
-    public static Key jump = new Key(KeyEvent.VK_J);
-    public static Key character = new Key(KeyEvent.VK_C);
-    public static Key active = new Key(KeyEvent.VK_E);
-    public static Key lighting = new Key(KeyEvent.VK_F6);
-
-    
-    @Override
-    public void keyTyped(KeyEvent e) {
-        
     }        
+    // </editor-fold>
+                           
+    // <editor-fold defaultstate="collapsed" desc=" Klavesove metody ">
     
+    /**
+     * Metoda ktora uvolni vsetky kluce z clickedKeys.
+     */
     public void freeKeys() {
         clickedKeys.clear();
     }
     
+    /**
+     * Metoda ktora podla parametru <b>state</b> rozhoduje ci do listu clickedKeys
+     * pridavame klavesovy kod zadany parametrom <b>code</b>
+     * @param code Kod ktory pridavame/odoberame do/z listu clickedKeys.
+     * @param state Stav ci pridavame alebo odoberame
+     */
     private void clickEvent(int code, boolean state) {
         if (state) {
             if (!clickedKeys.contains(code)) {
@@ -169,6 +253,22 @@ public class InputHandle implements KeyListener {
         }
     }
     
+    
+    /**
+     * Prazdna metoda reagujuca pri napisani niecoho na klavensnici.
+     * @param e KeyEvent podla ktoreho zistujeme co bolo stlacene.
+     */
+    @Override
+    public void keyTyped(KeyEvent e) {
+        
+    }  
+    
+    /**
+     * Metoda ktora podla parametru <b>state</b> rozhoduje ci do listu runningKeys
+     * pridavame klavesovy kod zadany parametrom <b>code</b>
+     * @param code Kod ktory pridavame/odoberame do/z listu runningKeys.
+     * @param state Stav ci pridavame alebo odoberame
+     */
     private void runEvent(int code, boolean state) {
         //System.out.println(runningKeys.size());
         if (state) {
@@ -180,14 +280,42 @@ public class InputHandle implements KeyListener {
         }
     }
     
+    /**
+     * Metoda ktora reaguje na drzanie klavesy ktorej kod najdeme v parametri <b>e</b>.
+     * Pri drzani pridame kod do runningKeys.
+     * @param e KeyEvent z ktoreho urcujeme co bolo stlacene
+     */
     @Override
     public void keyPressed(KeyEvent e) {        
         runEvent(e.getKeyCode(), true);
     }
 
+    /**
+     * Metoda ktora reaguje na upustenie klavesy ktorej kod najdeme v parametri <b>e</b>.
+     * Pri pusteni klavesy odobereme kod z runningKeys, no pridame ho do clickedKeys.
+     * @param e KeyEvent z ktoreho urcujeme co bolo uvolnene
+     */
     @Override
     public void keyReleased(KeyEvent e) {
         runEvent(e.getKeyCode(), false);
         clickEvent(e.getKeyCode(), true);
     }
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
+        
+    /**
+     * Metoda ktora vrati instanciu vstupu (singleton).
+     * @return InputHandle objekt
+     */
+    public static InputHandle getInstance() {
+        if (input == null) {
+            input = new InputHandle();
+        }
+        return input;
+    }
+    
+    
+    // </editor-fold>
 }

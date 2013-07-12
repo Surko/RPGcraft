@@ -4,6 +4,7 @@
  */
 package rpgcraft.plugins;
 
+import rpgcraft.map.SaveMap;
 import rpgcraft.map.generators.MapGenerator;
 
 /**
@@ -25,9 +26,10 @@ public interface GeneratorPlugin {
      * poslanym do metody ako parameter. MapGenerator spristupnuje metody getTile a setTile
      * ktorymi moze plugin vytvorit rozne mapy.
      * @param mapGenerator MapGenerator v ktorom je ulozena mapa ktoru meni tato metoda.
+     * @param map Mapa v ktorej sa nachadza vygenerovany chunk
      * @throws Vynimka pri generovani terenu. Vacsinou priradovanie dlazdic ktore neexistuju. Pri inych vynimkach mozne doplnit
      * o ine vynimky
      */
-    public void generate(MapGenerator mapGenerator) throws Exception;
+    public void generate(MapGenerator mapGenerator, SaveMap map) throws Exception;
         
 }

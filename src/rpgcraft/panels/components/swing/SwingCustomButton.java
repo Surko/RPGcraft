@@ -5,24 +5,23 @@
 package rpgcraft.panels.components.swing;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
-import rpgcraft.panels.listeners.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.types.ButtonType;
-import rpgcraft.utils.MathUtils;
 import rpgcraft.utils.TextUtils;
 
 /**
- *
+ * Abstraktna trieda ktora dedi od SwingComponent vytvara interface pre tlacidla.
+ * Tutot moznost vyuziva SwingImageButton. Zdruzuje v sebe zakladne metody pre spravne
+ * fungovanie a ukazanie tlacidiel. 
  * @author Kirrie
  */
 public abstract class SwingCustomButton extends SwingComponent {
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
     private static final Logger LOG = Logger.getLogger(SwingCustomButton.class.getName());
     public static final Dimension prefferedDim = new Dimension(300,20);
     
@@ -30,14 +29,24 @@ public abstract class SwingCustomButton extends SwingComponent {
     protected int tw = -1,th = -1;
     protected boolean hit = false; 
     protected ButtonType btnType;
+    // </editor-fold>
    
-    @Override
-    public abstract void paintComponent(Graphics g); 
-    
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Prazdny konstruktor na vytvorenie instancie SwingCustomButton. Mozne volat
+     * iba z podedenych tried.
+     */
     protected SwingCustomButton() {
         super();
     } 
     
+    /**
+     * Konstruktor ktory vytvori instanciu SwingCustomButtom z kontajneru a AbstractMenu.
+     * Mozne ho je volat iba z podedenych tried. Konstruktor inicializuje velkost text v komponente, nastavuje
+     * btnType, nazov a font.
+     * @param container Kontajner z ktoreho vytvarame tlacidlo
+     * @param menu Abstraktne menu v ktorom je komponenta.
+     */
     public SwingCustomButton (Container container, AbstractMenu menu) {  
         super(container,menu);  
         btnType = (ButtonType)container.getResource().getType();
@@ -45,7 +54,16 @@ public abstract class SwingCustomButton extends SwingComponent {
         setFont(btnType.getFont());               
         setTextSize();        
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Refresh + Update ">
+    /**
+     * <i>{@inheritDoc}</i>
+     * <p>
+     * Na zrekonstruovanie je dolezite doplnit btnType, nazov a font s velkostami
+     * textov. Vsetky udaje sa daju ziskat z kontajneru v ktorom je komponenta.
+     * </p>
+     */
     @Override
     protected void reconstructComponent() {
         btnType = (ButtonType)componentContainer.getResource().getType();
@@ -54,6 +72,12 @@ public abstract class SwingCustomButton extends SwingComponent {
         setTextSize();        
     }
         
+    /**
+     * Abstraktna metoda ktora je volana pri stlaceni/upusteni tlacidla. Metoda
+     * ma nastavit farby komponenty, alebo pozicie pre pocit stlacenia.
+     */
+    public abstract void repaintBtnContent();
+   
     
     @Override
     public void refresh() {
@@ -80,7 +104,13 @@ public abstract class SwingCustomButton extends SwingComponent {
 
         
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * <i>{@inheritDoc }</i>
+     * @return Sirka komponenty
+     */
     @Override
     public int getWidth() {
         if (componentContainer != null) {
@@ -95,6 +125,10 @@ public abstract class SwingCustomButton extends SwingComponent {
         
     }
     
+    /**
+     * <i>{@inheritDoc }</i>
+     * @return Vyska komponenty
+     */
     @Override
     public int getHeight() {
         if (componentContainer != null) {
@@ -107,21 +141,50 @@ public abstract class SwingCustomButton extends SwingComponent {
         
         return th;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
+    /**
+     * Metoda ktora nastavi text v tlacidle
+     * @param text Text ktory bude v tlacidle
+     */
     public void setText(String text) {
         this.title = text;
     }
     
+    /**
+     * Metoda ktora nastavi sirku a vysku priradeneho textu pomocou metody
+     * getTextSize z TextUtils
+     * @see TextUtils#getTextSize(java.awt.Font, java.lang.String) 
+     */
     public void setTextSize() {
         int[] sizes = TextUtils.getTextSize(getFont(), title);
         th = sizes[1];
         tw = sizes[0];
-    }                
-  
+    } 
+    
+    /**
+     * Metoda ktora nastavi text aj s velkostami. Natoto nam sluzia uz vytvorene metody
+     * setText a setTextSize.
+     * @param text Text ktory nastavujeme
+     */
     public void setTextWithSize(String text) {
         setText(text);
         setTextSize();
-    }
+    }    
+    
+    // </editor-fold>
+        
+    // <editor-fold defaultstate="collapsed" desc=" Mouse Handling ">
+    
+    /**
+     * <i>{@inheritDoc }</i>
+     * <p>
+     * Pri stlaceni nastavujeme premennu hit na true, ktora pri prekreslovani tlacidla
+     * ukaze ze stlacame komponentu.
+     * </p>
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mousePressed(MouseEvent e) {  
         if (active) {
@@ -130,6 +193,14 @@ public abstract class SwingCustomButton extends SwingComponent {
         }
     }  
    
+    /**
+     * <i>{@inheritDoc }</i>
+     * <p>
+     * Pri upusteni nastavujeme premennu hit na false, ktora pri prekreslovani tlacidla
+     * ukaze ze stlacame komponentu.
+     * </p>
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseReleased(MouseEvent e){  
         if (active) {
@@ -138,20 +209,30 @@ public abstract class SwingCustomButton extends SwingComponent {
         }
     }  
     
-    public abstract void repaintBtnContent();
-   
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseEntered(MouseEvent e){
     }
     
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseExited(MouseEvent e){
     }
     
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseClicked(MouseEvent e) {
         super.mouseClicked(e);
         //isMouseSatisfied(new ActionEvent(this,0,e.getClickCount(),null, null));  
     }             
-    
+    // </editor-fold>
 } 

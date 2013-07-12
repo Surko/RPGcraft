@@ -5,15 +5,15 @@
 package rpgcraft.utils;
 
 import java.awt.Image;
-import javax.swing.JPanel;
-import rpgcraft.MainGameFrame;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.UiResource;
 import rpgcraft.resource.UiResource.UiSize;
 
 /**
- *
- * @author Surko
+ * Utility trieda ktora v sebe zdruzuje rozne metody na matematicke ukony. Trieda je cela staticka =>
+ * mozne k nej pristupovat z kazdej inej triedy ci instancie. 
+ * Metoda dokaze urcity pozicie komponent/kontajnerov, ziskat specificke dlzky tychto komponent
+ * ci premienat radiany na stupne.
  */
 public class MathUtils {
     /**
@@ -94,7 +94,17 @@ public class MathUtils {
         return positions;
     }
     
-    
+    /**
+     * Metoda ktora vrati specificke dlzky pre komponentu zadanu v kontajneri <b>cont</b>,
+     * vytvorenu pomocou UiResource <b>resource</b>. Dlzky urcujeme podla parametru <b>length</b>.
+     * Parameter state urcuje ci chceme dlzku alebo vysku komponenty
+     * @param resource UiResource z ktoreho je vytvorena komponenta ktorej dlzku chceme
+     * @param cont Kontajner v ktorom je komponenta
+     * @param length Textova dlzka podla ktorej urcujeme ciselnu dlzku
+     * @param minLength Minimalna dlzka ktoru musi mat komponenta
+     * @param state Stav ci chceme sirku alebo vysku
+     * @return Danu dlzku komponenty
+     */
     private static int getSpecificLength(UiResource resource, Container cont, String length, int minLength, boolean state) {
         
         switch (length) {
@@ -128,7 +138,7 @@ public class MathUtils {
      * a sirky resource zadaneho ako parameter. Ked je to rodicovsky komponent ( tak 
      * ziska tieto hodnoty z tychto rodicov.
      * @param resource
-     * @return 
+     * @return Specificke dlzky (width/height) ziskane z resource a kontajneru
      */
     public static int[] getLengths(UiResource resource, Container cont) {
         int[] _lengths = new int[4];
@@ -141,6 +151,16 @@ public class MathUtils {
         return _lengths;
     }
     
+    /**
+     * Metoda ktora vrati dlzku obrazku zadaneho parametrom <b>img</b>. Typ na urcenie dlzky
+     * mame v parametri <b>sWidth</b>. Pri FILL vratime dlzku kontajneru, pri ORIGINAL dlzku obrazku
+     * inak vratime ciselnu hodnotu sWidth (v takomto pripade moze ako jediny predstavovat dlzku)
+     * @param img Obrazok ktoreho dlzku chceme
+     * @param cont Kontajner z ktoreho urcujeme dlzky
+     * @param sWidth Textova hodnota dlzka
+     * @return Ciselna dlzka obrazku
+     * @throws Exception Pri zlom rozparsovani textu
+     */
     public static int getImageWidth(Image img, Container cont, String sWidth) throws Exception {
         switch (sWidth) {
             case "FILL" : {
@@ -154,6 +174,16 @@ public class MathUtils {
             }
     }
     
+    /**
+     * Metoda ktora vrati vysku obrazku zadaneho parametrom <b>img</b>. Typ na urcenie vysky
+     * mame v parametri <b>sHeight</b>. Pri FILL vratim vysku kontajneru, pri ORIGINAL vysku obrazku
+     * inak vratime ciselnu hodnotu sHeight (v takomto pripade moze ako jediny predstavovat vysku)
+     * @param img Obrazok ktoreho vysku chceme
+     * @param cont Kontajner z ktoreho urcujeme vysku
+     * @param sHeight Textova hodnota vysky
+     * @return Ciselna vyska obrazku
+     * @throws Exception Pri zlom rozparsovani textu
+     */
     public static int getImageHeight(Image img, Container cont, String sHeight) throws Exception {
         switch (sHeight) {
             case "FILL" : {
@@ -165,8 +195,7 @@ public class MathUtils {
             default :
                 return Integer.parseInt(sHeight);            
             }
-    }
-    
+    }    
     
     /**
      * Tato metoda vrati dlzku ziskanu z UiResource zadaneho ako parameter. 
@@ -194,7 +223,11 @@ public class MathUtils {
                 ? cont.getHeight() : Integer.parseInt(res.getParent().getHeight())); 
     }
     
-    
+    /**
+     * Metoda ktora prekonvertuje radiany na stupne.
+     * @param rad Double hodnota v radianoch
+     * @return Hodnota radianov v stupnoch.
+     */
     public static double radToAngle(double rad) {
         return (rad / Math.PI)*180;
     }

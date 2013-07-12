@@ -11,15 +11,12 @@ import java.awt.event.ActionListener;
 
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.components.Cursor;
-import rpgcraft.panels.components.ListModel;
 import rpgcraft.panels.listeners.Action;
 import rpgcraft.panels.listeners.ActionEvent;
 import rpgcraft.resource.StringResource;
@@ -27,12 +24,21 @@ import rpgcraft.resource.UiResource;
 import rpgcraft.resource.UiResource.ClickType;
 import rpgcraft.resource.UiResource.LayoutType;
 import rpgcraft.resource.types.ListType;
+import rpgcraft.utils.Cursor;
 import rpgcraft.utils.DataUtils;
+import rpgcraft.utils.ListModel;
 import rpgcraft.utils.MathUtils;
 
 /**
- *
- * @author Surko
+ * Trieda ktora dedi od SwingImagePanel zdruzuje zakladne info a metody pre pracu s listom.
+ * List v sebe moze obsahovat viacero dalsich komponent (podedene od SwingImagePanel),
+ * ktorych data sa urcuju podla modelu ktory priradujeme k listu. Model sa da priradit
+ * v xml suboroch. V triede existuju metody ktore kopiruju kontajnery a pridavaju ich do listu, ako tiez
+ * aj metody, ktore zabezpecuju prechadzanie listom. Listu sa daju nastavovat rozne
+ * typy (HORIZONTALNE, VERTIKALNE, atd...), typ je ulozeny v ListType ktory ziskame v konstruktor.
+ * Nastavenie komponent v listu robime metodou initializeListElements,
+ * ktora berie do uvahy aj vyssie spominane typy.
+ * @see SwingImagePanel
  */
 public class SwingImageList extends SwingImagePanel {
      
@@ -197,7 +203,7 @@ public class SwingImageList extends SwingImagePanel {
     /**
      * Metoda ktora vrati pole s nakopirovany kontajnermi 
      * @param rows
-     * @return 
+     * @return List s okopirovanymi kontajnermi
      */
     private ArrayList<Container> getCopiedContainers(int rows) {
         ArrayList<Container> _containers = new ArrayList<>();        
@@ -403,24 +409,46 @@ public class SwingImageList extends SwingImagePanel {
     // <editor-fold defaultstate="collapsed" desc=" Settery ">
     
     // <editor-fold defaultstate="collapsed" desc=" Modelove nastavenia ">
+    /**
+     * Metoda ktora nastavi model do listu.
+     * @param objects Objekty ktore budu tvorit model
+     * @param columns Stlpce podla ktorych sa sprava model.
+     */
     public void setModel(Object[][] objects, String[] columns) {
         model = new ListModel(objects, columns);
         
     }
 
+    /**
+     * Metoda ktora nastavi model do listu bez udanych stlpcov.
+     * @param objects Objekty ktore budu tvorit model
+     */
     public void setModel(Object[][] objects) {
         model = new ListModel(objects);
     }
     
+    /**
+     * Metoda ktora nastavi model priamo z parametru.
+     * @param model ListModel ktory tvori list
+     */
     public void setModel(ListModel model) {
         this.model = model;        
     }       
     // </editor-fold>
     
+    /**
+     * Metoda ktora donastavi do modelu stlpce podla ktorych sa sprava model.
+     * @param columns Stlpce modelu
+     */
      public void setColumns(String[] columns) {
         model.setColumns(columns);
     }
     
+     /**
+      * Metoda ktora zvysi oznacenie v liste. Zvysovat je mozne iba po
+      * velkost listu containers. Pri zvyseni oznacenia cez pocet co mozme zobrazit
+      * preinicializujeme list podla metody initializeListElements.
+      */
     public void incSelection() {
                 
         if (table == 0 || selected + jump + 1 == containers.size()) return;
@@ -439,6 +467,11 @@ public class SwingImageList extends SwingImagePanel {
         }
     }
     
+    /**
+     * Metoda ktora znizi oznacenie v liste. Znizovat mozme iba ked je oznacenie
+     * viac ako nula. Pri znizeni oznacenia pod nulu ale pri premennej jump vacsej ako 0
+     * preinicializujeme list podla metody initializeListElements a znizime jump o 1.
+     */
     public void decSelection() {
         if (table == 0 || (selected <= 0 && jump <= 0))
             return;
@@ -514,6 +547,11 @@ public class SwingImageList extends SwingImagePanel {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">
+    /**
+     * Metoda ktora vykresli komponentu do grafickeho kontextu. Vykreslovanie je rovnake
+     * ako v SwingImagePanel.
+     * @param g Graficky kontext do ktoreho vykreslujeme.
+     */
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);        
@@ -825,6 +863,15 @@ public class SwingImageList extends SwingImagePanel {
     
     // <editor-fold defaultstate="collapsed" desc=" Eventy ">   
     
+    /**
+     * Metoda ktora vykona Akciu s ActionEventom pri stlaceni mysi.
+     * Parametre : <br>
+     * <b>onListElement</b>: Vykona akciu s tym ze parametre su na pozicii, ktora bola oznacena/selected =>
+     * posunie poziciu kurzoru na selected poziciu.
+     * <b>default</b>: Vykona sa defaultna akcia bez nejakeho posuvania kurzoru.          
+     * @param action Akcia ktora sa vykonava pri stlaceni
+     * @param event ActionEvent ktora je priradena akcii na vykonanie.
+     */
     @Override
     public void fireMouseEvent(Action action, ActionEvent event) {
         if (event.getClicks() >= action.getClicks()) {
@@ -851,14 +898,13 @@ public class SwingImageList extends SwingImagePanel {
     }
     
     /**
+     * Metoda ktora vykona Akciu s ActionEventom pri stlaceni klavesy
      * Parametre : <br>
      * <b>onListElement</b>: Vykona akciu s tym ze parametre su na pozicii, ktora bola oznacena/selected =>
      * posunie poziciu kurzoru na selected poziciu.
-     * <b>default</b>: Vykona sa defaultna akcia bez nejakeho posuvania kurzoru.
-     * 
-     * 
-     * @param action
-     * @param event 
+     * <b>default</b>: Vykona sa defaultna akcia bez nejakeho posuvania kurzoru.          
+     * @param action Akcia ktora sa vykonava pri stlaceni
+     * @param event ActionEvent ktora je priradena akcii na vykonanie.
      */
     @Override
     public void fireKeyEvent(Action action, ActionEvent event) {
@@ -883,7 +929,11 @@ public class SwingImageList extends SwingImagePanel {
         }                           
     }
     
-    
+    /**
+     * Metoda ktora spracovava vstup z klavesnice a pri zodpovedajucej akcii zavolame
+     * metodu fireKeyEvent z vytvorenym ActionEventom ktory vykona tuto akciu.
+     * @param input InputHandle z ktoreho spracovavame vstupy.
+     */
     @Override
     public void processKeyEvents(InputHandle input) {     
         if (active) {
@@ -897,6 +947,13 @@ public class SwingImageList extends SwingImagePanel {
         }
     }
     
+    /**
+     * <i>{@inheritDoc }</i>
+     * <p>
+     * Pri stlaceni mysi raz oznacujeme predmet v liste.
+     * </p>
+     * @param e MouseEvent ktory spustil event.
+     */
     @Override
     public void mouseClicked(MouseEvent e) { 
         // System.out.println(this.getMouseListeners().length);
@@ -927,19 +984,35 @@ public class SwingImageList extends SwingImagePanel {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mousePressed(MouseEvent e) {
     }
 
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseReleased(MouseEvent e) {
         
     }
 
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseEntered(MouseEvent e) {        
     }
 
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void mouseExited(MouseEvent e) {
     }

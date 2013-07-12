@@ -13,22 +13,22 @@ import rpgcraft.entities.MovingEntity;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.plugins.AbstractMenu;
+import rpgcraft.plugins.Listener;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
 
 /**
- *
- * @author kirrie
+ * Trieda dediaca od Listeneru je dalsi typ listeneru mozny vygenerovat v ListenerFactory,
+ * ktory ma za ulohu vykonavat Item akcie => akcie ktore su vseobecne pre ovladanie predmetov.
  */
 public class ItemListener extends Listener {
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    private static final Logger LOG = Logger.getLogger(GameListener.class.getName());  
     
-    private static final Logger LOG = Logger.getLogger(GameListener.class.getName());
-
-    @Override
-    public String getName() {
-        return ListenerFactory.Commands.ITEM.toString();
-    }
-    
+    /**
+     * Enum s moznymi operaciami v tomto listenery. V metode actionPerform sa
+     * podla tychto operacii vykonavaju prislusne metody
+     */
     public enum Operations {        
         CREATEITEM,        
         GET_ITEMINFOLIST,
@@ -48,7 +48,15 @@ public class ItemListener extends Listener {
     }
     
     Operations op;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Vytvorenie instancie listeneru pomocou textu zadaneho v parametri <b>data</b>.
+     * Konstruktor rozparsuje text, urci operaciu aka sa bude vykonavat a parametre
+     * pre tuto operaciu pomocou metody setParams
+     * @param data Text s funkciou ktoru vykonavame
+     */
     public ItemListener(String data) {
         int fstBracket = data.indexOf('(');
         
@@ -65,8 +73,13 @@ public class ItemListener extends Listener {
             setParams(params.substring(1, params.length() - 1));        
         }
     }
+    // </editor-fold>
     
-    
+    // <editor-fold defaultstate="collapsed" desc=" Vykonavanie + pomocne metody ">
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e); 
@@ -406,7 +419,7 @@ public class ItemListener extends Listener {
                                 LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
                             }                                                            
                         }
-                        System.out.println(e.getReturnValue());
+                        //System.out.println(e.getReturnValue());
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("_bplistener",
                                 new String[] {GameMenu.class.getName(), menu == null ? "null" : menu.getClass().getName()}));
@@ -467,5 +480,16 @@ public class ItemListener extends Listener {
         }
         
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * {@inheritDoc }
+     * return Meno listeneru
+     */
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.ITEM.toString();
+    }
+    // </editor-fold>
 }

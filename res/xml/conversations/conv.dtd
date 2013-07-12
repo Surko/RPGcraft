@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT conversations (conversation)+>
+<!ELEMENT conversation (id,text,(actions|(answers,conditions))?)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT text (#PCDATA)>
+<!ELEMENT actions (action)>
+<!ELEMENT action (#PCDATA)>
+<!ELEMENT answers (#PCDATA)>
+<!ELEMENT conditions (condition)+>
+<!ELEMENT condition (#PCDATA)>
+<!ATTLIST action
+  xmlns CDATA #FIXED ''
+  click CDATA #IMPLIED
+  clicktype CDATA #IMPLIED
+  code CDATA #IMPLIED
+  type CDATA #IMPLIED>

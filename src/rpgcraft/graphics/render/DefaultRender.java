@@ -13,10 +13,8 @@ import java.awt.Image;
 import java.awt.RadialGradientPaint;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import rpgcraft.MainGameFrame;
 import rpgcraft.entities.Entity;
 import rpgcraft.entities.MovingEntity;
-import rpgcraft.entities.Player;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.DayLighting;
 import rpgcraft.graphics.spriteoperation.Sprite;
@@ -27,7 +25,6 @@ import rpgcraft.map.tiles.DefaultTiles;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.plugins.RenderPlugin;
 import rpgcraft.resource.StringResource;
-import rpgcraft.utils.MainUtils;
 
 /** 
  * Defaultna trieda pre vykonanie renderu pri vykreslovani mapy. Zahrna v sebe zakladne vykreslovanie pozadia, entity,
@@ -101,31 +98,56 @@ public final class DefaultRender extends RenderPlugin {
     private Image lightingMap;    
     
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Vytvorenie instancie DefaultRenderu. Kedze je to privatny konstruktor
+     * tak sa da volat len zvnutra tejto triedy.
+     */
     private DefaultRender() {
         
     }
     
+    /**
+     * Vytvorenie instancie DefaultRenderu. Kedze je to privatny konstruktor
+     * tak sa da volat len zvnutra tejto triedy a to s parametrom <b>map</b>, z ktoreho
+     * si vyberieme hracovu entitu.
+     * @param map 
+     */
     private DefaultRender(SaveMap map) {        
         this.map = map;
         this.entity = map.getPlayer();        
     }
     
     // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">    
+
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody "> 
+    /**
+     * Staticka metoda ktora vrati instanciu DefaultRenderu ako singleton triedu.     
+     * @return Instancia DefaultRender.
+     */
     public static DefaultRender getInstance() {
         if (instance == null) {
-            instance = new DefaultRender();
-            setRender(instance);
+            instance = new DefaultRender();           
         }        
         return instance;
     }
     // </editor-fold>
-           
+
     // <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">
-    
+    /**
+     * Metoda ktora vykresluje dlazdice do grafickeho kontextu zadaneho parametrom <b>g</b>.
+     * Vykreslujeme iba tie dlazdice ktore sa nachdazaju v parametri <b>chunksToRender</b>.
+     * Prekreslovanie prebieha tak ze ked sa hybeme hracom tak s nim nepohybujeme 
+     * ale pohybujeme mapou (mapa ma 512 x 3 po kazdom smere => musime spravit taky translate
+     * aby dlazdica pod hracom bola na pozicii [0,0]). Nato sluzi translate ktory prevadzame pred samotnym kreslenim dlazdic.
+     * Nasledne volame metodu simple alebo playerChunkPainting (podla toho aky mod renderovania
+     * mame zapaty). Nakonci urobime spatne translate na zaciatocne pozicie. Pri chybe tiez vraciama translate
+     * naspat.
+     * @param g Graficky kontext do ktoreho kreslime
+     * @param chunksToRender Chunky ktore kreslime.
+     * @throws InterruptedException 
+     */
     @Override
     public void paintBackground(Graphics g, Chunk[][] chunksToRender) throws InterruptedException {
         try {            
@@ -148,6 +170,10 @@ public final class DefaultRender extends RenderPlugin {
 
     }
     
+    /**
+     * Metoda ktora vykresluje floru. Zatial nevyuzite. Moznost doplnit v buducnosti.
+     * @param g Graficky kontext do ktoreho kreslime floru.
+     */
     @Override
     public void paintFlora(Graphics g) {
         if (map.getChunkState()) {
@@ -155,6 +181,19 @@ public final class DefaultRender extends RenderPlugin {
         }
     }
     
+    /**
+     * Metoda ktora vykresli entity aj castice do grafickeho kontextu zadaneho parametrom
+     * <b>g</b>. Entity na vykreslenie dostavame parametrom <b>entities</b> a casti parametrom
+     * <b>particles</b>. Nazaciatku robime translate grafickeho kontextu aby sme mali stred
+     * celeho okna na zaciatocnej pozicii [0,0]. Potom prechadzame entitami a vykreslujeme ich
+     * podla vzdialenosti od hracovej entity. Ked narazime na hraca tak ho vykreslime na
+     * poziciu [0,0]. Ked je vzdialenost entit mensia ako lightRadius hracovej entity
+     * tak hu vykreslime inak nie. Castice vykreslujeme nad hracovu entitu. Nakonci
+     * naspat spravime translate ako to bolo pred translatom
+     * @param g Graficky kontext do ktoreho kreslime
+     * @param entities Entity ktore vykreslujeme
+     * @param particles Castice ktore vykreslujeme
+     */
     @Override
     public void paintEntitiesParticles(Graphics g, ArrayList<Entity> entities, ArrayList<Particle> particles) {  
         g.translate(width /2, height/2);
@@ -174,7 +213,7 @@ public final class DefaultRender extends RenderPlugin {
         try {
             for (Particle part: particles) {
                 if (part.isActivated()) {
-                g.drawImage(part.getImage(), part.getX(), part.getY(), null);            
+                    g.drawImage(part.getImage(), part.getX(), part.getY(), null);            
                 }
             }
         } catch (Exception e) {}
@@ -225,6 +264,11 @@ public final class DefaultRender extends RenderPlugin {
         g2d.scale(scaleParamX, scaleParamY);
     }
     
+    /**
+     * 
+     * @param _chunks
+     * @param g 
+     */
     private void playerChunkPainting(Chunk[][] _chunks, Graphics g) {
         int[][] upperLayer, upperMeta, lowerLayer, lowerMeta;
         int _chunkX, _chunkY;
@@ -294,6 +338,11 @@ public final class DefaultRender extends RenderPlugin {
         }
     }        
     
+    /**
+     * 
+     * @param _chunks
+     * @param g 
+     */
     private void simpleChunkPainting(Chunk[][] _chunks, Graphics g) {  
         int[][] upperLayer,upperMeta,lowerLayer,lowerMeta;
         int _chunkX, _chunkY;
@@ -337,8 +386,15 @@ public final class DefaultRender extends RenderPlugin {
     }
             
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Lighting metody">
+    /**
+     * Metoda ktora vytvori svetelnu mapu z parametru <b>dayLight</b>, ktory urcuje
+     * ako mame vykreslovat svetlo. Vyberieme si aky svetelny mod mame aktivovany 
+     * a zavolame metodu. Kedze mame len jeden mod tak volame metodu radialLighting
+     * s parametrom dayLight
+     * @param dayLight DayLighting s aktualnym casom a farbami ake sa vyuzivaju pri osvetlovani.
+     */
     @Override
     public void makeLightingMap(DayLighting dayLight) {                                                                         
         switch (LIGHT_MODE) {
@@ -347,6 +403,15 @@ public final class DefaultRender extends RenderPlugin {
         }                               
     }
     
+    /**
+     * Metoda ktora vykona radialne osvetlenie pomocou RadialGradientPaint. 
+     * Pri neexistencii svetelnej mapy hu vytvarame. Nasledne vyberieme z playera 
+     * dlzku pokial dosiahne svetlo a prenastavime ho podla udajov ktore su definovane
+     * v DayLighting objekte <b>dayLight</b>. Nakonci vyplnime iba taky obdlznik s gradientom
+     * aky je potreba, kedze svetelnu mapu vytvarame podla lightRadius hracovej entity
+     * (iba bezprostredne okolie hraca ktore je vykreslovane).     
+     * @param dayLight DayLighting objekt s aktualnymi nastaveniami farieb.
+     */
     private void radialLighting(DayLighting dayLight) {
         int lTileRadius = (entity.getLightRadius() + 1) << 5;
          if (lightingMap == null || lightingMap.getWidth(null) != 2 * lTileRadius) {
@@ -367,8 +432,13 @@ public final class DefaultRender extends RenderPlugin {
     }
     
     // </editor-fold>
-        
+
     // <editor-fold defaultstate="collapsed" desc=" Settery ">
+    /**
+     * Metoda ktora nastavi sirku a vysku v akej renderujeme/vykreslujeme.
+     * @param width Sirka vykreslovacieho priestoru
+     * @param height Vyska vykreslovacieho priestoru
+     */
     @Override
     public void setWidthHeight(int width, int height) {
         this.width = width;
@@ -379,50 +449,87 @@ public final class DefaultRender extends RenderPlugin {
         }
     }
 
+    /**
+     * Metoda ktora nastavi renderu mapu ktoru vykresluje
+     * @param saveMap Mapa ktoru vykreslujeme.
+     */
     @Override
     public void setMap(SaveMap saveMap) {
         this.map = saveMap;
         this.entity = saveMap.getPlayer();        
     }
     
+    /**
+     * Metoda ktora nastavuje skalovatelne parametre scaleX a scalY podla parametrov.
+     * @param scaleX Skalovatelny modifikator po x-ovej osi
+     * @param scaleY Skalovatelny modifikator po y-ovej osi
+     */
     @Override
     public void setScaleParams(double scaleX, double scaleY) {
         this.scaleParamX = scaleX;
         this.scaleParamY = scaleY;
     }
         
+    /**
+     * Metoda ktora nastavi x-ovu poziciu obrazovky
+     * @param screenX X-ova pozicia obrazovky
+     */
     @Override
     public void setScreenX(int screenX) {
-        this.screenX = screenX + 12;
+        this.screenX = screenX + 16;
     }
 
+    /**
+     * Metoda ktora nastavi y-ovu poziciu obrazovky
+     * @param screenY Y-ova pozicie obrazovky
+     */
     @Override
     public void setScreenY(int screenY) {
-        this.screenY = screenY + 12;
+        this.screenY = screenY + 16;
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * Metoda ktora vrati meno renderovacieho pluginu.
+     * @return Meno pluginu
+     */
     @Override
     public String getName() {        
         return NAME;
     }
     
+    /**
+     * Metoda ktora vrati x-ovu poziciu obrazovky
+     * @return X-ova pozicia obrazovky
+     */
     @Override
     public int getScreenX() {
         return screenX;
     }
 
+    /**
+     * Metoda ktora vrati y-ovu poziciu obrazovky
+     * @return Y-ova pozicia obrazovky
+     */
     @Override
     public int getScreenY() {
         return screenY;
     }
 
+    /**
+     * Metoda ktora vrati posledne nastavenu x-ovu translaciu
+     * @return X-ova translacia
+     */
     @Override
     public int getLastX() {
         return lastX;
     }
 
+    /**
+     * Metoda ktora vrati posledne nastavenu y-ovu translaciu.
+     * @return Y-ova translacia
+     */
     @Override
     public int getLastY() {
         return lastY;

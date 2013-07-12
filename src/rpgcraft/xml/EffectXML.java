@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author doma
+ * Interface ktory zdruzuje nazvy tagov v efektovych xml-kach
  */
 public interface EffectXML {
     public static final String EFFECTS = "Effects";

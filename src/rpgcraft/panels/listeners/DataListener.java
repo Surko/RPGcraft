@@ -9,29 +9,32 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.plugins.Listener;
 import rpgcraft.resource.StringResource;
 import rpgcraft.utils.DataUtils;
+import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.ScriptUtils;
 
 /**
- *
- * @author kirrie
+ * Trieda dediaca od Listeneru je dalsi typ listeneru mozny vygenerovat v ListenerFactory,
+ * ktory ma za ulohu vykonavat Data akcie => akcie ktore su vseobecne pre hru ako taku. 
+ * Obsahuje v sebe IF, JUMP a dalsie ovladacie prikazy
  */
 public class DataListener extends Listener {
-    
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(DataListener.class.getName());
-
-    @Override
-    public String getName() {
-        return ListenerFactory.Commands.DATA.toString();
-    }
-    
+        
+    /**
+     * Enum s moznymi operaciami v tomto listenery. V metode actionPerform sa
+     * podla tychto operacii vykonavaju prislusne metody
+     */
     public enum Operations {
         ASSIGN,
         ACTION,
         IF,
         TIME_SLEEP,
         TICK_SLEEP,
+        SLEEP,
         JUMP,
         OP,
         LESS,
@@ -41,11 +44,20 @@ public class DataListener extends Listener {
         DONE,
         END,
         LUA,
-        LOG
+        LOG,
+        DEBUG
     }
     
     Operations op;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Vytvorenie instancie listeneru pomocou textu zadaneho v parametri <b>data</b>.
+     * Konstruktor rozparsuje text, urci operaciu aka sa bude vykonavat a parametre
+     * pre tuto operaciu pomocou metody setParams
+     * @param data Text s funkciou ktoru vykonavame
+     */
     public DataListener(String data) {
         int fstBracket = data.indexOf('(');
         
@@ -60,9 +72,13 @@ public class DataListener extends Listener {
                         
         if (params != null) {            
             setParams(params.substring(1, params.length() - 1));        
-        }
+        }        
     }
 
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void actionPerformed(ActionEvent e) {        
         
@@ -192,22 +208,37 @@ public class DataListener extends Listener {
                     }
                 } break;
                 case IF : {
-                    if (params.length == 3) {
-                        Listener condition = ListenerFactory.getListener(parsedObjects[0], isMemorizable());
-                        condition.actionPerformed(e);
+                    switch (params.length) {
+                        case 2 : {
+                            Listener condition = ListenerFactory.getListener(parsedObjects[0], isMemorizable());
+                            condition.actionPerformed(e);
 
-                        if (e.getReturnValue() instanceof Boolean || e.getReturnValue() instanceof Integer) {
-                            if ((Boolean)e.getReturnValue()) {
-                                Listener action = ListenerFactory.getListener(parsedObjects[1], isMemorizable());
-                                action.actionPerformed(e);
+                            if (e.getReturnValue() instanceof Boolean || e.getReturnValue() instanceof Integer) {
+                                if ((Boolean)e.getReturnValue()) {
+                                    Listener action = ListenerFactory.getListener(parsedObjects[1], isMemorizable());
+                                    action.actionPerformed(e);
+                                }
                             } else {
-                                Listener action = ListenerFactory.getListener(parsedObjects[2], isMemorizable());
-                                action.actionPerformed(e);
+                                LOG.log(Level.SEVERE, StringResource.getResource("_boolistener"));
                             }
-                        } else {
-                            LOG.log(Level.SEVERE, StringResource.getResource("_boolistener"));
-                        }                    
-                    } else {
+                        } break;                            
+                        case 3 : {
+                            Listener condition = ListenerFactory.getListener(parsedObjects[0], isMemorizable());
+                            condition.actionPerformed(e);
+
+                            if (e.getReturnValue() instanceof Boolean || e.getReturnValue() instanceof Integer) {
+                                if ((Boolean)e.getReturnValue()) {
+                                    Listener action = ListenerFactory.getListener(parsedObjects[1], isMemorizable());
+                                    action.actionPerformed(e);
+                                } else {
+                                    Listener action = ListenerFactory.getListener(parsedObjects[2], isMemorizable());
+                                    action.actionPerformed(e);
+                                }
+                            } else {
+                                LOG.log(Level.SEVERE, StringResource.getResource("_boolistener"));
+                            } 
+                        } break;
+                        default :
                         LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
                     }
                 } break;
@@ -233,7 +264,19 @@ public class DataListener extends Listener {
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
                     }      
-                }
+                } break;
+                case SLEEP : {
+                    if (parsedObjects.length == 1) {
+                        int time = _intParse(parsedObjects[0], e); 
+                        try {
+                            Thread.sleep(time);
+                        } catch (Exception intEx) {
+                            
+                        }
+                    } else {
+                        LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                    }      
+                } break;    
                 case END :
                 case DONE : {
                     if (parsedObjects == null || parsedObjects.length == 0) {
@@ -262,11 +305,20 @@ public class DataListener extends Listener {
                     }
                 } break;
                 case LOG : {
-                    if (parsedObjects.length == 1) {
-                        System.out.println(parsedObjects[0]);
+                    if (parsedObjects.length == 1) {                        
                         LOG.log(Level.INFO, parsedObjects[0].toString());
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                    }
+                } break;
+                case DEBUG : {
+                    if (parsedObjects.length == 1) {
+                        if (parsedObjects[0] instanceof Boolean) {
+                            MainUtils.DEBUG = (Boolean)parsedObjects[0];
+                        }
+                        if (parsedObjects[0] instanceof String) {
+                            MainUtils.DEBUG = Boolean.parseBoolean((String)parsedObjects[0]);
+                        }
                     }
                 } break;
                 default : {
@@ -278,7 +330,16 @@ public class DataListener extends Listener {
                     new String[] {op.toString(), ""}), null).renderSpecific("_label_listenererror");
         }
     }
+    // </editor-fold>
     
-    
-    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * {@inheritDoc }
+     * @return Meno listeneru
+     */
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.DATA.toString();
+    }
+    // </editor-fold>
 }

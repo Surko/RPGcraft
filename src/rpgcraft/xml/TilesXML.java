@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author doma
+ * Interface ktory zdruzuje nazvy tagov v dlazdicovych xml-kach
  */
 public interface TilesXML {
     public static final String TILESET = "tileset";
@@ -15,6 +14,7 @@ public interface TilesXML {
     public static final String HEALTH = "health";   
     public static final String DAMAGE = "damage"; 
     public static final String DURABILITY = "durability";
+    public static final String ITEMTYPE = "item-type";
     public static final String SHEET = "sheet";
     public static final String IMAGE = "image";
     public static final String DURATION = "duration";    

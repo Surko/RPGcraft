@@ -7,7 +7,6 @@ package rpgcraft.graphics.ui.menu;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import rpgcraft.entities.Entity;
 import rpgcraft.entities.Item;
@@ -15,15 +14,15 @@ import rpgcraft.entities.Item.Command;
 import rpgcraft.graphics.Colors;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.panels.listeners.ActionEvent;
-import rpgcraft.panels.listeners.ListenerFactory;
-import rpgcraft.resource.StringResource;
 
 /**
- *
- * @author doma
+ * ItemMenu je trieda ktora sa stara o vytvorenie a zobrazenie menu co sa da
+ * s predmetom robit.
+ * Trieda dedi od AbstractInMenu cim sme donuteni implementovat zakladne 
+ * abstraktne metody z AbstractInMenu. 
  */
 public class ItemMenu extends AbstractInMenu {
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final int hItemBox = 20;
     private static final int wGap = 5, hGap = 5;                  
     
@@ -37,11 +36,26 @@ public class ItemMenu extends AbstractInMenu {
     
     // Moznosti ktore sa daju robit s predmetom
     private ArrayList<Command> choices;
+    //</editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Zakladny konstruktor dolezity pri volani newInstance pri vytvarani kopii
+     * objektu.
+     */
     public ItemMenu() {
         super(null, null);
     }
     
+    /**
+     * Konstruktor ktory vytvori instanciu/objekt/menu typu ItemMenu. Menu nastavujeme
+     * z ktoreho menu bolo vytvorene a nasledne pre aky predmet sme ho vytvorili. Parametre
+     * <b>x,y</b> sluzia ako pozicie kde vykreslujeme menu.
+     * @param source Zdrojove AbstractInMenu kde sme toto menu vytvorili
+     * @param item Predmet pre ktory sme vytvorili menu
+     * @param x X-ova pozicia menu
+     * @param y Y-ova pozicia menu
+     */
     public ItemMenu(AbstractInMenu source, Item item, int x, int y) {
         super(source.getEntity(), source.getInput());
         this.sourceMenu = source;
@@ -53,7 +67,9 @@ public class ItemMenu extends AbstractInMenu {
         setItemMenu();
         setGraphics();
     }        
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Inicializacie ">
     /**
      * Metoda ktora initializuje toto menu s novymi udajmi. 
      * Novymi udajmi je entita zadana parametrom pre ktoru vytvarame menu.
@@ -65,40 +81,7 @@ public class ItemMenu extends AbstractInMenu {
         this.toDraw = origMenu.getDrawImage();        
         return this;
     }
-    
-    private void setItemMenu() {
-        choices = new ArrayList<>();
-        
-        choices.add(Command.INFO);
-        if (item.isUsable()) {
-            choices.add(Command.USE);
-        }
-        if (item.isEquipped()) {
-            choices.add(Command.UNEQUIP);
-        } else {
-            if (item.isEquipable()) {
-                choices.add(Command.EQUIP);
-            }
-        }
-        
-        if (item.isActive()) {
-            choices.add(Command.UNACTIVE);
-        } else {
-            if (item.isActivable()) {
-                choices.add(Command.ACTIVE);
-            }
-        }
-        if (item.isDropable()) {
-            choices.add(Command.DROP);
-        }
-        if (item.isPlaceable()) {
-            choices.add(Command.PLACE);
-        }
-        choices.add(Command.DESTROY);
-        choices.add(Command.CLOSE);
-                
-        this.height = choices.size() * hItemBox + hGap * 2;
-    }
+    // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     
@@ -150,6 +133,50 @@ public class ItemMenu extends AbstractInMenu {
     
     // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
+    /**
+     * Metoda ktora nastavi do listu choices vsetky moznosti co sa da s danym predmetom robit.
+     * (ked je mozne predmet pouzit tak bude USABLE, atd...)
+     */
+    private void setItemMenu() {
+        choices = new ArrayList<>();
+        
+        choices.add(Command.INFO);
+        if (item.isUsable()) {
+            choices.add(Command.USE);
+        }
+        if (item.isEquipped()) {
+            choices.add(Command.UNEQUIP);
+        } else {
+            if (item.isEquipable()) {
+                choices.add(Command.EQUIP);
+            }
+        }
+        
+        if (item.isActive()) {
+            choices.add(Command.UNACTIVE);
+        } else {
+            if (item.isActivable()) {
+                choices.add(Command.ACTIVE);
+            }
+        }
+        if (item.isDropable()) {
+            choices.add(Command.DROP);
+        }
+        if (item.isPlaceable()) {
+            choices.add(Command.PLACE);
+        }
+        choices.add(Command.DESTROY);
+        choices.add(Command.CLOSE);
+                
+        this.height = choices.size() * hItemBox + hGap * 2;
+    }
+        
+    /**
+     * Metoda ktora nastavuje obrazok toDraw, ktore byva spolocne pre vsetky menu.
+     * Preto zaciname volanim super.setGraphics. Po navrate vykreslime nazvy prikazov
+     * co mozme s predmetom robit.
+     */
     @Override
     protected final void setGraphics() {
         super.setGraphics();
@@ -160,7 +187,14 @@ public class ItemMenu extends AbstractInMenu {
             g.drawString(choices.get(i).getValue(), wGap, (i + 1) * hItemBox);
         }
     }      
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">
+    /**
+     * Metoda ktora vykresli menu ulozene v obrazku toDraw ked je menu viditelne.
+     * Ked mame oznaceny nejaky predmet z tohoto menu tak ho prekreslime oznacenou farbou.
+     * @param g Graficky kontext do ktoreho kreslime.
+     */
     @Override
     public void paintMenu(Graphics g) {
         if (visible) {
@@ -177,64 +211,35 @@ public class ItemMenu extends AbstractInMenu {
             }
         }
     }    
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Update ">
+    /**
+     * Metoda ktora aktualizuje toto item menu. Aktualizujeme iba vtedy ked sa zmenil stav.
+     * Pri zmene menime pozicie selectedPosY a selectedPosX.     
+     */
     @Override
     public void update() {
         if (changedState) {
             selectedPosY = selection * hItemBox + yPos + hItemBox;
             selectedPosX = xPos;            
-            changedState = true;
+            changedState = false;
         }
     }
     
     /**
-     * Metoda ktora ma spracovavat eventy/udalosti z mysi. ItemMenu take moznosti nepodporuje ale je ich mozne pridat.
-     * Na zistenie spravnych suradnic staci odcitat od suradnic v Evente suradnice tohoto menu a modulovat a predelovat vyskou
-     * jedneho elementu v tomto menu.
-     * @param e MouseEvent z mysi
-     * @see MouseEvent
+     * Metoda ktora spravne ukonci menu volanim super metody.
      */
     @Override
-    public void mouseHandling(MouseEvent e) {
-        
-    }
-    
-    @Override
-    public void inputHandling() {
-        if (input.clickedKeys.contains(input.escape.getKeyCode()) || input.clickedKeys.contains(InputHandle.right.getKeyCode())) {                                    
-            if (sourceMenu != null) {
-                exit();
-                sourceMenu.activate();                
-                return;
-            }
-        }
-                
-        if (input.clickedKeys.contains(InputHandle.up.getKeyCode())) {      
-            if (selection > 0) {
-                selection--;
-            }
-        }
-        
-        if (input.clickedKeys.contains(InputHandle.down.getKeyCode())) {      
-            if (selection < choices.size() - 1) {
-                selection++;
-            }           
-        }
-        
-        if (input.clickedKeys.contains(InputHandle.enter.getKeyCode())) {
-            if (choices.size() > 0) {
-                use();
-            }
-            exit();      
-        }
-    }
-    
-    @Override
     public void exit() {
-        activated = false;
-        visible = false;
+        super.exit();
     }
     
+    /**
+     * Metoda ktora zavola akciu na predmet pre ktory sme vytvorili menu. 
+     * Akcia je dana podla toho co bolo oznacene v tomto menu. Prikazy su vykonavane
+     * prechadzanim case vetiev.
+     */
     private void use() {
         switch (choices.get(selection)) {
             case INFO : {                
@@ -289,10 +294,58 @@ public class ItemMenu extends AbstractInMenu {
         }
     }        
 
+    /**
+     * Metoda ktora rekalkuluje poziciu pozicie pre toto menu.
+     */
     @Override
-    public void recalculatePositions() {
+    public void recalculatePositions() {                
         
+    }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Handler ">
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
+    @Override
+    public void mouseHandling(MouseEvent e) {
         
     }
     
+    /**
+     * Metoda ktora spracovava vstup. Pri stlaceni ESC ukoncujeme menu. Pri stlaceni UP alebo
+     * DOWN menime oznacenie, ENTER potvrdzuje a vykona akciu nad predmetom.
+     */
+    @Override
+    public void inputHandling() {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())
+                || input.clickedKeys.contains(InputHandle.DefinedKey.RIGHT.getKeyCode())) {                                    
+            if (sourceMenu != null) {
+                exit();
+                sourceMenu.activate();                
+                return;
+            }
+        }
+                
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {      
+            if (selection > 0) {
+                selection--;
+            }
+        }
+        
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {      
+            if (selection < choices.size() - 1) {
+                selection++;
+            }           
+        }
+        
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ENTER.getKeyCode())) {
+            if (choices.size() > 0) {
+                use();
+            }
+            exit();      
+        }
+    }        
+    // </editor-fold>
 }

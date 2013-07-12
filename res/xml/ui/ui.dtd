@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT layout-elements (element)+>
+<!ELEMENT element (id,(template|type),(action|actions|background|layout|position|text
+                    |data|elements|event-active|sound|template
+                    |visible)*,
+                   listdata?)>
+<!ELEMENT data (#PCDATA)>
+<!ELEMENT elements (element)+>
+<!ELEMENT event-active (#PCDATA)>
+<!ELEMENT sound (#PCDATA)>
+<!ELEMENT template (#PCDATA)>
+<!ELEMENT visible (#PCDATA)>
+<!ELEMENT listdata (list-element)>
+<!ELEMENT list-element (id,type,text,layout,background,position)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT layout (layout-type?,insets?,
+                  (actions|fill|height|minheight|minwidth|weightx
+                   |weighty|width)*,
+                  scrolling?,(x?,y?)?,(rows-layout,(rows-max?,cols-max?)?)?)>
+<!ELEMENT layout-type (#PCDATA)>
+<!ELEMENT insets (#PCDATA)>
+<!ELEMENT fill (#PCDATA)>
+<!ELEMENT height (#PCDATA)>
+<!ELEMENT minheight (#PCDATA)>
+<!ELEMENT minwidth (#PCDATA)>
+<!ELEMENT weightx (#PCDATA)>
+<!ELEMENT weighty (#PCDATA)>
+<!ELEMENT width (#PCDATA)>
+<!ELEMENT scrolling EMPTY>
+<!ELEMENT x (#PCDATA)>
+<!ELEMENT y (#PCDATA)>
+<!ELEMENT rows-layout (#PCDATA)>
+<!ELEMENT rows-max (#PCDATA)>
+<!ELEMENT cols-max (#PCDATA)>
+<!ELEMENT position (#PCDATA)>
+<!ELEMENT background (background-color?,background-image?,orientation?,
+                      (image-width?,image-height?)?,image-position?)>
+<!ELEMENT background-color (#PCDATA)>
+<!ELEMENT background-image (#PCDATA)>
+<!ELEMENT orientation (#PCDATA)>
+<!ELEMENT image-width (#PCDATA)>
+<!ELEMENT image-height (#PCDATA)>
+<!ELEMENT image-position (#PCDATA)>
+<!ELEMENT actions (action)+>
+<!ELEMENT text (#PCDATA)>
+<!ELEMENT action (#PCDATA)>
+<!ATTLIST position x CDATA #IMPLIED
+ y CDATA #IMPLIED>
+<!ATTLIST action click CDATA #IMPLIED
+ clicktype CDATA #IMPLIED
+ code CDATA #IMPLIED
+ type CDATA #IMPLIED>
+<!ATTLIST scrolling speedy CDATA #IMPLIED
+ speedx CDATA #IMPLIED>
+<!ATTLIST text size CDATA #IMPLIED
+ textcolor CDATA #IMPLIED>
+<!ATTLIST listdata data CDATA #IMPLIED>

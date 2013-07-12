@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT groups (group)+>
+<!ELEMENT group (id,label,msgs)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT label (#PCDATA)>
+<!ELEMENT msgs (#PCDATA)>

@@ -29,11 +29,17 @@ import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.MainUtils;
 
 /**
- *
+ * Trieda ktora vytvara obalovaciu triedu pre SaveMap. Tiez si hu mozme predstavovat 
+ * ako ukladaciu poziciu ako celok. Trieda v sebe obsahuje instanciu SaveMap ktoru 
+ * moze ukladat aj nacitat zo suborov v zlozke region. Dalej trieda umoznuje ukladat/nacitat obrazok 
+ * mapy, nazov tohoto savu, datum a aktualny cas hry kedy sme skoncili hru. Pri vytvarani alebo nacitani hlavnej hry je
+ * vzdy vytvarana instancia tejto triedy a dalej sluzi az len pri ukladani.
+ * @see SaveMap
  * @author kirrie
  */
 public class Save {
-        
+
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne enumy a triedy ">
     public enum RecordIndexes {
         
         ID(0),
@@ -51,7 +57,9 @@ public class Save {
             return index;
         }                        
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(Save.class.getName());
     
     protected GameMenu menu;
@@ -63,14 +71,32 @@ public class Save {
     private ObjectOutputStream outputStream;
     
     private SaveMap state;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Konstruktor pre vytvorenie instanciu typu Save. Jednoducho prekopiruje
+     * referencie ktore dostavame v parametroch.
+     * @param saveName Meno savu
+     * @param game Hraci panel kde bol vytvoreny save
+     * @param menu Hracie menu kde bol vytvoreny save
+     * @param input Input podla ktoreho spracovavame vstup
+     */
     public Save(String saveName, GamePane game, GameMenu menu, InputHandle input) {
         this.saveName = saveName;
         this.game = game;
         this.menu = menu;
         this.input = input;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Ukladania/Nacitania/Vytvarania Savu ">
+    /**
+     * Metoda ktora ulozi a ukonci hru => nastavi menu na mainMenu. Parameter thumbImage
+     * je obrazok ktory sa ulozi v adresari s ulozenou poziciou. Metoda postupne uklada
+     * udaje o pozicii a mapu v ktorej sme sa hrali.
+     * @param thumbImage Obrazok ktory ukladame
+     */
     public void saveAndQuit(BufferedImage thumbImage) {
         try {
             state.end();
@@ -107,6 +133,13 @@ public class Save {
         }
     }
     
+    /**
+     * Metoda ktora nacita a nastartuje hlavnu hru. Parameter saveName sluzi ako pomenovatel
+     * pre save ktory budeme hrat. Nasledne uz len nacitavame do premennych a do state
+     * udaje pre spravny beh.
+     * @param saveName Meno savu ktory nacitavame
+     * @return True/false ci sa podarilo nacitat.
+     */
     public boolean loadAndStart(String saveName) {
         try {
             this.state = new SaveMap(this);
@@ -135,7 +168,9 @@ public class Save {
             int chunkY = inputStream.readInt();                        
             
             inputStream.close();
-            state.loadMapAround(chunkX, chunkY);             
+            // Nacitanie mapy okolo pozicii ktore boli ulozene v tomto save
+            state.loadMapAround(chunkX, chunkY);
+            // Reinicializacia efektov ktore sme nacitali do mapy
             for (Effect effect : state.onSelfEffects) {
                 effect.reinitEntities(state);
             }
@@ -154,22 +189,51 @@ public class Save {
         return true;
     }
     
+    /**
+     * Metoda ktora vytvori novu mapu => novu instanciu SaveMap.
+     */
     public void createNewSave() {
         this.state = new SaveMap(this);
     }
     
+    /**
+     * Metoda ktora spracovava vstup. Odposielame ho dalej volanim metody inputHandling
+     * v SaveMap.
+     */
     public void inputHandling() {
         state.inputHandling();
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * Metoda ktora vrati mapu v ktorej hrame.
+     * @return Aktualnu SaveMap.
+     */
     public SaveMap getSaveMap() {
         return state;
     }           
+    // </editor-fold>
     
-    public static boolean saveExist(String name) {                   
-        return PathManager.getInstance().getWorldSavePath(name, false).exists();                
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
+    /**
+     * Metoda ktora vrati true/false ci existuje save s menom zadanom v parametri <b>name</b>
+     * @param name Meno savu ktory hladame
+     * @return True/false ci existuje save
+     */
+    public static boolean saveExist(String name) {        
+        return PathManager.getInstance().getWorldSavePath(name + File.separator + "world.info", false).exists();                
     }
     
+    /**
+     * Metoda ktora vrati list listov s objektmi ktore predstavuju informacie o jednotlivych savoch.
+     * Kazdy List predstavuje udaje o jednej ulozenej pozicii a obsahuje len tie polozky
+     * ktore sme zadali parametrom <b>param</b>. Mozne parametre ktore sa daju pouzit 
+     * su dane v enume RecordIndexes. Vsetky savy ziskavame zo zlozky nastavenej v
+     * PathManageri a postupne z nich vyberame potrebne udaje.
+     * @param param Parametre ktore chceme v listoch.
+     * @return List s listami v ktorych sa nachadzaju udaje o savoch.
+     */
     public static ArrayList<ArrayList<Object>> getGameSavesParam(ArrayList<String> param) {
         ObjectInputStream _inputStream;
         ArrayList<ArrayList<Object>> resultRecords = new ArrayList<>();
@@ -213,5 +277,5 @@ public class Save {
         return resultRecords;
         
     }
-    
+    // </editor-fold>    
 }

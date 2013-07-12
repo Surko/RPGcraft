@@ -5,8 +5,6 @@
 package rpgcraft.errors;
 
 import java.awt.*;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -14,16 +12,24 @@ import rpgcraft.MainGameFrame;
 import rpgcraft.utils.TextUtils;
 
 /**
- * Trieda definuje podklad pre vypis chyb vytvorenim noveho okna s popisom chyb.
+ * Trieda definue podklad pre vypis chyb vytvorenim noveho okna s popisom chyb. <br>
+ * changeWindow nastavuje novy chybovy ram <br>
+ * renderSpecific vymeni aktivny ram s nami vytvoreny <br>
+ * renderPanel vrati panel s chybovymi hlaskami
  * @author Kirrie
  */
 public class ErrorWrn{
-    
-    protected static Logger LOG = Logger.getLogger(ErrorWrn.class.getName());
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    protected static final Logger LOG = Logger.getLogger(ErrorWrn.class.getName());
+    // Dodatocny textna vypis
     protected String msg;
+    // Farba vynimky
     protected Color cl;
+    // Vynimka ktoru chceme vypisat
     protected Exception e;
+    // Chybove okno s hlaskami.
     private static JPanel errorPanel;
+    // </editor-fold>
     
     /**
      * Protected metoda umozni generovanie lepsie vyzerajucich errorov pri triedach zdedenych od tejto.
@@ -43,18 +49,29 @@ public class ErrorWrn{
                 
     }
     
+    /**
+     * Metoda ktora zmeni aktivny ram na novy s nazvom ktory je zadany v parametri <b>errorType</b>.
+     * Metodu musime volat na zobrazenie chyboveho ramu/okna
+     * @param errorType Meno ramu
+     */
     public void renderSpecific(String errorType) {
         MainGameFrame.endGame();
         if (errorPanel == null) {
-            changeWindow(MainGameFrame.getFrame(), Render(),errorType);
+            changeWindow(MainGameFrame.getFrame(), renderPanel(),errorType);
         } else {
-            Render();
+            renderPanel();
         }
         
         
     }
     
-    protected JPanel Render() {
+    /**
+     * Metoda ktora vyrenderuje chybove okno vytvorenim noveho JPanelu + JScrollPane s JTextArea.
+     * V textovej ploche vypiseme hlaskove chyby ktore mame zobrazit. Pri rendere dalsej chyby
+     * doplname uz do existujuceho textoveho panelu text s novou chybou.
+     * @return Panel s chybovymi hlaskami
+     */
+    protected JPanel renderPanel() {
         if (errorPanel == null) {
             errorPanel = new JPanel(new GridBagLayout());
             errorPanel.setBackground(cl);
@@ -70,8 +87,7 @@ public class ErrorWrn{
             eText.setText(fullErrorText);
             errorPanel.add(new JScrollPane(eText),c);            
         } else {
-            try {
-                
+            try {                
                 JScrollPane sPane = (JScrollPane) errorPanel.getComponent(0);
                 JViewport eView = (JViewport) sPane.getComponent(0);
                 JTextArea eText = (JTextArea) eView.getComponent(0);

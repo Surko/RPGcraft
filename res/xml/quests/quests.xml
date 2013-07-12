@@ -1,15 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <quests>
-<quest>
-<id>fetch</id>
-<label>Fetch something</label>
-<quest-text>You my friend have to find my favourite specie of all species in the world and kill it.</quest-text>
-<quest-states>
-<state id="0">
-<state-text></state-text>
-<state-actions>
-<action type="THROUGHT">COMPOP@ADD_COMP_TO(text_edit,MAINCONTAINER)</action>
+    <quest>
+        <id>fetch</id>
+        <label>Tutorial Quest</label>
+        <quest-text>@maintutorial</quest-text>
+        <quest-states>
+            <state id="0">
+                <state-text>@tutorial1</state-text>
+                <state-actions>
+                    <action type="START">GAME@SHOW_DONE_DIALOG(LOCAL#tutorial1)
+DATA@IF(DATA@EQUAL(GAME@CHECK_STATUS(),1),ENTITY@SET_QUESTSTATE(fetch,INT#10))
+</action>
 </state-actions>
 </state>
-</quest-states>
-</quest>
+        </quest-states>
+    </quest>
 </quests>

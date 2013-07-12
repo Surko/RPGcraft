@@ -23,8 +23,10 @@ import rpgcraft.resource.StringResource;
 import rpgcraft.utils.TextUtils;
 
 /**
- *
- * @author kirrie
+ * CraftingMenu je trieda ktora sa stara o vytvorenie a zobrazenie crafting boxu v ktorom mozme
+ * vytvarat predmet pomocou receptov.
+ * Trieda dedi od AbstractInMenu cim sme donuteni implementovat zakladne 
+ * abstraktne metody z AbstractInMenu. 
  */
 public class CraftingMenu extends AbstractInMenu {
     
@@ -68,7 +70,10 @@ public class CraftingMenu extends AbstractInMenu {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
-    
+    /**
+     * Zakladny konstruktor dolezity pri volani newInstance metody pri vytvarani
+     * kopii objektu.
+     */
     public CraftingMenu() {
         super(null, null);
     }
@@ -124,7 +129,6 @@ public class CraftingMenu extends AbstractInMenu {
         this.xPos = wGap;
         this.yPos = hGap;
     }
-
     
     /**
      * Override metoda exit ma za ulohu spravne ukoncit toto menu s nastavenim 
@@ -233,9 +237,7 @@ public class CraftingMenu extends AbstractInMenu {
             }
         }                        
     }
-    
-   
-
+       
     // </editor-fold>
         
     // <editor-fold defaultstate="collapsed" desc=" Gettery ">
@@ -407,7 +409,7 @@ public class CraftingMenu extends AbstractInMenu {
      */
     @Override
     public void inputHandling() {        
-        if (input.clickedKeys.contains(InputHandle.right.getKeyCode())) {               
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.RIGHT.getKeyCode())) {               
             if (sourceMenu != null) {                
                 activated = false; 
                 sourceMenu.activate();
@@ -415,7 +417,7 @@ public class CraftingMenu extends AbstractInMenu {
             }            
         } 
         
-        if (input.clickedKeys.contains(InputHandle.enter.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ENTER.getKeyCode())) {
             // Vytvori predmet, odoberie predmety z inventara a prida vyrobeny
             
             if (craftedItems != null) {                
@@ -426,7 +428,7 @@ public class CraftingMenu extends AbstractInMenu {
         }
 
         if (craftedItems != null && craftedItems.size() > 0) {
-            if (input.clickedKeys.contains(InputHandle.up.getKeyCode())) {
+            if (input.clickedKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {
                 if (cftItemIndex <= 0) {
                     cftItemIndex = craftedItems.size() - 1;
                 } else {
@@ -435,7 +437,7 @@ public class CraftingMenu extends AbstractInMenu {
                 updateImage();
             }
 
-            if (input.clickedKeys.contains(InputHandle.down.getKeyCode())) {
+            if (input.clickedKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {
                 if (cftItemIndex >= craftedItems.size() - 1) {
                     cftItemIndex = 0;
                 } else {
@@ -445,7 +447,7 @@ public class CraftingMenu extends AbstractInMenu {
             }
         }
         
-        if (input.clickedKeys.contains(InputHandle.escape.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())) {
             exit();            
             if (sourceMenu != null) {
                 sourceMenu.activate();
@@ -455,9 +457,8 @@ public class CraftingMenu extends AbstractInMenu {
     }
     
     /**
-     * Metoda ktora ma spracovavat eventy/udalosti z mysi. CraftingMenu take moznosti nepodporuje ale je ich mozne pridat.
-     * @param e MouseEvent z mysi
-     * @see MouseEvent
+     * <i>{@inheritDoc }</i>
+     * @see MouseEvent {@inheritDoc }
      */
     @Override
     public void mouseHandling(MouseEvent e) {

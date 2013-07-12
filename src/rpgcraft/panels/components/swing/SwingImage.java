@@ -11,27 +11,38 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.graphics.Colors;
 import rpgcraft.plugins.AbstractMenu;
-import rpgcraft.panels.GameMenu;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.StringResource;
 import rpgcraft.utils.ImageUtils;
-import rpgcraft.utils.MathUtils;
-import rpgcraft.utils.TextUtils;
 
 /**
- *
- * @author kirrie
+ * Trieda SwingImage vytvara komponentu ktora sa sklada iba zo samotneho obrazku.
+ * Zatial nema az take vyuzitie kedze podobneho ucinku dosiahneme aj vytvorenim panelu
+ * ktoremu nastavime pozadie. Pre buduce moznosti hu tu ale ponechavam.
+ * @see SwingComponent
  */
 public class SwingImage extends SwingComponent {
-
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(SwingImage.class.getName());
     
     protected Color topColor, backColor;
     protected Image backImage;   
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Prazdny konstruktor ktory vytvori instanciu SwingImage.
+     */
     public SwingImage() { }
     
+    /**
+     * Konstruktor ktory vytvori novu instanciu SwingImage z kontajneru <b>cont</b>
+     * ktory sa nachadza v menu <b>menu</b>. Kedze je komponenta o obrazkoch tak
+     * inicializujeme obrazok a prednu a zadnu farbu za obrazkom.
+     * @param container Kontajner v ktorom sa nachadza komponenta
+     * @param menu Abstraktne menu v ktorom mame tuto komponentu
+     */
     public SwingImage(Container container, AbstractMenu menu) {
         if (componentContainer != null) {
             String sbackImage = componentContainer.getResource().getBackgroundTextureId();
@@ -47,8 +58,16 @@ public class SwingImage extends SwingComponent {
             
         }
         this.changed = true;
-    }        
-    
+    }                
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Update + Kresliace metody ">
+    /**
+     * <i>{@inheritDoc }</i>
+     * <p>
+     * Rekonstruujeme nastavenim obrazka v pozadi, vrchnej a spodnej farby za obrazkom.
+     * </p>
+     */
     @Override
     protected void reconstructComponent() {
         if (componentContainer != null) {
@@ -66,7 +85,13 @@ public class SwingImage extends SwingComponent {
         }
         this.changed = true;
     }
-
+    
+    /**
+     * Metoda ktora vykresli komponentu do grafickeho kontextu <b>g</b>. Najprv
+     * vykreslujeme farbu uplne v pozadi, potom farbu v popredi a nasledne az obrazok
+     * ktory je dany v komponente.
+     * @param g Graficky kontext.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         g.setColor(backColor);          
@@ -87,6 +112,10 @@ public class SwingImage extends SwingComponent {
         }
     }        
 
+    /**
+     * Metoda ktora vykona refresh komponenty. Ked su dlzky komponenty nastavene na
+     * auto tak vratim dlzky obrazku. Na refresh pozicii pouzivame metodu refreshPositions.
+     */
     @Override
     public void refresh() {
         super.refresh();        
@@ -110,7 +139,15 @@ public class SwingImage extends SwingComponent {
         refreshPositions(_w, _h, componentContainer.getParentWidth(), 
             componentContainer.getParentHeight());  
     }
+    // </editor-fold>    
             
+    // <editor-fold defaultstate="collapsed" desc=" Copy ">
+    /**
+     * <i>{@inheritDoc }</i>
+     * @param cont Kontajner ktory priradujeme novej komponente
+     * @param menu Menu ktory priradujeme novej komponente
+     * @return Novu SwingImage komponentu
+     */
     @Override
     public Component copy(Container cont, AbstractMenu menu) {
         SwingImage result = new SwingImage();          
@@ -125,5 +162,6 @@ public class SwingImage extends SwingComponent {
         
         return result;
     }
+    // </editor-fold>
     
 }

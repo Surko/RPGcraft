@@ -14,36 +14,38 @@ import rpgcraft.entities.Player;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.panels.GameMenu;
 import rpgcraft.plugins.AbstractMenu;
+import rpgcraft.plugins.Listener;
 import rpgcraft.quests.Quest;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
 
 /**
- *
- * @author kirrie
+ * Trieda dediaca od Listeneru je dalsi typ listeneru mozny vygenerovat v ListenerFactory,
+ * ktory ma za ulohu vykonavat Entity akcie => akcie ktore su vseobecne pre riadenie entity
  */
 public class EntityListener extends Listener {
-    
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(GameListener.class.getName());
-
-    @Override
-    public String getName() {
-        return ListenerFactory.Commands.ENTITY.toString();
-    }
-    
+        
+    /**
+     * Enum s moznymi operaciami v tomto listenery. V metode actionPerform sa
+     * podla tychto operacii vykonavaju prislusne metody
+     */
     public enum Operations {
         ADD_QUEST,
         REMOVE_QUEST,
         COMPLETE_QUEST,
         SET_QUESTSTATE,                
         GET_ITEMFROMINVENTORY,
-        ADD_ITEM,        
+        ADD_ITEM,
+        HAS_ITEM,
         REMOVE_ITEM,
         TELEPORT,
         SAFE_TELEPORT,
         GETX,
         GETY,
         GETZ,
+        ISAT_XYZ,
         GET_GROUP,
         GET_ITEMCOUNT,
         GET_QUESTSTATE,
@@ -53,7 +55,15 @@ public class EntityListener extends Listener {
     }
     
     Operations op;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Vytvorenie instancie listeneru pomocou textu zadaneho v parametri <b>data</b>.
+     * Konstruktor rozparsuje text, urci operaciu aka sa bude vykonavat a parametre
+     * pre tuto operaciu pomocou metody setParams
+     * @param data Text s funkciou ktoru vykonavame
+     */
     public EntityListener(String data) {
         int fstBracket = data.indexOf('(');
         
@@ -70,8 +80,13 @@ public class EntityListener extends Listener {
             setParams(params.substring(1, params.length() - 1));        
         }
     }
+    // </editor-fold>
     
-    
+    // <editor-fold defaultstate="collapsed" desc=" Vykonavanie + pomocne metody ">
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e); 
@@ -258,7 +273,7 @@ public class EntityListener extends Listener {
                                 LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
                             }                                                            
                         }
-                        System.out.println(e.getReturnValue());
+                        //System.out.println(e.getReturnValue());
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("_bplistener",
                                 new String[] {GameMenu.class.getName(), menu == null ? "null" : menu.getClass().getName()}));
@@ -354,12 +369,77 @@ public class EntityListener extends Listener {
                                 LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
                             }                                                            
                         }
-                        System.out.println(e.getReturnValue());
+                        //System.out.println(e.getReturnValue());
                     } else {
                         LOG.log(Level.WARNING, StringResource.getResource("_bplistener",
                                 new String[] {GameMenu.class.getName(), menu == null ? "null" : menu.getClass().getName()}));
                     }
                 } break;
+                case HAS_ITEM : {
+                    AbstractMenu menu = getMenu(e.getSource());
+                    if (menu instanceof GameMenu) {
+                        Item item = null;
+                        Entity entity = null;
+                        Listener itemFunction = null;
+                        switch (parsedObjects.length) {
+                            case 1 : {
+                                entity =((GameMenu)menu).player;                                
+                                if (parsedObjects[0] instanceof Item) {
+                                    item = (Item)parsedObjects[0];
+                                    e.setReturnValue(entity.hasItem(item));
+                                    return;
+                                }                                
+                                if (parsedObjects[0] instanceof String) {                                    
+                                    e.setReturnValue(entity.hasItem((String)parsedObjects[0]));                                                                        
+                                    return;
+                                }                                
+                            } break;
+                            case 2 : {
+                                String iId, iName;
+                                entity =((GameMenu)menu).player;
+                                if (parsedObjects[0] instanceof String &&
+                                        parsedObjects[1] instanceof String) {                                    
+                                    iId = (String)parsedObjects[0];                                                                                                                                             
+                                    iName = (String)parsedObjects[1];                                    
+                                    e.setReturnValue(entity.hasItem(iId, iName));
+                                    return;                                                                        
+                                }
+                                if (parsedObjects[0] instanceof Entity) {                                    
+                                    entity = (Entity)parsedObjects[0]; 
+                                    if (parsedObjects[1] instanceof String) {                                    
+                                        iId = (String)parsedObjects[1];                                    
+                                        e.setReturnValue(entity.hasItem(iId));
+                                        return;
+                                    }
+                                    if (parsedObjects[1] instanceof Item) {
+                                        e.setReturnValue(entity.hasItem((Item)parsedObjects[1]));
+                                        return;
+                                    }
+                                }                                
+                            } break;
+                            case 3 : {
+                                String iId, iName;
+                               if (parsedObjects[0] instanceof Entity) {                                    
+                                    entity = (Entity)parsedObjects[0]; 
+                                    if (parsedObjects[1] instanceof String &&
+                                            parsedObjects[2] instanceof String) {                                    
+                                        iId = (String)parsedObjects[1];   
+                                        iName = (String)parsedObjects[2];                                        
+                                        e.setReturnValue(entity.hasItem(iId, iName));
+                                        return;
+                                    }
+                                } 
+                            } break;
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            }                                                            
+                        }
+                        //System.out.println(e.getReturnValue());
+                    } else {
+                        LOG.log(Level.WARNING, StringResource.getResource("_bplistener",
+                                new String[] {GameMenu.class.getName(), menu == null ? "null" : menu.getClass().getName()}));
+                    }
+                } break;    
                 /*
                  * Odobranie predmetu nejakej entite. Mozne druhy
                  * REMOVEITEM(ITEMFUNKCIA)
@@ -658,6 +738,46 @@ public class EntityListener extends Listener {
                         }
                     }
                 } break;
+                case ISAT_XYZ : {
+                    AbstractMenu menu = getMenu(e.getSource());                    
+                    Entity fst = null; 
+                    if (menu instanceof GameMenu)  {
+                        GameMenu game = (GameMenu)menu;
+                        switch (parsedObjects.length) {
+                            case 3 : {
+                                fst = (Player)game.player;
+                                int x = _intParse(parsedObjects[0], e);
+                                int y = _intParse(parsedObjects[1], e);
+                                int z = _intParse(parsedObjects[2], e);
+                                if (fst != null) {
+                                    if (fst.getXPix() == x && fst.getYPix() == y &&
+                                            fst.getLevel() == z) {
+                                        e.setReturnValue(true); 
+                                        return;
+                                    }
+                                }
+                                e.setReturnValue(false);
+                            } break;
+                            case 4 : {
+                                fst = _getEntity(parsedObjects[0],(GameMenu)menu, e);                                
+                                int x = _intParse(parsedObjects[1], e);
+                                int y = _intParse(parsedObjects[2], e);
+                                int z = _intParse(parsedObjects[3], e);
+                                if (fst != null) {
+                                    if (fst.getXPix() == x && fst.getYPix() == y &&
+                                            fst.getLevel() == z) {
+                                        e.setReturnValue(true);
+                                        return;
+                                    }
+                                }
+                                e.setReturnValue(false);
+                            } break;                            
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            }
+                        }
+                    }
+                } break;
                 case IS_SAMEGROUP : {
                     AbstractMenu menu = getMenu(e.getSource());                    
                     Entity fst = null, snd = null;                    
@@ -781,5 +901,17 @@ public class EntityListener extends Listener {
         }
         return null;
     }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * {@inheritDoc }
+     * return Meno listeneru
+     */
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.ENTITY.toString();
+    }
+    // </editor-fold>
     
 }

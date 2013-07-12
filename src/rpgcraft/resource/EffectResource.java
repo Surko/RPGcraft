@@ -19,11 +19,16 @@ import rpgcraft.panels.listeners.Action;
 import rpgcraft.xml.EffectXML;
 
 /**
- *
- * @author doma
+ * EffectResource ktore dedi od AbstraktnehoResource je trieda ktora umoznuje
+ * vytvorit effect resources z xml suborov, ktore sa daju pouzit v entitovych resource
+ * ako mozne efekty ktore moze entita mat alebo poslat inej entite. Na vytvorenie nam pomaha metoda parse,
+ * ktorej predavame jeden vrchol z xmlka na rozparsovanie. Vytvaranie noveho resource
+ * prevadzame volanim metody newBundledResource. Navrat nejakeho resource pomocou metody
+ * getResource. 
+ * @see AbstractResource
  */
 public class EffectResource extends AbstractResource<EffectResource>{
-       
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">   
     private static final Logger LOG = Logger.getLogger(EffectResource.class.getName());
     private static HashMap<String, EffectResource> effectResources = new HashMap<>();
     
@@ -32,34 +37,56 @@ public class EffectResource extends AbstractResource<EffectResource>{
     private Image image;
     private EffectType type;
     private int lifeSpan;
-    private ArrayList<Action> actions;
+    private ArrayList<Action> actions;            
     
-    public static EffectResource getResource(String name) {
-        return effectResources.get(name);
-    }    
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Konstruktor (privatny) ktory vytvori instanciu EffecResource z xml suboru.
+     * Prvy element ktory parsujeme/prechadzame je zadany v parametri <b>elem</b>.
+     * Po rozparsovani zvalidujeme effekt a vlozime ho do listu k dalsim.
+     * @param elem Xml element z ktoreho vytvarame resource
+     */
     private EffectResource(Element elem) {
        parse(elem);
        validate();
        effectResources.put(id, this);       
     }
     
-    private void validate() {
-        if (id == null) {
-            new MultiTypeWrn(null, Color.red, StringResource.getResource("_midres",
-                    new String[] {this.getClass().getName()}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
-        }
-        if (type == null) {
-            new MultiTypeWrn(null, Color.red, StringResource.getResource("_rparam",
-                    new String[] {EffectXML.TYPE, id}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));            
-        }
-                
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">        
+    
+    /**
+     * Metoda ktora vrati EffectResource podla parametru <b>name</b>.
+     * @param name Meno efektu ktory hladame (meno je id nachadzajuce sa v xml)
+     * @return EffectResource s danym menom
+     */
+    public static EffectResource getResource(String name) {
+        return effectResources.get(name);
     }
     
+    /**
+     * Metoda ktora vytvori novy objekt typu EffectResource. Kedze je staticka a public
+     * tak sa tymto padom stava jediny sposob ako vytvorit instanciu EffectResource.
+     * @param elem Element z ktoreho vytvarame efekt
+     * @return EffectResource z daneeho elementu
+     */
     public static EffectResource newBundledResource(Element elem) {
         return new EffectResource(elem);                
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Parsovanie ">
+    /**
+     * Metoda ktora rozparsuvava xml subor takym sposobom ze dostava ako parameter <b>elem</b>
+     * co je jeden elem z xml suboru aj so vsetkymi jeho podelementami. Ulohou je prejst vsetky
+     * tieto podelementy a podla mien tychto podelemntov vykonat definovane akcie.
+     * (EffectXML.ACTION -> rozparsuje to co je medzi tagmi, a v atributoch. Z tychto informacii
+     * vytvori akciu ktoru prida do resource.
+     * @param elem Element z xml ktory rozparsovavame do ConversationGroupResource
+     */
     @Override
     protected void parse(Element elem) {
         NodeList nl = elem.getChildNodes();        
@@ -137,33 +164,86 @@ public class EffectResource extends AbstractResource<EffectResource>{
         }
     }
     
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * Metoda ktora vrati meno efektu
+     * @return Meno efektu
+     */
     public String getName() {
         return name;
     }
     
+    /**
+     * Metoda ktora vrati id efektu
+     * @return Id efektu
+     */
     public String getId() {
         return id;
     }
     
+    /**
+     * Metoda ktora vrati typ efektu
+     * @return Typ efektu
+     */
     public EffectType getType() {
         return type;
     }
     
+    /**
+     * Metoda ktora vrati ako dlho vydrzi efekt
+     * @return Dlzka efektu
+     */
     public int getLifeSpan() {
         return lifeSpan;
     }
     
+    /**
+     * Metoda ktora vrati obrazok efektu
+     * @return Obrazok efektu.
+     */
     public Image getImage() {
         return image;
     }
     
+    /**
+     * Metoda ktora vrati akcie na vykonanie pri aktivacii efektu.
+     * @return List s akciami na vykonanie pri efekte.
+     */
     public ArrayList<Action> getActions() {
         return actions;
     }
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne metody ">
+    
+    /**
+     * Metoda ktora okopiruje efekt resource z parametra <b>res</b> do tohoto resource.
+     * @param res Resource z ktoreho kopirujeme
+     * @throws Exception Chyba pri kopirovanie
+     */
      @Override
     protected void copy(EffectResource res) throws Exception {
         
     }
+     
+    /**
+    * Validacna metoda ktora zvaliduje resource aby bol pouzitelny.
+    */
+    private void validate() {
+        if (id == null) {
+            new MultiTypeWrn(null, Color.red, StringResource.getResource("_midres",
+                    new String[] {this.getClass().getName()}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));
+        }
+        if (type == null) {
+            new MultiTypeWrn(null, Color.red, StringResource.getResource("_rparam",
+                    new String[] {EffectXML.TYPE, id}), null).renderSpecific(StringResource.getResource("_label_resourcerror"));            
+        }
+                
+    }
+    // </editor-fold>
     
 }

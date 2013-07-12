@@ -23,19 +23,23 @@ import rpgcraft.panels.components.swing.SwingText;
 import rpgcraft.resource.ImageResource;
 
 /**
- *
- * @author kirrie
+ * Trieda ktora vytvara instanciu pre zobrazovanie interaktivnych sprav (mozne aj na nejaku dobu)
+ * Instancia tejto triedy sa da ziskat iba metodou getInstance (singleton vzor).
  */
 public class InputDialog extends SwingImagePanel{
-    
-    public static final Dimension DIM = new Dimension(150, 120);
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    public static final Dimension DIM = new Dimension(200, 150);
     public static final Dimension BTN_DIM = new Dimension(30, 20);
     
+    // Mozne nazvy tlacidiel
     public static final String DONE = "Done";
     public static final String YES = "Yes";
     public static final String NO = "No";
     public static final String CANCEL = "Cancel";
     
+    /**
+     * Typ vstupneho dialogu.
+     */
     public enum Type {
         YES_NO(1),
         DONE(0),
@@ -54,8 +58,10 @@ public class InputDialog extends SwingImagePanel{
         
     }
     
-    private static InputDialog instance;
-    
+    // Instancia
+    private static volatile InputDialog instance;
+            
+    // Komponenty v dialogu
     private SwingText msgText;
     private SwingInputText inputText;
     private MsgBtns posBut,negBut,cancelBut;
@@ -63,15 +69,28 @@ public class InputDialog extends SwingImagePanel{
     private static Image msgImg;    
     public static volatile boolean inUse;
     
+    // Typ dialogu
     private Type dialType = Type.DONE;
     private long lifeSpan = 0L;    
     private long creationTime = 0L;
+    // Odpoved pri interakcii s menu
     private int answer = -1;        
+    // </editor-fold>
     
+    /**
+     * Trieda ktora vytvara tlacidlovu komponentu v tomto dialogu => dedime od SwingImageButton.
+     * Jedina zaujima metoda je mouseClicked ktora ukonci dialog a nastavi odpoved
+     * na tu zadanu pri vytvarani instancie takehoto tlacidla
+     */
     private final class MsgBtns extends SwingImageButton{                
-        
+        // Odpoved ktora sa nastavi pri stlaceni tlacidla
         private int _answer;        
         
+        /**
+         * Konstruktor pre dialogove tlacidlo s nastavenou odpovedou pri stlaceni
+         * tlacidla
+         * @param answer Odpoved ktora sa nastavi pri stlaceni tlacidla
+         */
         public MsgBtns(int answer) {           
             this.setLayout(null);
             
@@ -84,40 +103,73 @@ public class InputDialog extends SwingImagePanel{
             addOwnMouseListener();
         }
         
+        /**
+         * {@inheritDoc }
+         * @return Dlzka tlacidla
+         */
         @Override
         public int getWidth() {        
             return BTN_DIM.width;
         }
         
+        /**
+         * {@inheritDoc }
+         * @return Vyska tlacidla
+         */
         @Override
         public int getHeight() {
             return BTN_DIM.height;
         }
         
+        /**
+         * Metoda vrati velkost tlacidla
+         * @return Velkost tlacidla
+         */
         @Override
         public Dimension getSize() {
             return BTN_DIM;
         }    
         
+        /**
+         * Metoda vrati preferovanu velkost tlacidla
+         * @return Preferovana velkost tlacidla
+         */
         @Override
         public Dimension getPreferredSize() {
             return BTN_DIM;
         }  
         
+        /**
+         * Metoda vrati minimalna velkost tlacidla
+         * @return Minimalna velkost tlacidla
+         */
         @Override
         public Dimension getMinimumSize() {
             return BTN_DIM;
         }   
         
+        /**
+         * Metoda ktora reaguje na stlacenie tohoto tlacidla co vykona ukoncenie dialogu 
+         * a nastavenie odpovede na premennu _answer inicializovanu v konstruktore.
+         * @param e MouseEvent s ktorym bola zavolana metoda
+         */
         @Override
         public void mouseClicked(MouseEvent e) {
-            //System.out.println("Clicked");
+            //System.out.println("Clicked");            
             answer = _answer;
             exitDialog();
         }                                                           
                 
     }
     
+    /**
+     * Privatny konstruktor pre vytvorenie instancie InputDialogu. Inicializujeme ho
+     * pomocou kontajneru, abstraktneho menu a pridanim SwingText do tejto komponenty.
+     * Taktiez zinicializujeme mozne tlacidla ktore sa mozu v dialogu vyskytovat.
+     * Farby su podobne ako pri AbstractInMenu
+     * @param container Kontajner v ktorom sa nachadza dialog
+     * @param menu Abstraktne menu urcujuce kde je dialog.
+     */
     private InputDialog(Container container, AbstractMenu menu) {
         super(container, menu);                                        
         this.setLayout(null);         
@@ -144,10 +196,13 @@ public class InputDialog extends SwingImagePanel{
         this.negBut = new MsgBtns(2);
         this.cancelBut = new MsgBtns(0);    
         
-        setBounds(0, 0, DIM.width, DIM.height);
-                                
+        setBounds(0, 0, DIM.width, DIM.height);                               
     }   
-                                
+             
+    /**
+     * {@inheritDoc }
+     * @param g {@inheritDoc }
+     */
     @Override
     public void paintComponent(Graphics g) {        
         super.paintComponent(g);                         
@@ -159,10 +214,20 @@ public class InputDialog extends SwingImagePanel{
         }        
     }
     
+    /**
+     * Metoda ktora nastavi typ tohoto dialogu pomocou metody setType s parametrom typu
+     * int.
+     * @param type Typ dialogu
+     */
     public void setType(Type type) {
         setType(type.getIndex());
     }
     
+    /**
+     * Metoda ktora nastavi typ dialogu a podla tohoto typu prida do dialogu
+     * take tlacidla ktore vystihuju tento typ.
+     * @param type Ciselna hodnota typu
+     */
     public void setType(int type) {
         this.add(msgText);
         switch (type) {
@@ -195,94 +260,168 @@ public class InputDialog extends SwingImagePanel{
         }
     }
     
+    /**
+     * Metoda ktora spravne ukoncuje dialog resetovanim nazvu v dialogu, odstranenim vsetkych
+     * komponent a v synchronizovanom bloku uvolnenie cakajucich vlakien aby si mohli ziskat 
+     * instanciu InputDialogu.
+     */
     public void exitDialog() {
-        msgText.resetTitle();
+        msgText.resetTitle();                
         this.getParent().remove(this);   
         MainGameFrame.game.validate();
-        this.removeAll();        
-        inUse = false;          
+        this.removeAll();    
+        synchronized (this) {  
+            inUse = false;
+            notifyAll();              
+        }                                
     }
     
+    /**
+     * {@inheritDoc }
+     * @return Sirka dialogu
+     */
     @Override
     public int getWidth() {
         return DIM.width;
     }
     
+    /**
+     * {@inheritDoc }
+     * @return Vyska dialogu
+     */
     @Override
     public int getHeight() {
         return DIM.height;              
     }    
     
+    /**
+     * Metoda vrati velkost dialogu
+     * @return Velkost dialogu
+     */
     @Override
     public Dimension getSize() {
         return DIM;
     }
     
+     /**
+     * Metoda vrati maximalnu velkost dialogu
+     * @return Maximalna velkost dialogu
+     */
     @Override
     public Dimension getMaximumSize() {
         return DIM;
     }
     
+     /**
+     * Metoda vrati minimalnu velkost dialogu
+     * @return Minimalna velkost dialogu
+     */
     @Override
     public Dimension getMinimumSize() {
         return DIM;
     }
     
+     /**
+     * Metoda vrati preferovanu velkost dialogu
+     * @return Preferovana velkost dialogu
+     */
     @Override
     public Dimension getPreferredSize() {
         return DIM;
     }                   
     
-    public void showOnPanel() {
+    /**
+     * Metoda ktora zobrazi panel v rame.
+     */
+    public void showOnPanel() {      
         this.creationTime = System.currentTimeMillis();
-        MainGameFrame.game.add(this, 1);      
+        MainGameFrame.game.add(this, 0);      
         MainGameFrame.game.validate();         
     }
     
+    /**
+     * Metoda ktora kontroluje stav, ci uz bolo nejake tlacidlo stlacene.
+     * Vlakno vykonavacie tento proces uspavame a az pri ukonceni dialogu
+     * sa prebudi na vratenie odpovede.
+     * @return Odpoved dialogu
+     */
+    public int checkStatus() {        
+        synchronized (this) {
+            if (answer == -1) {
+                try {
+                    wait();
+                } catch (Exception e) {
+                    
+                }
+            }
+        }
+        return answer;
+    }
+    
+    /**
+     * Metoda ktora nastavi nazov pozitivneho tlacidla
+     * @param text Nazov pozitivneho tlacidla
+     */
     public void setPosBtnText(String text) {
         posBut.setText(text);        
     }
     
+    /**
+     * Metoda ktora nastavi nazov negativneho tlacidla
+     * @param text Nazov negativneho tlacidla
+     */
     public void setNegBtnText(String text) {
         negBut.setText(text);
     }
     
+    /**
+     * Metoda ktora nastavi nazov tlacidla na zrussenie
+     * @param text Nazov tlacidla na zrusenie
+     */
     public void setCancelBtnText(String text) {
         cancelBut.setText(text);
     }
     
+    /**
+     * Metoda ktora nastavi text v dialoge na parameter <b>text</b> spolu
+     * aj s velkostami a lokaciou textovej komponenty.
+     * @param text Text ktory nastavujeme v dialogu. 
+     */
     public void setText(String text) {
         msgText.setParsedText(text, DIM.width - 2*wGap);        
         msgText.setLocation((DIM.width - msgText.getWidth())/2, (DIM.height - msgText.getHeight())/2);         
     }
     
+    /**
+     * Metoda ktora nastavi dlzku zivota dialogu.
+     * @param time Dlzka zivota dialogu
+     */
     public void setLifeSpan(long time) {
         this.lifeSpan = time;        
     }
-    
-    public int checkStatus() {
-        try {
-            while (answer == -1) {
-                Thread.sleep(5);
-            }
-        } catch (Exception e) {}
-        return answer;        
-    }
-        
-    public synchronized static InputDialog getInstance() {
+       
+    /**
+     * Metoda ktora vrati instanciu InputDialogu (singleton vzor). Jedina moznost
+     * ako vratit instanciu MsgDialogu. Tu sa ale naskyta problem ked viacero vlakien
+     * chce zobrazit text. Pre tento problem synchronizujeme metodu a blok na ziskanie instancie.
+     * @return Instanciu InputDialog
+     */
+    public static InputDialog getInstance() {
         if (instance == null) {
             instance = new InputDialog(null, null);
         }
-        
-        while (inUse) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(InputDialog.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }  
-        
-        inUse = true;
+                
+        synchronized(instance) {
+            while (inUse) {
+                try {                    
+                    instance.wait();                                        
+                } catch (Exception ex) {
+                    Logger.getLogger(InputDialog.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }  
+            inUse = true;
+        }
+                  
         instance.lifeSpan = 0L;
         instance.creationTime = 0L;
         return instance;

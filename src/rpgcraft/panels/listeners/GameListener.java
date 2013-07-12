@@ -19,26 +19,28 @@ import rpgcraft.map.chunks.Chunk;
 import rpgcraft.plugins.AbstractMenu;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.panels.GameMenu;
+import rpgcraft.plugins.Listener;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.EntityResource;
 
 /**
- *
- * @author kirrie
+ * Trieda dediaca od Listeneru je dalsi typ listeneru mozny vygenerovat v ListenerFactory,
+ * ktory ma za ulohu vykonavat Game akcie => akcie ktore su vseobecne pre beh hry.
  */
 public class GameListener extends Listener {
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(GameListener.class.getName());
-
-    @Override
-    public String getName() {
-        return ListenerFactory.Commands.GAME.toString();
-    }
-    
+        
+    /**
+     * Enum s moznymi operaciami v tomto listenery. V metode actionPerform sa
+     * podla tychto operacii vykonavaju prislusne metody
+     */
     public enum Operations {
         ADD_QUEST,
         REMOVE_QUEST,
         COMPLETE_QUEST,
-        SET_QUESTSTATE,
+        SET_QUESTSTATE,     
+        CHECK_STATUS,
         SHOW_MSG_DIALOG,
         SHOW_YESNO_DIALOG,
         SHOW_DONE_DIALOG,
@@ -57,13 +59,22 @@ public class GameListener extends Listener {
         ADD_ITEM,
         CREATEITEM,
         REMOVE_ITEM,
+        SPAWN_ENTITY,
         GET_ITEMINFOLIST,
         SET_TILEXY,        
         
     }
     
     Operations op;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Vytvorenie instancie listeneru pomocou textu zadaneho v parametri <b>data</b>.
+     * Konstruktor rozparsuje text, urci operaciu aka sa bude vykonavat a parametre
+     * pre tuto operaciu pomocou metody setParams
+     * @param data Text s funkciou ktoru vykonavame
+     */
     public GameListener(String data) {
         int fstBracket = data.indexOf('(');
         
@@ -80,14 +91,33 @@ public class GameListener extends Listener {
             setParams(params.substring(1, params.length() - 1));        
         }
     }
+    // </editor-fold>
     
-    
+    // <editor-fold defaultstate="collapsed" desc=" Vykonavanie + pomocne metody ">
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e); 
         
         try {
-            switch (op) {            
+            switch (op) {   
+                case CHECK_STATUS : {
+                    if (parsedObjects == null || parsedObjects.length == 0) {
+                        if (e.getReturnValue() instanceof InputDialog) {
+                            InputDialog input = (InputDialog)e.getReturnValue();
+                            e.setReturnValue(input.checkStatus());
+                            //System.out.println(e.getReturnValue());
+                            break;
+                        }
+                        if (e.getReturnValue() instanceof MsgDialog) {
+                            MsgDialog input = (MsgDialog)e.getReturnValue();                            
+                            break;
+                        }
+                    }
+                } break;
                 case SHOW_MSG_DIALOG : {
                     if (parsedObjects.length == 2) {                    
                         try {
@@ -97,6 +127,7 @@ public class GameListener extends Listener {
                             dial.setText(parsedObjects[0].toString());                    
                             dial.setLifeSpan(lifeSpan);   
                             dial.showOnPanel();
+                            e.setReturnValue(dial);
                         } catch (Exception ex) {
                             LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
                         }                    
@@ -106,12 +137,14 @@ public class GameListener extends Listener {
                 } break;
                 case SHOW_DONE_DIALOG : {                
                     switch (parsedObjects.length) {
+                          case 1 :
                           case 2 : {    
                             AbstractMenu menu = getMenu(e.getSource());
                             InputDialog dial = InputDialog.getInstance();
                             dial.setType(InputDialog.Type.DONE);
                             dial.setText(parsedObjects[0].toString());                                                   
-                            dial.showOnPanel();                         
+                            dial.showOnPanel();
+                            e.setReturnValue(dial);
                         } break; 
                         default : 
                             LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
@@ -125,7 +158,8 @@ public class GameListener extends Listener {
                             dial.setType(InputDialog.Type.DONE);  
                             dial.setText(parsedObjects[0].toString());                           
                             dial.setPosBtnText(parsedObjects[1].toString());                                              
-                            dial.showOnPanel();                         
+                            dial.showOnPanel();
+                            e.setReturnValue(dial);
                         } break;
                         case 3 : {
                             AbstractMenu menu = getMenu(e.getSource());
@@ -339,6 +373,30 @@ public class GameListener extends Listener {
                         LOG.log(Level.WARNING, StringResource.getResource("_bplistener",
                                 new String[] {GameMenu.class.getName(), menu == null ? "null" : menu.getClass().getName()}));
                     }               
+                } break;
+                case SPAWN_ENTITY : {
+                    AbstractMenu menu = getMenu(e.getSource());
+                    if (menu instanceof GameMenu) {
+                        GameMenu game = (GameMenu)menu;                    
+                        Entity entityToSpawn = null; 
+                        switch (parsedObjects.length) {                            
+                            case 4 : {
+                                int level = _intParse(parsedObjects[0], e);
+                                int xPix = _intParse(parsedObjects[1], e);
+                                int yPix = _intParse(parsedObjects[2], e);
+                                if (parsedObjects[3] instanceof Entity) {                                    
+                                    entityToSpawn = (Entity)parsedObjects[3];
+                                    entityToSpawn.setXYPix(xPix, yPix, level);
+                                    game.getMap().addEntity(entityToSpawn);
+                                    //System.out.println(game.getMap().getEntity("TutorialHealing"));
+                                    Chunk chunk = game.getMap().chunkXYExist(xPix, yPix);
+                                }                                
+                            } break;                            
+                            default : {
+                                LOG.log(Level.WARNING, StringResource.getResource("_pelistener", new String[] {op.toString()}));
+                            } 
+                        }
+                    }
                 } break; 
                 case SET_TILEXY : {
                     AbstractMenu menu = getMenu(e.getSource());
@@ -407,5 +465,16 @@ public class GameListener extends Listener {
         }
         return null;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * {@inheritDoc }
+     * return Meno listeneru
+     */
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.GAME.toString();
+    }
+    // </editor-fold>
 }

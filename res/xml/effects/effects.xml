@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Effects>
+<effect>
+   <id>HEAL</id>
+   <name>Healing I.</name>
+   <type>HEALING</type>
+   <image>healeffect</image>
+   <lifespan>2</lifespan>   	
+</effect>
+</Effects>

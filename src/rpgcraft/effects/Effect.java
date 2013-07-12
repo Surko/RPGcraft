@@ -36,8 +36,7 @@ public class Effect implements Externalizable {
         ONUSE,
         ONEQUIP,
         ONSTRUCK,
-        ONDROP,
-        ONREAD,
+        ONDROP,        
         ONSELF
     }        
     
@@ -212,7 +211,7 @@ public class Effect implements Externalizable {
     
     /**
      * Metoda ktora vrati ci je efekt v hashmape u entity v ONSELF liste bloku.
-     * @return 
+     * @return True/false ci sa efekt vykonava .
      */
     public boolean isSelf() {
         return isSelf;

@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author Surko
+ * Interface ktory zdruzuje nazvy tagov v layout xml-kach
  */
 public interface LayoutXML {
     public static final String ROOT = "layout-elements";
@@ -15,6 +14,7 @@ public interface LayoutXML {
     public static final String TYPE = "type";
     public static final String TEXT = "text";
     public static final String LAYOUT = "layout";    
+    public static final String SOUND = "sound";
     public static final String ACTION = "action";    
     public static final String ACTIONS = "actions";
     public static final String LAYOUTTYPE = "layout-type";    

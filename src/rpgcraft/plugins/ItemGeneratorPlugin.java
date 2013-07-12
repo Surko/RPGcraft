@@ -15,8 +15,14 @@ import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.StatResource;
 
 /**
- *
- * @author kirrie
+ * Trieda ktora zabezpecuje interface pre generatory predmetov.
+ * Kazdy plugin ktory by chcel vytvorit generator musi implementovat tuto abstraktnu triedu.
+ * V triede su zdruzene zakladne metody na vytvorenie predmetu. Metoda initialize 
+ * zinicializuje plugin s predmetom ktory vytvarame a abstraktne metody zabezpecia zbytok.
+ * Abstraktne metody  su povinne implementovat a akurat tieto metody generate a generateAll zabezpecuju 
+ * vytvorenie vlastnosti predmetu. Pravdaze vsetky ostatne metody sa daju pretazit
+ * a cele pomenit.
+ * 
  */
 public abstract class ItemGeneratorPlugin {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">

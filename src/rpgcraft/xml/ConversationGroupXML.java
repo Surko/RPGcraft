@@ -4,10 +4,9 @@
  */
 package rpgcraft.xml;
 
-/**
- *
- * @author kirrie
- */
+/** 
+ * Interface ktory zdruzuje nazvy tagov v grupovych xml-kach
+ */ 
 public class ConversationGroupXML {
     public static final String ROOT = "groups";
     public static final String ELEMENT = "group";

@@ -68,6 +68,10 @@ public class Colors {
      */
     public static final String staminaColor = "staminaColor";
     /**
+     * Priehladna farba na pozadi inventara
+     */
+    public static final String transInvBackColor = "transInvBackColor";
+    /**
      * Farba na pozadi inventara
      */
     public static final String invBackColor = "invBackColor";
@@ -99,6 +103,7 @@ public class Colors {
         colors.put(healthColor, Color.RED);
         colors.put(defenseColor, Color.YELLOW);
         colors.put(staminaColor, new Color(7, 194, 17));
+        colors.put(transInvBackColor, new Color(224, 224, 224, 100));
         colors.put(invBackColor, new Color(224, 224, 224));
         colors.put(invOnTopColor, new Color(145, 145, 145, 100));
         colors.put(selectedColor, new Color(0, 0, 0, 50));

@@ -19,11 +19,16 @@ import rpgcraft.panels.listeners.Action;
 import rpgcraft.xml.QuestXML;
 
 /**
- *
- * @author kirrie
+ * QuestResource ktore dedi od AbstraktnehoResource je trieda ktora umoznuje
+ * vytvorit quest resources z xml suborov, ktore sa daju pouzit v akciach.
+ * Na vytvorenie nam pomaha metoda parse,
+ * ktorej predavame jeden vrchol z xmlka na rozparsovanie. Vytvaranie noveho resource
+ * prevadzame volanim metody newBundledResource. Navrat nejakeho resource pomocou metody
+ * getResource. 
+ * @see AbstractResource
  */
 public class QuestsResource extends AbstractResource<QuestsResource> {        
-    
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(QuestsResource.class.getName());
     private static HashMap<String, QuestsResource> questsResources = new HashMap();
     
@@ -32,7 +37,15 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
     private int stateId = -1;
     private TreeMap<Integer, ArrayList<Action>> stateActions;
     private HashMap<Integer, String> stateTexts;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Konstruktor (privatny) ktory vytvori instanciu QuestResource z xml suboru.
+     * Prvy element ktory parsujeme/prechadzame je zadany v parametri <b>elem</b>.
+     * Po rozparsovani zvalidujeme konverzacnu grupu a vlozime hu do listu k dalsim.
+     * @param elem Xml element z ktoreho vytvarame resource
+     */
     private QuestsResource(Element elem) {
         parse(elem);       
         validate();
@@ -40,43 +53,91 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
         actions = null;
         stateId = -1;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
+    /**
+     * Metoda ktora vytvori novy objekt typu QuestResource. Kedze je staticka a public
+     * tak sa tymto padom stava jediny sposob ako vytvorit instanciu QuestResource.
+     * @param elem Element z ktoreho vytvarame quest resource
+     * @return QuestResource z daneeho elementu
+     */
     public static QuestsResource newBundledResource(Element elem) {                
         return new QuestsResource(elem);
-    }
+    }                 
     
-    private void validate() {
-        
-    }
-            
+    /**
+     * Metoda ktora vrati QuestResource podla parametru <b>questId</b>.
+     * @param questId Id questoveho resource ktory hladame
+     * @return QuestResource s danym menom
+     */
     public static QuestsResource getQuest(String questId) {
         return questsResources.get(questId);
     }
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * Metoda ktora vrati id questu
+     * @return Id ulohu
+     */
     public String getId() {
         return id;
     }
     
+    /**
+     * Metoda ktora vrati nazov questu
+     * @return Nazov ulohy
+     */
     public String getLabel() {
         return label;
     }
     
+    /**
+     * Metoda ktora vrati textu quest
+     * @return Text ulohy
+     */
     public String getQuestText() {
         return text;
     }
     
+    /**
+     * Metoda ktora vrati text stavu zadaneho parametrom <b>stateId</b>
+     * @param stateId Stav ktory chceme vratit
+     * @return Text so stavom
+     */
     public String getStateText(int stateId) {
         return stateTexts.get(stateId);
     }
             
+    /**
+     * Metoda ktora vrati vsetky mozne stavy ktore moze uloha dostat
+     * @return Kolekcia vsetky textov pre questy
+     */
     public Collection<String> getAllStateTexts() {
         return stateTexts.values();
     }
     
+    /**
+     * Metoda ktora vrati vsetky stavove akcie zo stavu zadaneho parametrom <b>stateId</b>
+     * @param stateId Stav ktory chceme
+     * @return Akcie na vykonanie z urciteho stavu
+     */
     public ArrayList<Action> getStateActions(int stateId) {                
         return stateActions.floorEntry(stateId).getValue();
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Parsovanie ">
+    /**
+     * Metoda ktora rozparsuvava xml subor takym sposobom ze dostava ako parameter <b>elem</b>
+     * co je jeden elem z xml suboru aj so vsetkymi jeho podelementami. Ulohou je prejst vsetky
+     * tieto podelementy a podla mien tychto podelemntov vykonat definovane akcie.
+     * (QuestXML.STATE -> ziska info z atributu a zavola rekurzivne parse na aktualny element
+     * na ziskanie ostatnych quest stavov)
+     * @param elem Element z xml ktory rozparsovavame do ConversationGroupResource
+     */
     @Override
     protected void parse(Element elem) {
         NodeList nl = elem.getChildNodes(); 
@@ -191,7 +252,9 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
             }
         }
     }
-
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne metody ">
     /**
      * Metoda toString vrati text s vypisom/zakladnymi informaciami o tomto resource.
      * Meno triedy + id.
@@ -201,12 +264,24 @@ public class QuestsResource extends AbstractResource<QuestsResource> {
     public String toString() {
         return this.getClass().getName() + ":" + id;
     }
-
-    
-    
+   
+    /**
+     * Metoda ktora okopiruje quest resource z parametra <b>res</b> do tohoto resource.
+     * @param res Resource z ktoreho kopirujeme
+     * @throws Exception Chyba pri kopirovanie
+     */
     @Override
     protected void copy(QuestsResource res) throws Exception {
         
     }        
+    
+    /**
+     * Validacna metoda ktora zvaliduje resource aby bol pouzitelny.
+     */
+    private void validate() {
+        
+    }
+    
+    // </editor-fold>
     
 }

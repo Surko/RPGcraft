@@ -1,0 +1,9 @@
+<?xml encoding="UTF-8"?>
+
+<!ELEMENT Effects (effect)+>
+<!ELEMENT effect (id,name,type,image,lifespan)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT image (#PCDATA)>
+<!ELEMENT lifespan (#PCDATA)>

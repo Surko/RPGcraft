@@ -4,9 +4,7 @@
  */
 package rpgcraft.graphics;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -15,23 +13,18 @@ import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
 import java.awt.image.RescaleOp;
-import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.JComponent;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.resource.StringResource;
-import rpgcraft.utils.MathUtils;
 
 /**
  *
  * @author Kirrie
  */
 public class ImageOperation { 
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(ImageOperation.class.getName());
     
     // Vseobecne : hocijaky obrazok ktory dedi od Image
@@ -43,7 +36,9 @@ public class ImageOperation {
     private static ImageOperation io;
     private static int index;    
     private RescaleOp rescale; 
-            
+    // </editor-fold>   
+    
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
     /**
      * Konstruktor pre objekt ktory dostava ako parameter obrazok nad ktorym 
      * sa budu vykonavat metody tejto triedy.
@@ -53,10 +48,19 @@ public class ImageOperation {
         this.origImage = img;
     }
     
+    /**
+     * Privatny konstruktor pre vytvorenie instancie ImageOperation.
+     */
     private ImageOperation() {
         
     }
+    // </editor-fold>
     
+    /**
+     * Metoda ktora vrati instanciu ImageOperation. Raz je volana s vytvaranim instancie ImageOperation
+     * dalsie razy iba vrati tuto instanciu
+     * @return Instancia ImageOperation
+     */
     public static ImageOperation getInstance() {
         if (io == null) {
             return io = new ImageOperation();
@@ -65,10 +69,18 @@ public class ImageOperation {
         }
     }
     
+    /**
+     * Metoda ktora vrati sirku originalneho obrazku
+     * @return Sirka orig. obrazku
+     */
     public int getWidth() {
         return origImage.getWidth(null);
     }
     
+    /**
+     * Metoda ktora vrati vysku originalneho obrazku
+     * @return Vyska orig. obrazku
+     */
     public int getHeight() {
         return origImage.getHeight(null);
     }
@@ -86,10 +98,8 @@ public class ImageOperation {
      * Metoda vytvori BufferedImage z originalneho obrazku priradeneho k objektu
      * cim budeme mat v tomto objekte stale ulozeny original pre dalsie zmeny pomocou 
      * definovanych metod v tejto triede.
-     * Tejto funkcie vyuzivame v triede ImageButton.
-     * 
+     * Tejto funkcie vyuzivame v triede ImageButton.    
      * @param type Typ obrazku aky chceme mat v BufferedImage.
-     * @see ImageButton
      */
     public void createBufferedImages(int type) {        
         destImage = new BufferedImage(origImage.getWidth(null),
@@ -184,15 +194,24 @@ public class ImageOperation {
         g.drawImage(destImage, xForm, null);
     }
     
+    /**
+     * Metoda ktora zrotuje obrazok volanim metody rotate s 3 parametrami. Oproti tejto metode
+     * je ina v tom ze rotujeme v strede obrazku.
+     * @param theta Pocet radianov o ktore rotujeme.
+     */
     public void rotate(double theta) {
        rotate(theta, (int)(destImage.getWidth()/2), (int)(destImage.getHeight()/2));
     }
     
     /**
-     * 
-     * @param theta
-     * @param origX
-     * @param origY 
+     * Metoda ktora zrotuje obrazok o theta radianov okolo bodu [origX,origY].
+     * Je to vseobecna metoda rotate s jednym parametrom. Pre spravne zrotovanie 
+     * nastavujeme maticu afinnych transormacii pre rotovanie a maticu pre translaciu.
+     * Nasledne spojime tieto afinne transformacie metodou preConcatenate a pouzijeme 
+     * na nas obrazok.
+     * @param theta Pocet radianov rotovania obrazku
+     * @param origX X-ova pozicia rotovania
+     * @param origY Y-ova pozicia rotovania
      */
     public void rotate(double theta, int origX, int origY) {
       AffineTransform xForm = new AffineTransform();
@@ -217,10 +236,12 @@ public class ImageOperation {
     }
     
     /**
-     * 
-     * @param xForm
-     * @param bi
-     * @return 
+     * Metoda ktora vytvori translacnu maticu. Najprv vytvarame dva body [0,0] a [0,height]
+     * ktore transformujeme podla rotacnej matice zadanej parametrom <b>xForm</b>,
+     * co nam vrati zrotovane vrcholy podla ktorych vytvorime translacnu maticu
+     * @param xForm Rotacna matica pre zrotovanie bodov
+     * @param bi Obrazok ktory transformujeme (nevyuzite v metode)
+     * @return Translacna matica.
      */
     private AffineTransform findTranslation(AffineTransform xForm, BufferedImage bi) {
         Point2D pointInt, pointOut;
@@ -307,8 +328,7 @@ public class ImageOperation {
         showImage = new BufferedImage(constx, consty, destImage.getType());
                                         
     }
-    
-    
+        
     /**
      * Metoda zvacsi alebo zmensi obrazok podla zadanych parametrov. Kvalita obrazka sa zhorsi.
      * @param width Dlzka noveho obrazku.
@@ -318,8 +338,7 @@ public class ImageOperation {
      * @see BufferedImage#TYPE_INT_ARGB
      * @see BufferedImage#TYPE_INT_RGB
      * @see BufferedImage
-     */
-        
+     */        
     public void resizeImage(int width, int height, int type){
 	showImage = new BufferedImage(width, height, type);
 	Graphics2D g = showImage.createGraphics();

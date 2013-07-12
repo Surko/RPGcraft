@@ -7,10 +7,8 @@ package rpgcraft.panels.listeners;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.luaj.vm2.lib.jse.JsePlatform;
-import rpgcraft.handlers.InputHandle;
 import rpgcraft.handlers.InputHandle.Keys;
-import rpgcraft.resource.UiResource;
+import rpgcraft.plugins.Listener;
 import rpgcraft.utils.ScriptUtils;
 
 /**
@@ -18,12 +16,14 @@ import rpgcraft.utils.ScriptUtils;
  * UiResource, ktora do listu uklada viacero instancii tejto triedy. Dalej tieto vytvorene objekty
  * vyuzivaju instancie gui komponent, ktore testuju podmienky ako je pocet klikov, typ akcie
  * a podla toho rozhodne ci nejaky event vyhovuje akcii a vykona hu podla dat ktore 
- * su ulozene v premennej </b>action</b>. Tymto padom je tato trieda len datova polozka, ktora 
- * sa nepouziva na nic dalsie.
+ * su ulozene v premennej </b>sAction</b>. V neposlednom rade hu vyuzivaju rozne 
+ * akcie ako je aktualizovanie questov ktora ma nakopirovane akcie z resource
+ * a vykonava ich kazdou aktualizaciou. 
+ * Tymto padom je tato trieda len zaobalovacia polozka pre listenery a eventy.
  * @author kirrie
  */
 public class Action implements Runnable {
-                   
+        // <editor-fold defaultstate="collapsed" desc=" Pomocne enumy/triedy ">           
         /**
          * Vypis roznych typov pre akciu. Zatial dovoluje iba klavesnicove a mys akcie.
          */         
@@ -37,7 +37,8 @@ public class Action implements Runnable {
             // 
             EVENT
         }
-    
+        // </editor-fold>
+        
         // <editor-fold defaultstate="collapsed" desc=" Premenne ">
         // Typ kliknutia (na list elementov, atd...)
         Object eventType;
@@ -70,6 +71,7 @@ public class Action implements Runnable {
         
         // </editor-fold>
         
+        // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
         /**
          * Kopirovaci konstruktor pre akciu.
          * @param action Akcia od ktorej kopirujeme data.
@@ -90,6 +92,9 @@ public class Action implements Runnable {
          * DEFAULT Constructor
          */
         public Action() {}
+        // </editor-fold>
+        
+        // <editor-fold defaultstate="collapsed" desc=" Settery ">
         /**
          * Metoda ktora nastavuje akciu na lua akciu.
          * @param lua True/false ci je akcia LUA skript.
@@ -208,10 +213,13 @@ public class Action implements Runnable {
             this.currentTime = this.sleepingTime = this.currentTick = this.sleepingTicks = 0;
             this.done = false;
         }
+        // </editor-fold>
         
+        // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+
         /**
          * Metoda ktora vrati ci je akcia zapamatovatelna.
-         * @return 
+         * @return True/false ci si akciu zapamatame
          */
         public boolean isMemorizable() {
             return memorizable;
@@ -235,7 +243,7 @@ public class Action implements Runnable {
         
         /**
          * Metoda vracia pocet klikov na prevedenie akcie.
-         * @return 
+         * @return Pocet klikov ktore vykonaju akciu
          */
         public int getClicks() {
             return clicks;
@@ -259,7 +267,7 @@ public class Action implements Runnable {
         }
         /**
          * Metoda ktora vrati ci je akcia transparentna.
-         * @return 
+         * @return True/false ci je akcia transparentna a posuva sa na dalsie komponenty
          */
         public boolean isTransparent() {
             return trans;
@@ -296,7 +304,9 @@ public class Action implements Runnable {
         public boolean isLuaAction() {
             return lua;
         }
+        // </editor-fold>
         
+        // <editor-fold defaultstate="collapsed" desc=" Vytvaranie/Vykonavanie akcii ">       
         /**
          * Metoda makeListener vytvori listener priamo v akcii. Vhodne ked je volana akcia
          * viacero krat za sebou. Obchadza perform akciu ktora berie do uvahu aj sleep funkciu.
@@ -352,10 +362,14 @@ public class Action implements Runnable {
                     }
                 }
 
-                if (sleepingTime > 0) {
+                if (sleepingTime > 0) {                    
+                    if (markTime == 0) {
+                        markTime = System.currentTimeMillis();
+                    }
                     if (currentTime - markTime >= sleepingTime) {
+                        //System.out.println("SEKUNDA");
                         currentTime = 0;
-                        markTime = 0;
+                        markTime = System.currentTimeMillis();
                         sleepingTime = 0;
                     } else {
                         currentTime = System.currentTimeMillis();
@@ -394,14 +408,17 @@ public class Action implements Runnable {
                 active = false;
             }
         }
+        // </editor-fold>
         
+        // <editor-fold defaultstate="collapsed" desc=" Klonovanie ">
         /**
          * Metoda clone vytvori novu instanciu objektu Action do ktoreho sa okopiruju 
          * vsetky vlastnosti tejto akcie, okrem takych ako su doba uspania, ... (lokalne premenne)
-         * @return 
+         * @return Klon akcie
          */
         @Override
         public Action clone() {
             return new Action(this);           
         }
+        // </editor-fold>
 }

@@ -21,8 +21,10 @@ import rpgcraft.resource.StringResource;
 import rpgcraft.utils.TextUtils;
 
 /**
- *
- * @author doma
+ * InventoryMenu je trieda ktora sa stara o vytvorenie a zobrazenie inventara pre hraca.
+ * Trieda dedi od AbstractInMenu cim sme donuteni implementovat zakladne 
+ * abstraktne metody z AbstractInMenu.
+ * @author kirrie
  */
 public class InventoryMenu extends AbstractInMenu {
 
@@ -211,8 +213,6 @@ public class InventoryMenu extends AbstractInMenu {
     // <editor-fold defaultstate="collapsed" desc=" Update metody">
     /**
      * Metoda ktora aktualizuje pozicie vykreslovaneho inventara.     
-     * @param xPos Pozicia x inventara na obrazovke
-     * @param yPos Pozicia y inventara na obrazovke
      */
     @Override
     public void update() {
@@ -421,7 +421,7 @@ public class InventoryMenu extends AbstractInMenu {
                 processCraftingKeys();
             }
                                              
-            if (input.clickedKeys.contains(InputHandle.left.getKeyCode())) {
+            if (input.clickedKeys.contains(InputHandle.DefinedKey.LEFT.getKeyCode())) {
                 if (subMenu.isVisible()) {
                     activated = false;
                     subMenu.activate();
@@ -429,13 +429,14 @@ public class InventoryMenu extends AbstractInMenu {
             }
         }
 
-        if (input.clickedKeys.contains(InputHandle.escape.getKeyCode()) || input.clickedKeys.contains(input.inventory.getKeyCode())) {       
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())
+                || input.clickedKeys.contains(InputHandle.DefinedKey.INVENTORY.getKeyCode())) {       
             exit();
             changedState = true;
             return;
         }
 
-        if (input.clickedKeys.contains(InputHandle.crafting.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.CRAFTING.getKeyCode())) {
             if (subMenu instanceof CraftingMenu && subMenu.isVisible()) {                                
                 subMenu.exit();
                 subMenu = null;
@@ -448,21 +449,21 @@ public class InventoryMenu extends AbstractInMenu {
             }
         }
 
-        if (input.clickedKeys.contains(input.up.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {
             if (selection > 0) {
                 selection--;
                 changedState = true;
             }
         }
 
-        if (input.clickedKeys.contains(input.down.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {
             if (selection < entity.getInventory().size() - 1) {
                 selection++;
                 changedState = true;
             }
         }
 
-        if (input.clickedKeys.contains(input.enter.getKeyCode())) {             
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ENTER.getKeyCode())) {             
             if (selection >= 0 && entity.getInventory().size() != 0) {
                 activated = false;
                 safeSubMenuExit();
@@ -475,9 +476,8 @@ public class InventoryMenu extends AbstractInMenu {
     }
 
     /**
-     * Metoda ktora ma spracovavat eventy/udalosti z mysi. Inventar take moznosti nepodporuje ale je ich mozne pridat.
-     * @param e MouseEvent z mysi
-     * @see MouseEvent
+     * <i>{@inheritDoc }</i>
+     * @param e {@inheritDoc }
      */
     @Override
     public void mouseHandling(MouseEvent e) {

@@ -17,12 +17,13 @@ import rpgcraft.panels.components.swing.SwingImagePanel;
 import rpgcraft.panels.components.swing.SwingText;
 
 /**
- *
- * @author kirrie
+ * Trieda ktora vytvara instanciu pre zobrazovanie sprav na nejaku urcitu dobu.
+ * Instancia tejto triedy sa da ziskat iba metodou getInstance (singleton vzor).
+ * Viacero vlakien moze volat metodu na ziskanie instancie no takyto problem je osetreny.
  */
 public final class MsgDialog extends SwingImagePanel {
-        
-    public static final Dimension DIM = new Dimension(150, 100);
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    public static final Dimension DIM = new Dimension(200, 150);
     
     private static MsgDialog instance;
     public static volatile boolean inUse;
@@ -31,7 +32,15 @@ public final class MsgDialog extends SwingImagePanel {
     
     private long lifeSpan;
     private long creationTime;
+    // </editor-fold>
     
+    /**
+     * Privatny konstruktor pre vytvorenie instancie msgDialogu. Inicializujeme ho
+     * pomocou kontajneru, abstraktneho menu a pridanim SwingText do tejto komponenty.
+     * Farby su podobne ako pri AbstractInMenu
+     * @param container Kontajner v ktorom sa nachadza dialog
+     * @param menu Abstraktne menu urcujuce kde je dialog.
+     */
     private MsgDialog(Container container, AbstractMenu menu) {
         super(container, menu);                                
                 
@@ -46,10 +55,16 @@ public final class MsgDialog extends SwingImagePanel {
         
         // Nastavenie pozadia dialogu
         this.topColor = Colors.getColor(Colors.invOnTopColor);
-        this.backColor = Colors.getColor(Colors.invBackColor);
-                                
+        this.backColor = Colors.getColor(Colors.invBackColor);                              
     }       
                 
+    /**
+     * {@inheritDoc }
+     * <p>
+     * Metoda po case lifeSpan ukonci dialog.
+     * </p>
+     * @param g {@inheritDoc }
+     */
     @Override
     public void paintComponent(Graphics g) {        
         super.paintComponent(g);         
@@ -58,61 +73,109 @@ public final class MsgDialog extends SwingImagePanel {
         }   
     }
     
+    /**
+     * Metoda ktora ukonci dialog s textom. Ukoncenie prebieha vymazanim vsetky komponent
+     * a nastavenim casovych premennych na 0.
+     */
     public void exitDialog() {
         this.getParent().remove(this);   
         this.removeAll();
         lifeSpan = 0L;
         creationTime = 0L;
-        inUse = false;
-        System.out.println(Thread.currentThread() + " cleared");
+        synchronized (this) {  
+            inUse = false;
+            notifyAll();              
+        }     
     }
     
+    /**
+     * {@inheritDoc }
+     * @return Dlzka dialogu
+     */
     @Override
     public int getWidth() {
         return DIM.width;
     }
     
+    /**
+     * {@inheritDoc }
+     * @return Vyska dialogu
+     */
     @Override
     public int getHeight() {
         return DIM.height;              
     }
     
+    /**
+     * Metoda ktora vrati velkost dialogu
+     * @return Velkost dialogu
+     */
     @Override
     public Dimension getSize() {
         return MsgDialog.DIM;
     }
     
+    /**
+     * Metoda ktora vrati maximalnu velkost dialogu
+     * @return Maximalnu velkost dialogu
+     */
     @Override
     public Dimension getMaximumSize() {
         return MsgDialog.DIM;
     }
     
+    /**
+     * Metoda ktora vrati minimalnu velkost dialogu.
+     * @return Minimalna velkost dialogu
+     */
     @Override
     public Dimension getMinimumSize() {
         return MsgDialog.DIM;
     }
     
+    /**
+     * Metoda ktora vrati preferovanu velkost dialogu
+     * @return Preferovana velkost dialogu
+     */
     @Override
     public Dimension getPreferredSize() {
         return MsgDialog.DIM;
     }      
     
+    /**
+     * Metoda ktora zobrazi dialog v rame a nastavi cas tohoto ukonu.
+     */
     public void showOnPanel() {
         this.creationTime = System.currentTimeMillis();
         MainGameFrame.game.add(this, 1);
         MainGameFrame.game.validate();
     }
     
+    /**
+     * Metoda ktora nastavi text v dialoge na parameter <b>text</b> spolu
+     * aj s velkostami a lokaciou textovej komponenty.
+     * @param text Text ktory nastavujeme v dialogu. 
+     */
     public void setText(String text) {        
         msgText.setParsedText(text, DIM.width - 2*wGap);
         msgText.setLocation((DIM.width - msgText.getTextW())/2, (DIM.height - msgText.getTextH())/2);
         this.add(msgText);
     }
     
+    /**
+     * Metoda ktora nastavi dlzku zivota dialogu
+     * @param time Dlzka zivota dialogu
+     */
     public void setLifeSpan(long time) {
         this.lifeSpan = time;        
     }
         
+    /**
+     * Metoda ktora vrati instanciu MsgDialogu (singleton vzor). Jedina moznost
+     * ako vratit instanciu MsgDialogu. Tu sa ale naskyta problem ked viacero vlakien
+     * chce zobrazit text. Pre tento problem synchronizujeme metodu a blok na ziskanie instancie.
+     * @return Instanciu MsgDialog
+     */
     public synchronized static MsgDialog getInstance() {
         //System.out.println(Thread.currentThread() + " trying to getInstance");
         if (instance == null) {
@@ -120,25 +183,20 @@ public final class MsgDialog extends SwingImagePanel {
             instance = new MsgDialog(null, null);
         }
         
-        while (inUse) {
-            try {
-                //System.out.println(Thread.currentThread() + " waiting " + (System.currentTimeMillis() - instance.creationTime));
-                Thread.sleep(10);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(InputDialog.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        synchronized(instance) {
+            while (inUse) {
+                try {                    
+                    instance.wait();                    
+                    
+                } catch (Exception ex) {
+                    Logger.getLogger(InputDialog.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }  
+            inUse = true;
         }  
         
         inUse = true;
         return instance;
     }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        System.out.println("Clicked dialog");
-    }
-    
-    
-    
-    
+                   
 }

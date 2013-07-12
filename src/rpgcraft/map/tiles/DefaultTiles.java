@@ -8,43 +8,46 @@ import java.util.HashMap;
 import rpgcraft.resource.TileResource;
 
 /**
- *
- * @author Kirrie
+ * Trieda ktora obsahuje iba staticke metody a  ma za ulohu inicializovat 
+ * zakladne dlazdice podla urcitych resourcov.
+ * Zakladne dlazdice si uchovavame v hashmape defaultTiles.
  */
 public class DefaultTiles {
-    
-    private static HashMap<Integer, Tile> defaultiles;
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    private static HashMap<Integer, Tile> defaultTiles;
     private static DefaultTiles instance;
     
     public static final int GRASS_ID = 1;
     public static final int BLANK_ID = 0;
     public static final int ROCK_ID = 2;
     public static final int RIBBON_ID = 255;
+    // </editor-fold>           
     
-    private DefaultTiles() {
-        this.defaultiles = new HashMap<>();
-    }      
-    
-    public static DefaultTiles getInstance() {
-        if (instance == null) {
-            instance = new DefaultTiles();
-        }
-        return instance;
+    /**
+     * Metoda ktora vrati vsetky zakladne dlazdice ktore boli nacitane
+     * @return Hashmapa so vsetkymi zakladnymi dlazdicami
+     */
+    public static HashMap<Integer, Tile> getDefaultTiles() {
+        return defaultTiles;
     }
     
-    public HashMap<Integer, Tile> getDefaultTiles() {
-        return defaultiles;
-    }
-    
-    public HashMap<Integer, Tile> createDefaultTiles() {
+    /**
+     * Metoda ktora vytvori vsetky zakladne dlazdice a vsunie ich do hashmapy.
+     * Treba volat pred zacatim hlavnej hry
+     * @return Hashmapa s dvojicou Integer (id dlazdice) a Tile (dlazdica vytvorena z TileResource)
+     */
+    public static HashMap<Integer, Tile> createDefaultTiles() {
+        defaultTiles = new HashMap<>();
+        HashMap<Integer, Tile> returnTiles = new HashMap<>();
         try {
-        defaultiles.put(RIBBON_ID, new Tile(RIBBON_ID, TileResource.getResource(RIBBON_ID)));
-        defaultiles.put(GRASS_ID, new Tile(GRASS_ID, TileResource.getResource(GRASS_ID)));      
-        defaultiles.put(BLANK_ID, new BlankTile(BLANK_ID, null));
+            defaultTiles.put(RIBBON_ID, new Tile(RIBBON_ID, TileResource.getResource(RIBBON_ID)));
+            defaultTiles.put(GRASS_ID, new Tile(GRASS_ID, TileResource.getResource(GRASS_ID)));      
+            defaultTiles.put(BLANK_ID, new BlankTile(BLANK_ID, null));
         } catch (Exception e) {
-            System.out.println(e);
+            //System.out.println(e);
         }
-        return defaultiles;
+        returnTiles.putAll(defaultTiles);
+        return returnTiles;
     }   
 
     

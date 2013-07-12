@@ -14,12 +14,18 @@ import rpgcraft.entities.Entity;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.ui.menu.Menu;
 import rpgcraft.handlers.InputHandle;
-import rpgcraft.map.SaveMap;
-import rpgcraft.plugins.AbstractMenu;
+
 
 /**
- *
- * @author doma
+ * Trieda ktora implmenetuje inteface pre vsetky menu => instancie od AbstractInMenu
+ * sa daju pouzit ako menu v hre. Kedze je ale trieda abstraktna, tak vytvaranie instancii
+ * zostava na podedenych triedach od nej. Znova vyuzivame generiku na ziskanie metod priamo 
+ * pre specificke menu (ako napriklad initialize ktora dostane ako parameter vzdy T ktore dodefinujeme
+ * v nasich podedenych AbstractInMenu). Trieda zdruzuje zakladne metody, ktore su spolocne
+ * pre vytvorenie vnutorneho menu. Na vytvorenie pluginu je dolezite extendovat tuto triedu a doplnit
+ * abstraktne metody na spravne fungovanie. Ked chce programator pluginu doplnit iny vyzor
+ * menu tak musi pretazit metodu setGraphics. V tejto triede sa taktiez nachadza staticka metoda
+ * addMenu ktora pridava kazdy typ menu (ako je Journal, Inventory, atd... ) iba raz.
  */
 public abstract class AbstractInMenu<T extends AbstractInMenu> implements Menu<AbstractInMenu> {
     
@@ -144,7 +150,11 @@ public abstract class AbstractInMenu<T extends AbstractInMenu> implements Menu<A
     public abstract void inputHandling();        
             
     /**
-     * Metoda ktora spracovava event z mysi. Kazde menu moze spracovavat eventy rozne.
+     * Metoda ktora ma spracovavat eventy/udalosti z mysi. ItemMenu take moznosti nepodporuje ale je ich mozne pridat.
+     * Na zistenie spravnych suradnic staci odcitat od suradnic v Evente suradnice tohoto menu a modulovat a predelovat vyskou
+     * jedneho elementu v tomto menu.
+     * @param e MouseEvent z mysi
+     * @see MouseEvent
      */
     @Override
     public abstract void mouseHandling(MouseEvent e);
@@ -204,7 +214,7 @@ public abstract class AbstractInMenu<T extends AbstractInMenu> implements Menu<A
     
     /**
      * Metoda ktora vrati obrazok na vykreslenie.
-     * @return 
+     * @return Obrzok na vykreslenie 
      */
     public Image getDrawImage() {
         return toDraw;

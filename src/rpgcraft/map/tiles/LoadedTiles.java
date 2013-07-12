@@ -8,25 +8,25 @@ import java.util.HashMap;
 import rpgcraft.resource.TileResource;
 
 /**
- *
- * @author doma
+ * Trieda ktora obsahuje iba staticke metody a ma za ulohu inicializovat 
+ * nacitane dlazdice z xml suborov ktore sme rozparsovali a vytvorili z nich TileResource.
+ * Nacitane dlazdice si uchovavame v hashmape loadedTiles.
  */
 public class LoadedTiles {
     private static HashMap<Integer, Tile> loadedTiles;
-    private static LoadedTiles instance;
+    private static LoadedTiles instance;        
     
-    public LoadedTiles() {
+    /**
+     * Metoda ktora vytvori vsetky nacitane dlazdice a vsunie ich do hashmapy.
+     * Treba volat pred zacatim hlavnej hry. Na ziskanie nacitanych dlazdic zavolame metodu
+     * getResources z triedy TileResource, ktora vrati vsetky nacitane TileResource z xml suborov.
+     * Kazdu dvojicu potom vsuvame do mapy loadedTiles a do mapy definedTiles, ktora v sebe obsahuje
+     * uz nacitane dlazdice (napr. zakladne dlazdice).
+     * @param definedTiles Hashmapa uz s nacitanymi dlazdicami
+     * @return Hashmapa s dvojicou Integer (id dlazdice) a Tile (dlazdica vytvorena z TileResource) nacitanych dlazdic
+     */
+    public static HashMap<Integer, Tile> createLoadedTiles(HashMap<Integer, Tile> definedTiles) {
         loadedTiles = new HashMap<>();
-    }
-    
-    public static LoadedTiles getInstance() {
-        if (instance == null) {
-            instance = new LoadedTiles();
-        }
-        return instance;
-    }
-    
-    public HashMap<Integer, Tile> createLoadedTiles(HashMap<Integer, Tile> definedTiles) {
         HashMap<Integer, TileResource> resources = TileResource.getResources();
         try {
             for (Integer key : resources.keySet()) {
@@ -39,7 +39,7 @@ public class LoadedTiles {
             }
         }
         } catch (Exception e) {
-            System.out.println(e.getLocalizedMessage());
+            //System.out.println(e.getLocalizedMessage());
         }
         return loadedTiles;
     } 

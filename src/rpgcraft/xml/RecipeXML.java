@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author kirrie
+ * Interface ktory zdruzuje nazvy tagov v receptovych xml-kach
  */
 public class RecipeXML {
     public static final String ROOT = "recipes";

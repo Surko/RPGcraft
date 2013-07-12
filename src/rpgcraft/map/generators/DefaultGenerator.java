@@ -4,6 +4,7 @@
  */
 package rpgcraft.map.generators;
 
+import rpgcraft.map.SaveMap;
 import rpgcraft.plugins.GeneratorPlugin;
 
 /** 
@@ -28,16 +29,16 @@ public class DefaultGenerator implements GeneratorPlugin {
      * vyplnenie pola/mapy dlazdicami (trava a kamen).
      * </p>
      * @param mapGenerator {@inheritDoc }
+     * @param map {@inheritDoc }
      * @throws Vynimka pri generovani terenu. Vacsinou priradovanie dlazdic ktore neexistuju. 
      */
     @Override
-    public void generate(MapGenerator mapGenerator) throws Exception {                     
+    public void generate(MapGenerator mapGenerator, SaveMap map) throws Exception {                     
         for (int k=0;k<mapGenerator.getDepth();k++) {
             if (k < SKY) {
                 generateGround(mapGenerator, k);
             }
-        }            
-        
+        }                    
     }
     
     /**
@@ -47,6 +48,9 @@ public class DefaultGenerator implements GeneratorPlugin {
      * @throws Vynimka pri generovani terenu. Vacsinou priradovanie dlazdic ktore neexistuju. 
      */
     private void generateSky(MapGenerator mapGenerator, int level) throws Exception {
+        if (level >= 128 || level < 0) {
+            return;
+        }
         for (int y=0;y<mapGenerator.getSize();y++) {
             for (int x=0;x<mapGenerator.getSize();x++) {                                        
                 mapGenerator.setTile(level, x, y, 0);                
@@ -61,13 +65,12 @@ public class DefaultGenerator implements GeneratorPlugin {
      * @throws Vynimka pri generovani terenu. Vacsinou priradovanie dlazdic ktore neexistuju. 
      */
     private void generateGround(MapGenerator mapGenerator, int level) throws Exception{
+        if (level >= 128 || level < 0) {
+            return;
+        }
         for (int y=0;y<mapGenerator.getSize();y++) {
             for (int x=0;x<mapGenerator.getSize();x++) {                                        
-                if (y >8){
-                    mapGenerator.setTile(level, x, y, 2);
-                } else {
-                    mapGenerator.setTile(level, x, y, 1);
-                }
+                mapGenerator.setTile(level, x, y, 1);                
             }
         }
     }

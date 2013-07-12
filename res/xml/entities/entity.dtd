@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT Entities (mob)+>
+<!ELEMENT mob (id,entity-type,group?,name?,ai?,sheet,globalw,globalh,
+               (moveable|canspawn|activation-actions|conversations)*,
+               move+,stats?,effects?)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT entity-type (#PCDATA)>
+<!ELEMENT ai (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT group (#PCDATA)>
+<!ELEMENT sheet (#PCDATA)>
+<!ELEMENT globalw (#PCDATA)>
+<!ELEMENT globalh (#PCDATA)>
+<!ELEMENT moveable (#PCDATA)>
+<!ELEMENT canspawn (#PCDATA)>
+<!ELEMENT activation-actions (action)+>
+<!ELEMENT conversations (#PCDATA)>
+<!ELEMENT move (type,anim+)>
+<!ELEMENT stats (basehealth|basestamina|staminareg|basestrength|
+                 baseagility|basespeed|attackrater|defenserater|
+                 speedrater|attackradius|speedfactor|interchance|
+                 attratbonus|defratbonus|healthbonus)*>
+<!ELEMENT effects (effect)*>
+<!ELEMENT action (#PCDATA)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT anim (duration,(w?,h?)?,x,y)>
+<!ELEMENT basehealth (#PCDATA)>
+<!ELEMENT basestamina (#PCDATA)>
+<!ELEMENT staminareg (#PCDATA)>
+<!ELEMENT basestrength (#PCDATA)>
+<!ELEMENT baseagility (#PCDATA)>
+<!ELEMENT basespeed (#PCDATA)>
+<!ELEMENT attackrater (#PCDATA)>
+<!ELEMENT defenserater (#PCDATA)>
+<!ELEMENT speedrater (#PCDATA)>
+<!ELEMENT attackradius (#PCDATA)>
+<!ELEMENT speedfactor (#PCDATA)>
+<!ELEMENT interchance (#PCDATA)>
+<!ELEMENT attratbonus (#PCDATA)>
+<!ELEMENT defratbonus (#PCDATA)>
+<!ELEMENT healthbonus (#PCDATA)>
+<!ELEMENT effect (#PCDATA)>
+<!ELEMENT duration (#PCDATA)>
+<!ELEMENT w (#PCDATA)>
+<!ELEMENT h (#PCDATA)>
+<!ELEMENT x (#PCDATA)>
+<!ELEMENT y (#PCDATA)>
+<!ATTLIST effect
+  type CDATA #REQUIRED>
+<!ATTLIST action
+  click CDATA #IMPLIED
+  clicktype CDATA #IMPLIED
+  code CDATA #IMPLIED
+  type CDATA #IMPLIED>
+<!ATTLIST ai
+  lua (True|False) #IMPLIED>  

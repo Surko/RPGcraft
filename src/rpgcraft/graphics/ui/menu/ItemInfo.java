@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package rpgcraft.graphics.ui.menu;
 
 import java.awt.Color;
@@ -17,10 +13,11 @@ import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.resource.StatResource.Stat;
+import rpgcraft.utils.Pair;
 import rpgcraft.utils.TextUtils;
 
 /**
- * CharInfo je trieda ktora sa stara o vytvorenie a zobrazenie infa o predmete
+ * ItemInfo je trieda ktora sa stara o vytvorenie a zobrazenie infa o predmete
  * ktorym inicializujeme toto menu.
  * Trieda dedi od AbstractInMenu cim sme donuteni implementovat zakladne 
  * abstraktne metody z AbstractInMenu.
@@ -136,7 +133,6 @@ public class ItemInfo extends AbstractInMenu {
             changedState = false;
         }
     }
-
     
     /**
      * Metoda ktora initializuje toto menu s novymi udajmi.
@@ -168,7 +164,7 @@ public class ItemInfo extends AbstractInMenu {
         starty = 0;
         int textWidth;
         
-        ArrayList<String> parsedTexts;        
+        ArrayList<Pair<String,Integer>> parsedTexts;        
         g.setColor(Color.BLACK); 
         g.setFont(boldTitleFont);
                             
@@ -205,8 +201,8 @@ public class ItemInfo extends AbstractInMenu {
         fullItemInfoImage = controlImageHeight(fullItemInfoImage, starty);
         g = setNewGraphics(fullItemInfoImage, italicFont);
         
-        for (String s : parsedTexts) {
-            g.drawString(s, wGap , starty);
+        for (Pair<String,Integer> pair : parsedTexts) {
+            g.drawString(pair.getFirst(), wGap , starty);
             starty += italicSize[1];
             fullItemInfoImage = controlImageHeight(fullItemInfoImage, starty);
             g = setNewGraphics(fullItemInfoImage, boldNormalFont);
@@ -372,7 +368,7 @@ public class ItemInfo extends AbstractInMenu {
 
     /**
      * Metoda ktora vrati meno tohoto menu
-     * @return 
+     * @return Meno pre ItemInfo
      */
     @Override
     public String getName() {
@@ -392,7 +388,7 @@ public class ItemInfo extends AbstractInMenu {
      */
     @Override
     public void inputHandling() {         
-        if (input.runningKeys.contains(InputHandle.down.getKeyCode())) {            
+        if (input.runningKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {            
             if (getHeight() > starty || itemInfoStartY >= starty) {
                 return;
             }                
@@ -410,7 +406,7 @@ public class ItemInfo extends AbstractInMenu {
             }
         }
         
-        if (input.runningKeys.contains(InputHandle.up.getKeyCode())) {  
+        if (input.runningKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {  
             if (itemInfoStartY <= 0) {
                 return;
             }
@@ -428,7 +424,7 @@ public class ItemInfo extends AbstractInMenu {
             }
         }
         
-        if (input.clickedKeys.contains(InputHandle.escape.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())) {
             exit();
             sourceMenu.activate();
         }

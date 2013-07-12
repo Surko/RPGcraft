@@ -411,7 +411,7 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
 
     /**
      * Metoda ktora vrati meno tohoto menu.
-     * @return 
+     * @return Meno menu
      */
     @Override
     public String getName() {
@@ -426,7 +426,7 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
      */
     @Override
     public void inputHandling() {
-        if (input.runningKeys.contains(InputHandle.down.getKeyCode())) {            
+        if (input.runningKeys.contains(InputHandle.DefinedKey.DOWN.getKeyCode())) {            
             if (getHeight() > starty || itemInfoStartY >= starty) {
                 return;
             }                
@@ -444,7 +444,7 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
             }
         }
         
-        if (input.runningKeys.contains(InputHandle.up.getKeyCode())) {  
+        if (input.runningKeys.contains(InputHandle.DefinedKey.UP.getKeyCode())) {  
             if (itemInfoStartY <= 0) {
                 return;
             }
@@ -462,8 +462,8 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
             }
         }
         
-        if (input.clickedKeys.contains(InputHandle.escape.getKeyCode()) || 
-                input.clickedKeys.contains(InputHandle.character.getKeyCode())) {
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode()) || 
+                input.clickedKeys.contains(InputHandle.DefinedKey.CHARACTER.getKeyCode())) {
             exit();   
             menu.setInMenu(null);
         }
@@ -471,7 +471,7 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
     
     /**
      * <i>{@inheritDoc} </i>     
-     * @param e Event z ktoreho spracovavame vstup
+     * @param e {@inheritDoc }
      */
     @Override
     public void mouseHandling(MouseEvent e) {
@@ -481,6 +481,10 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
+    /**
+     * Metoda ktora vrati instanciu CharInfo z listu menuList.
+     * @return Charakterovy panel
+     */
     public static CharInfo getCharacterMenu() {
         return (CharInfo)menuList.get(CHARINFOID);
     }

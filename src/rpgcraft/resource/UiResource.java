@@ -28,12 +28,23 @@ import rpgcraft.resource.types.TextType;
 import rpgcraft.utils.XmlUtils;
 import rpgcraft.xml.LayoutXML;
 
+
 /**
- *
- * @author Surko
+ * UiResource ktore dedi od AbstraktnehoResource je trieda ktora umoznuje
+ * vytvorit ui resources z xml suborov, ktore sa daju pouzit pri tvoreni ui/swing komponentov
+ * Na vytvorenie nam pomaha metoda parse,
+ * ktorej predavame jeden vrchol z xmlka na rozparsovanie. Vytvaranie noveho resource
+ * prevadzame volanim metody newBundledResource. Navrat nejakeho resource pomocou metody
+ * getResource. Tato trieda je jedna z najdolezitejsich kedze vytvara cely vizualny dojem
+ * z hry.
+ * @see AbstractResource
  */
 public class UiResource extends AbstractResource<UiResource> {           
             
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne triedy/enumy ">
+    /**
+     * Interface pre mozne velkost UI-cka
+     */
     public interface UiSize {
         public static final String FILL_PARENT = "FILL_PARENT";
         public static final String WRAP_CONTENT = "WRAP_CONTENT";
@@ -41,11 +52,17 @@ public class UiResource extends AbstractResource<UiResource> {
         public static final String AUTO = "AUTO";
     }       
     
+    /**
+     * Enum pre rozne mody prekreslovania
+     */
     public enum UiPaintMode {
         OVERLAP,
         NORMAL        
     }
     
+    /**
+     * Enum pre rozne typ UIcka
+     */
     public enum UiType {
         BUTTON,
         PANEL,
@@ -56,6 +73,9 @@ public class UiResource extends AbstractResource<UiResource> {
         BAR
     }
 
+    /**
+     * Enum pre rozne pozicie UI-cka.
+     */
     public enum UiPosition {
         CENTER(GridBagConstraints.CENTER),
         RIGHT(GridBagConstraints.EAST),
@@ -80,6 +100,9 @@ public class UiResource extends AbstractResource<UiResource> {
         
     }
     
+    /**
+     * Interface pre rozne typy vyplni komponent v inej komponente
+     */
     public interface FillType {
         public static final int NONE = GridBagConstraints.NONE;
         public static final int HORIZONTAL = GridBagConstraints.HORIZONTAL;
@@ -87,6 +110,9 @@ public class UiResource extends AbstractResource<UiResource> {
         public static final int BOTH = GridBagConstraints.BOTH;
     }
     
+    /**
+     * Enum pre rozne typy layoutu.
+     */
     public enum LayoutType {
         GRIDBAGSWING,
         FLOWSWING,
@@ -95,18 +121,25 @@ public class UiResource extends AbstractResource<UiResource> {
         INGAME        
     }        
     
+    /**
+     * Enum pre rozne typy kliknuti.
+     */
     public enum ClickType {
             onListElement,
             onDefault
     }        
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(UiResource.class.getName());
+    // Vsetky definovane ui resource.
     private static HashMap<String, UiResource> uiResources = new HashMap<>();
     
     private String id;    
     private String bImageId;
     private String bImagew;
     private String bImageh;
+    private String soundId;
     private String w=UiSize.BLANK,h=UiSize.BLANK,mw=UiSize.BLANK,mh =UiSize.BLANK;
     private int hGap;
     private int vGap;
@@ -126,11 +159,15 @@ public class UiResource extends AbstractResource<UiResource> {
     private UiPosition imagePosition;
     private UiPaintMode mode;
     private AbstractType type;
+    // </editor-fold>    
     
-    public static UiResource getResource(String name) {
-        return uiResources.get(name);
-    }    
-    
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Konstruktor (privatny) ktory vytvori instanciu UiResource z xml suboru.
+     * Prvy element ktory parsujeme/prechadzame je zadany v parametri <b>elem</b>.
+     * Po rozparsovani zvalidujeme ui-cko a vlozime ho k ostatnym.
+     * @param elem Xml element z ktoreho vytvarame resource
+     */
     private UiResource(Element elem) {        
         this.visible = true;
         parse(elem);           
@@ -138,6 +175,15 @@ public class UiResource extends AbstractResource<UiResource> {
         uiResources.put(id, this);
     }
     
+    /**
+     * Konstruktor (privatny) ktory vytvori instanciu UiResource z xml suboru.
+     * Prvy element ktory parsujeme/prechadzame je zadany v parametri <b>elem</b>.
+     * Po rozparsovani zvalidujeme ui-cko a vlozime ho k ostatnym. Parameter <b>parent</b>
+     * sluzi ako otcovske uiResource pre toto resource. Pri prvom parsovani to je null
+     * pri hlbsom parsovani to je to predchadzajuce resource
+     * @param elem Xml element z ktoreho vytvarame resource
+     * @param parent Meno UiResource ktory vystupuje ako rodicovske ui
+     */
     private UiResource(Element elem, String parent) {
         this.parent = parent;
         this.visible = true;
@@ -145,59 +191,39 @@ public class UiResource extends AbstractResource<UiResource> {
         validate();
         uiResources.put(id, this);
     }
+    // </editor-fold>        
     
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
     /**
-     * Metoda validate overi ci je resource korektny otestovanim urcitych podmienok.
-     * Dolezite vlastnosti su id, typ layoutu, typ, mod prekreslovania.
+     * Metoda ktora vytvori novy objekt typu UiResource. Kedze je staticka a public
+     * tak sa tymto padom stava jediny sposob ako vytvorit instanciu UiResource.
+     * @param elem Element z ktoreho vytvarame ui-cko
+     * @return UiResource z daneeho elementu
      */
-    private void validate() {
-        if (mode == null) {
-            this.mode = UiPaintMode.NORMAL;
-        }
-        if (id == null) {
-            LOG.log(Level.SEVERE, StringResource.getResource("_ndid"));
-            new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndid"),
-                    null).renderSpecific("Missing ID");
-        }
-        if (w == null) w = "0";        
-        if (h == null) h = "0";
-        
-        if (type == null) {
-            String[] param = new String[] {id};
-            LOG.log(Level.SEVERE, StringResource.getResource("_ndtype",param));
-            new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndtype"),
-                    param).renderSpecific("Missing TYPE");
-        }        
-        
-        if (type.getUiType() == UiType.LIST) {
-            String[] param = new String[] {id};
-            ListType lt = (ListType) type;
-            if (lt.getElements() != null) {
-                switch (lt.getElements().size()) {
-                    // Ziadny element, list bude prazdny
-                    case 0 : LOG.log(Level.INFO, StringResource.getResource("_blist", param));
-                        break;
-                    // spravna vetva
-                    case 1 : break;
-                    // Prilis vela elementov v liste, bude pouzity iba jeden
-                    default : LOG.log(Level.INFO, StringResource.getResource("_mlist"));                        
-                }
-            } else {
-                LOG.log(Level.INFO, StringResource.getResource("_blist", param));
-            } 
-        }
-        
-        if (type.getLayoutType() == null) {
-            LOG.log(Level.INFO, StringResource.getResource("_mltype", new String[]{id}));
-            type.setLayoutType(LayoutType.INGAME);
-        }
-        
-    }
-    
     public static UiResource newBundledResource(Element elem) {
         return new UiResource(elem);                
     }  
     
+    /**
+     * Metoda ktora vrati UiResource podla parametru <b>name</b>. Name
+     * je id v xml.
+     * @param name Meno UiResource ktore hladame
+     * @return UiResource s danym menom
+     */
+    public static UiResource getResource(String name) {
+        return uiResources.get(name);
+    }    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Parsovanie ">
+    /**
+     * Metoda ktora rozparsuvava xml subor takym sposobom ze dostava ako parameter <b>elem</b>
+     * co je jeden elem z xml suboru aj so vsetkymi jeho podelementami. Ulohou je prejst vsetky
+     * tieto podelementy a podla mien tychto podelemntov vykonat definovane akcie.
+     * (RecipeXML.LAYOUT -> zavolame rekurzivne metodu parse na aktualny element aby sme ziskali
+     * informacie o layoutu ktore su v podelementoch.)
+     * @param elem Element z xml ktory rozparsovavame do UiResource
+     */
     @Override
     protected void parse(Element elem) {
         NodeList nl = elem.getChildNodes(); 
@@ -241,6 +267,9 @@ public class UiResource extends AbstractResource<UiResource> {
                             new String[] {id, ex.getMessage()}));
                     type.setTopColor(Colors.getColor(Colors.Black));
                 }
+                } break;
+                case LayoutXML.SOUND : {
+                    this.soundId = eNode.getTextContent();
                 } break;
                 case LayoutXML.BACKGROUNDIMAGE : {
                     bImageId = eNode.getTextContent();
@@ -668,35 +697,9 @@ public class UiResource extends AbstractResource<UiResource> {
             }
         }
     }
-    
-    /**
-     * Metoda copy ma za ulohu skopirovat vsetky udaje z UiResource zadaneho parametrom
-     * res, okrem udaju id ktory je unikatny. Pre <b>gc</b> -> GridBagConstraint a <b>elements</b> -> ArrayList vyuzivame
-     * metody clone.
-     * Z praktickeho hladiska sa tato metoda vyuziva vzdy pri narazeni na tag <template>
-     * z layout.xml
-     * @param res
-     * @throws Exception 
-     */
-    @Override
-    protected void copy(UiResource res) throws Exception {
-        this.type = (AbstractType)res.type.clone();   
-        this.mode = res.mode;
-        if (res.mouseActions != null) {
-            this.mouseActions = new ArrayList(res.mouseActions.size());
-            for (Action action : res.mouseActions) {
-                this.mouseActions.add(new Action(action));
-            }
-        }
-        this.bImageId = res.bImageId;
-        this.bImagew = res.bImagew;
-        this.bImageh = res.bImageh;
-        this.w = res.w;
-        this.h = res.h;        
-        this.iOrientation = res.iOrientation;        
-        this.active = res.active;
-    }
-    
+    // </editor-fold>
+        
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     /**
      * Metoda vrati id resource.
      * @return Id resource
@@ -704,10 +707,18 @@ public class UiResource extends AbstractResource<UiResource> {
     public String getId() {
         return id;        
     }
+
+    /**
+     * Metoda vrati id zvuku na prehranie pri menu
+     * @return Id zvuku
+     */
+    public String getSoundId() {
+        return soundId;
+    }
     
     /**
      * Metoda getTextureId nam vrati textovy retazec s id-ckom obrazku.
-     * @return 
+     * @return Text s obrazkom pozadia
      */
     public String getBackgroundTextureId() {
         return bImageId;
@@ -882,7 +893,7 @@ public class UiResource extends AbstractResource<UiResource> {
     /**
      * Metoda ktora vrati do ktorej strany je zarovnana komponenta. Zatial nepouzite.
      * Pouzitie pri definovani FlowLayoutu.
-     * @return 
+     * @return Ako sa bude komponenta pripojovat.
      */
     public int getAlign() {
         return align;
@@ -961,7 +972,7 @@ public class UiResource extends AbstractResource<UiResource> {
     /**
      * Metoda ktora vrati akcie pri stlaceni klaves.
      * @return ArrayList s akciami pre klavesove eventy.
-     * @return 
+     * @return Klavesnicove akcie
      */
     public ArrayList<Action> getKeyActions() {
         return keyActions;
@@ -984,6 +995,9 @@ public class UiResource extends AbstractResource<UiResource> {
         return visible;
     }
     
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Staticke metody ">
     /**
      * Metoda ktora nastavi pozicie komponenty z tagu position
      * @param eNode Vrchol typu position
@@ -998,6 +1012,9 @@ public class UiResource extends AbstractResource<UiResource> {
             transPosY = Integer.parseInt(element.getAttribute(LayoutXML.Y));
         }
     }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Pomocne metody ">
     
     /**
      * Metoda toString vrati text s vypisom/zakladnymi informaciami o tomto resource.
@@ -1008,4 +1025,81 @@ public class UiResource extends AbstractResource<UiResource> {
     public String toString() {
         return this.getClass().getName() + ":" + id;
     }
+    
+    /**
+     * Metoda copy ma za ulohu skopirovat vsetky udaje z UiResource zadaneho parametrom
+     * res, okrem udaju id ktory je unikatny. Pre <b>gc</b> -> GridBagConstraint a <b>elements</b> -> ArrayList vyuzivame
+     * metody clone.
+     * Z praktickeho hladiska sa tato metoda vyuziva vzdy pri narazeni na tag <template>
+     * z layout.xml
+     * @param res
+     * @throws Exception 
+     */
+    @Override
+    protected void copy(UiResource res) throws Exception {
+        this.type = (AbstractType)res.type.clone();   
+        this.mode = res.mode;
+        if (res.mouseActions != null) {
+            this.mouseActions = new ArrayList(res.mouseActions.size());
+            for (Action action : res.mouseActions) {
+                this.mouseActions.add(new Action(action));
+            }
+        }
+        this.bImageId = res.bImageId;
+        this.bImagew = res.bImagew;
+        this.bImageh = res.bImageh;
+        this.w = res.w;
+        this.h = res.h;        
+        this.iOrientation = res.iOrientation;        
+        this.active = res.active;
+    }
+    
+    /**
+     * Metoda validate overi ci je resource korektny otestovanim urcitych podmienok.
+     * Dolezite vlastnosti su id, typ layoutu, typ, mod prekreslovania.
+     */
+    private void validate() {
+        if (mode == null) {
+            this.mode = UiPaintMode.NORMAL;
+        }
+        if (id == null) {
+            LOG.log(Level.SEVERE, StringResource.getResource("_ndid"));
+            new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndid"),
+                    null).renderSpecific("Missing ID");
+        }
+        if (w == null) w = "0";        
+        if (h == null) h = "0";
+        
+        if (type == null) {
+            String[] param = new String[] {id};
+            LOG.log(Level.SEVERE, StringResource.getResource("_ndtype",param));
+            new MultiTypeWrn(null, Color.red, StringResource.getResource("_ndtype"),
+                    param).renderSpecific("Missing TYPE");
+        }        
+        
+        if (type.getUiType() == UiType.LIST) {
+            String[] param = new String[] {id};
+            ListType lt = (ListType) type;
+            if (lt.getElements() != null) {
+                switch (lt.getElements().size()) {
+                    // Ziadny element, list bude prazdny
+                    case 0 : LOG.log(Level.INFO, StringResource.getResource("_blist", param));
+                        break;
+                    // spravna vetva
+                    case 1 : break;
+                    // Prilis vela elementov v liste, bude pouzity iba jeden
+                    default : LOG.log(Level.INFO, StringResource.getResource("_mlist"));                        
+                }
+            } else {
+                LOG.log(Level.INFO, StringResource.getResource("_blist", param));
+            } 
+        }
+        
+        if (type.getLayoutType() == null) {
+            LOG.log(Level.INFO, StringResource.getResource("_mltype", new String[]{id}));
+            type.setLayoutType(LayoutType.INGAME);
+        }
+        
+    }
+    // </editor-fold>
 }

@@ -7,14 +7,11 @@ package rpgcraft.map.generators;
 import java.awt.Color;
 import rpgcraft.plugins.GeneratorPlugin;
 import java.util.ArrayList;
-import java.util.HashMap;
 import rpgcraft.errors.MultiTypeWrn;
+import rpgcraft.map.SaveMap;
 import rpgcraft.map.chunks.ChunkContent;
-import rpgcraft.map.tiles.DefaultTiles;
-import rpgcraft.map.tiles.LoadedTiles;
 import rpgcraft.map.tiles.Tile;
 import rpgcraft.resource.StringResource;
-import rpgcraft.xml.TilesXML;
 
 /**
  * Trieda MapGenerator ako sucast tvorby terenu je zakladna trieda ktora je volana pri tvorbe terenu.
@@ -28,6 +25,8 @@ public class MapGenerator {
     // List s generatormi podla ktorych vytvarame mapu.
     public static ArrayList<GeneratorPlugin> generators;
     
+    // X-ove a Y-ove pozicie chunku
+    private int x, y;
     // Hlbka so sirkou mapy aku vytvarame.
     private int depth, size;
                 
@@ -39,10 +38,14 @@ public class MapGenerator {
      * nam umoznuje vytvorit nove kusy mapy do hry. 
      * @param size Sirka Chunku na vytvorenie ({@linkplain rpgcraft.map.chunks.Chunk#CHUNK_SIZE})
      * @param depth Hlbka Chunku na vytvorenie ({@linkplain rpgcraft.map.chunks.Chunk#DEPTH})
+     * @param x X-ova pozicia generovaneho chunku
+     * @param y Y-ova pozicia generovaneho chunku
      */
-    public MapGenerator(int size, int depth) {
+    public MapGenerator(int size, int depth, int x, int y) {
         this.depth = depth;
         this.size = size;
+        this.x = x;
+        this.y = y;
         mapArray = new int[depth][size][size];
         metaArray = new int[depth][size][size];
     }                
@@ -72,8 +75,7 @@ public class MapGenerator {
     public void setMeta(int z, int x, int y, int value) {
         metaArray[z][x][y] = value;     
     }
-    
-    
+        
     /**
      * Metoda getTile vrati hodnotu dlazdice na suradniciach zadanych parametrmi.
      * @param z Hlbka kde je dlazdica
@@ -113,25 +115,40 @@ public class MapGenerator {
     }
     
     /**
+     * Metoda ktora navrati X-ovu poziciu chunku vo svete
+     * @return X-ova pozicia chunku
+     */
+    public int getChunkX() {
+        return x;
+    }
+    
+    /**
+     * Metoda ktora navrati Y-ovu poziciu chunku vo svete
+     * @return Y-ova pozicia chunku
+     */
+    public int getChunkY() {
+        return y;
+    }
+    
+    /**
      * Metoda generate ktora generuje mapu podla zadanych generatorov definovanych 
      * v statickej premennej <b>generators</b>. Ked je null tak zavola default generator a jeho metodu generate
      * kde ako parameter posielame instanciu MapGenerator (spristupnujeme metody MapGenerator). Generator prepise mapu
      * podla jej metod. Ked je v premennej <b>generators</b> viacero generatorov, tak postupne
      * zavola metodu generate kazdeho generatoru.
+     * @param map Mapa do ktorej vygenerujeme novy chunk
      * @return Vygenerovana mapa ulozena v objekte ChunkContent
      * @see GeneratorPlugin
      * @see DefaultGenerator
      */
-    public ChunkContent generate() {
+    public ChunkContent generate(SaveMap map) {
         try {
-            if (generators == null) {
-                GeneratorPlugin gen = new DefaultGenerator();
-                gen.generate(this);
-                return new ChunkContent(mapArray, metaArray);
-            }
-
-            for (GeneratorPlugin g : generators) {
-                g.generate(this);
+            GeneratorPlugin gen = new DefaultGenerator();
+            gen.generate(this, map);
+            if (generators != null) {                
+                for (GeneratorPlugin g : generators) {
+                    g.generate(this, map);
+                }
             }
         } catch (Exception e) {
             new MultiTypeWrn(e, Color.red, StringResource.getResource("_mapgenerror"),
@@ -141,6 +158,10 @@ public class MapGenerator {
         return new ChunkContent(mapArray, metaArray);        
     }        
     
+    /**
+     * Metoda ktora prida do listu generatorov novy zadany v parametri <b>gen</b>
+     * @param gen Novy generator podla ktoreho budeme vytvarat mapu.
+     */
     public static void addGenerator(GeneratorPlugin gen) {
         if (generators == null) {
             generators = new ArrayList<>();                    
@@ -148,6 +169,10 @@ public class MapGenerator {
         generators.add(gen);
     }
     
+    /**
+     * Metoda ktora vrati vsetky aktivne generatory
+     * @return List s generatormi.
+     */
     public static ArrayList<GeneratorPlugin> getGenerators() {
         return generators;
     }

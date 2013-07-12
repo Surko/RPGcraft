@@ -9,30 +9,29 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.plugins.AbstractMenu;
+import rpgcraft.plugins.Listener;
 import rpgcraft.panels.components.Component;
 import rpgcraft.panels.components.Container;
-import rpgcraft.panels.components.Cursor;
 import rpgcraft.panels.components.swing.SwingImageList;
-import rpgcraft.resource.AbstractResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.utils.DataUtils;
 
 /**
- *
- * @author kirrie
+ * Trieda dediaca od Listeneru je dalsi typ listeneru mozny vygenerovat v ListenerFactory,
+ * ktory ma za ulohu vykonavat Component akcie => akcie ktore su vseobecne pre ovladanie komponent v hre.
  */
 public class ComponentListener extends Listener {
     
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     private static final Logger LOG = Logger.getLogger(ComponentListener.class.getName());
     
-    public static final String MAINCONTAINER = "MAINCONTAINER";
-
-    @Override
-    public String getName() {
-        return ListenerFactory.Commands.COMPOP.toString();
-    }
+    public static final String MAINCONTAINER = "MAINCONTAINER";   
     
+    /**
+     * Enum s moznymi operaciami v tomto listenery. V metode actionPerform sa
+     * podla tychto operacii vykonavaju prislusne metody
+     */
     public enum Operations {
         SET_VISIBLE,
         SET_INVISIBLE,
@@ -62,7 +61,15 @@ public class ComponentListener extends Listener {
     
     Operations op;
 
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Vytvorenie instancie listeneru pomocou textu zadaneho v parametri <b>data</b>.
+     * Konstruktor rozparsuje text, urci operaciu aka sa bude vykonavat a parametre
+     * pre tuto operaciu pomocou metody setParams
+     * @param op Text s funkciou ktoru vykonavame
+     */
     public ComponentListener(String op) {                       
         int fstBracket = op.indexOf('(');
         
@@ -79,8 +86,13 @@ public class ComponentListener extends Listener {
             setParams(params.substring(1, params.length() - 1));        
         }
     }
+    // </editor-fold>
 
-    
+    // <editor-fold defaultstate="collapsed" desc=" Vykonavanie + pomocne metody ">
+    /**
+     * {@inheritDoc }
+     * @param e {@inheritDoc }
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);                
@@ -197,15 +209,15 @@ public class ComponentListener extends Listener {
                                 if (src.getParentContainer() == parent) {
                                     return;
                                 }                        
-                                parent.addContainer(src);                        
+                                parent.addChild(src);                        
                                 menu.ugChange(true);
 
                             } else {
                                 src = DataUtils.getComponentFromResource(resource, menu,
                                     null, parent);                            
-                                parent.addChildComponent(src);
+                                parent.addChild(src);                                
                                 menu.addContainer(src);
-
+                                menu.ugChange(true);
                             }
                         }
                     } else {
@@ -480,9 +492,16 @@ public class ComponentListener extends Listener {
                     new String[] {op.toString(), ""}), null).renderSpecific("_label_listenererror");
         }
     }
-    
-    
-    
-    
-    
+    // </editor-fold>  
+        
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
+    /**
+     * {@inheritDoc }
+     * @return Meno listeneru
+     */
+    @Override
+    public String getName() {
+        return ListenerFactory.Commands.COMPOP.toString();
+    }    
+    // </editor-fold>
 }

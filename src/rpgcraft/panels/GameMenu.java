@@ -20,6 +20,7 @@ import rpgcraft.errors.MultiTypeWrn;
 import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.ui.menu.CharInfo;
 import rpgcraft.graphics.ui.menu.ConversationPanel;
+import rpgcraft.graphics.ui.menu.EndMenu;
 import rpgcraft.graphics.ui.menu.InventoryMenu;
 import rpgcraft.graphics.ui.menu.Journal;
 import rpgcraft.handlers.InputHandle;
@@ -27,16 +28,17 @@ import rpgcraft.manager.PathManager;
 import rpgcraft.map.Save;
 import rpgcraft.map.SaveMap;
 import rpgcraft.map.tiles.Tile;
-import rpgcraft.panels.components.Container;
 import rpgcraft.resource.EntityResource;
 import rpgcraft.resource.StringResource;
 import rpgcraft.resource.UiResource;
 import rpgcraft.utils.MainUtils;
-import rpgcraft.utils.ImageUtils;
 
 /**
- *
- * @author Surko
+ * Menu pre hru dediace od AbstractMenu. Vacsina metod zabezpecuje abstraktna trieda AbstractMenu.
+ * Najdolezitejsie kusy kodu su v konstruktore, ktory prida intro do definovanych menu, a v inputHandling
+ * ktory spracovava vstup uzivatela vzhladom na toto menu. Kedze toto menu je zaklad
+ * pre celu hru tak sa menu stara o nacitanie/vytvaranie/vykreslovanie/aktualizovanie map.
+ * @author Kirrie
  */
 public class GameMenu extends AbstractMenu implements Runnable {
 
@@ -54,6 +56,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
     
     public static final int PAINTING_TYPE = PaintingTypes.PAINTING_INSIDE_REPAINT;   
     private static final Logger LOG = Logger.getLogger(GameMenu.class.getName());
+    private static final String GAMEMENU = "gameMenu";
     
     // Objekt pre hraca typu Player zdedeny po Entite    
     public MovingEntity player;
@@ -127,7 +130,7 @@ public class GameMenu extends AbstractMenu implements Runnable {
     /**
      * Metoda vrati nazov tohoto menu. Pod tymto nazvom je toto menu ulozene v 
      * hashmape <b>menuMap</b>
-     * @return 
+     * @return Meno pre menu
      */
     @Override
     public String getName() {
@@ -160,6 +163,14 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return screenImage.getHeight(null);
     }
     
+    /**
+     * Metoda ktora vrati aktivny save z tohoto menu.
+     * @return Aktivny save v tomto menu
+     */
+    public Save getSave() {
+        return save;
+    }   
+    
     // </editor-fold>     
     
     // <editor-fold defaultstate="collapsed" desc=" Settery ">
@@ -190,6 +201,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         setWidthHeight(gamePane.getWidth(), gamePane.getHeight());
     }
     
+    /**
+     * Metoda ktora nacita ulozenu poziciu z disku podla mena zadaneho parametrom
+     * <b>saveName</b>. Z nacitanych dat vytvorime instanciu Save z ktorej ziskame
+     * nacitanu mapu ktora je pripravena na zobrazovaniei a interagovanie
+     * @param saveName Meno pozicie ktoru nacitavame.
+     */
     public synchronized void loadMapInstance(String saveName) {                 
         
         if (!gamePane.hasXmlInitialized()) {                         
@@ -227,6 +244,11 @@ public class GameMenu extends AbstractMenu implements Runnable {
         
     }
     
+    /**
+     * Metoda ktora nastavi vnutorne menu v tomto GameMenu. Vnutorne menu je zadane v parametri
+     * a na zobrazenie ho je treba zresetovat/zviditelnit/aktivovat volanim metod.
+     * @param inMenu InMenu ktore chceme zobrazit
+     */
     @Override
     public void setInMenu(AbstractInMenu inMenu) {        
         /*
@@ -236,16 +258,24 @@ public class GameMenu extends AbstractMenu implements Runnable {
         this.menu = menu;
         jammedMenu = 10;                
         }*/
-        MainUtils.stopped = false;
-        this.inMenu = inMenu;        
+        MainUtils.stopped = false;             
         if (inMenu != null) {
             MainUtils.stopped = true;
-            inMenu.activate();            
-            inMenu.setVisible(true);
             inMenu.recalculatePositions();
+            inMenu.activate();            
+            inMenu.setVisible(true);            
         }    
-    }
+        this.inMenu = inMenu;   
+    }    
     
+    /**
+     * Metoda ktora zobrazi menu, ktore si ziskame metodou getMenu podla mena <b>sMenu</b>.
+     * Po ziskani menu vytvorime novu instanciu podla nasich potrieb. Ked je menu null
+     * tak nic nezobrazime
+     * @param sMenu Text menu ktore chceme zobrazit
+     * @param e1 Entita pre ktoru zobrazujeme menu
+     * @param e2 Entita s ktorou zdielame menu
+     */
     public void showInMenu(String sMenu, Entity e1, Entity e2) {
         AbstractInMenu menu = AbstractInMenu.getMenu(sMenu);
         if (menu == null) {                        
@@ -257,8 +287,21 @@ public class GameMenu extends AbstractMenu implements Runnable {
         } else {
             setInMenu(menu.newInstance(e1, e2));
         }        
-    }
+    }       
     
+    /**
+     * Metoda ktora zobrazi menu. Najprv skusi vybrat menu podla textu <b>sMenu</b>. Ked sa to nepodari
+     * tak bude chcet zobrazit menu ktoreho typ ziskame z parametru <b>newClass</b>, co je zadana trieda
+     * Menu ziskame volanim newInstance na tuto triedu a volanim reinitialize nastavime
+     * toto menu podla urcitych konvencii. Po zinicializovani zavolame na toto menu
+     * este raz metodu newInstance s parametrami ktora vytvori a zinicializuje toto menu
+     * podla nasich potrieb.
+     * @param newClass Trieda podla ktorej vytvarame menu
+     * @param sMenu Text ako sa vola menu
+     * @param e1 Entita pre ktoru zobrazujeme menu
+     * @param e2 Entita s ktorou zdielame menu
+     * @return AbstractInMenu podla typu.
+     */
     public AbstractInMenu showMenu(Class<? extends AbstractInMenu> newClass, String sMenu, Entity e1, Entity e2) {
         AbstractInMenu menu = AbstractInMenu.getMenu(sMenu);
         if (menu == null) {                        
@@ -285,6 +328,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         
     }
     
+    /**
+     * Metoda ktora zobrazi zurnal entity zadanej parametrom.
+     * Na vytvorenie zurnalu treba zavolat newInstance na existujuci zurnal
+     * ktory vytvorime kontruktorom.     
+     * @return Zurnal
+     */
     public Journal showJournal() {
         Journal journal = (Journal)Journal.getJournalMenu();
         if (journal == null) {
@@ -295,6 +344,30 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return journal;
     }
     
+     /**
+     * Metoda ktora zobrazi end menu entity zadanej parametrom.
+     * Na vytvorenie takehoto menu treba zavolat newInstance na existujuce end menu
+     * ktory vytvorime kontruktorom.
+     * @param e Entita pre ktoru panel zobrazujeme (Player)    
+     * @return EndMenu
+     */
+    public EndMenu showEndMenu(Entity e) {
+        EndMenu endMenu = (EndMenu)EndMenu.getEndMenu();
+        if (endMenu == null) {
+            endMenu = new EndMenu(player, input, this);
+        }                
+        endMenu = (EndMenu)endMenu.newInstance(player, null);
+        setInMenu(endMenu);  
+        return endMenu;        
+    }
+    
+    /**
+     * Metoda ktora zobrazi charakterovy panel entity zadanej parametrom.
+     * Na vytvorenie charakteroveho panelu treba zavolat newInstance na existujuci panel
+     * ktory vytvorime kontruktorom.
+     * @param e Entita pre ktoru panel zobrazujeme (Player)    
+     * @return Charakterovy panel
+     */
     public CharInfo showInfo(Entity e) {
         CharInfo info = (CharInfo)CharInfo.getCharacterMenu();
         if (info == null) {
@@ -312,6 +385,13 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return info;
     }
     
+    /**
+     * Metoda ktora zobrazi inventar entity zadanej parametrom.
+     * Na vytvorenie inventaru treba zavolat newInstance na existujuci inventar
+     * ktory vytvorime kontruktorom.
+     * @param e Entita pre ktoru panel zobrazujeme (Player)    
+     * @return Inventar
+     */
     public InventoryMenu showInventory(Entity e) {
         InventoryMenu inventory = InventoryMenu.getInventoryMenu();
         if (inventory == null) {
@@ -329,6 +409,13 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return inventory;
     }
     
+     /**
+     * Metoda ktora zobrazi charakterovy panel entity zadanej parametrom.
+     * Na vytvorenie charakteroveho panelu treba zavolat newInstance na existujuci panel
+     * ktory vytvorime kontruktorom.
+     * @param e Entita pre ktoru panel zobrazujeme (Player)    
+     * @return Charakterovy panel
+     */
     public CharInfo showCharacter(Entity e) {                
         CharInfo charInfo = CharInfo.getCharacterMenu();
         
@@ -347,6 +434,14 @@ public class GameMenu extends AbstractMenu implements Runnable {
         return charInfo;
     }
     
+    /**
+     * Metoda ktora zobrazi konverzacny panel medzi entitami zadanymi parametrami.
+     * Na vytvorenie konverzacneho panelu treba zavolat newInstance na existujucu konverzaciu
+     * ktoru vytvorime kontruktorom.
+     * @param e1 Entita ktora sa rozprava (Player)
+     * @param e2 Entita s ktorou sa rozpravame
+     * @return Konverzacny panel
+     */
     public ConversationPanel showConversation(Entity e1, Entity e2) {                
         ConversationPanel conversation = ConversationPanel.getConversationPanel();
         
@@ -366,8 +461,9 @@ public class GameMenu extends AbstractMenu implements Runnable {
     }
     
     /**
-     * Tato metoda zatial zdruzuje aj funkcie nacitania mapy aj vytvorenie novej mapy.
-     * Obidve funkcie sucasne su vylucitelne. Preto prepinam vzdy iba jednu.
+     * Tato metoda vytvara novu instanciu Save a SaveMap. Meno ulozenej pozicie je dane
+     * parametrom <b>saveName</b>. Metoda vytvori instancie Save aj SaveMap a nasledne donich prida
+     * hraca. Po nacitani hraca aktualizujeme okolie v mape podla tohoto hraca.
      */
     public synchronized boolean newMapInstance(String saveName) {             
         
@@ -404,22 +500,12 @@ public class GameMenu extends AbstractMenu implements Runnable {
         _player.setLightRadius(6);
         _player.setSound(128);
         _player.addQuest("fetch");        
-        player = _player;
-        // Testovacie riadky na vytvorenie dvoch entit. Tieto prikazy mozu byt v samostatnej metode na inicializaciu. Napriklad pri update
-        // a kontrolovanie ci uz bolo inicializovane. v load map instance taketo prikazy niesu a preto vzdy budu initialized na true pri load.
-        MovingEntity entity = new MovingEntity("Zombie", _saveMap, EntityResource.getResource("Zombie"));        
-        entity.initialize();        
-        entity.trySpawn(player, 64);
-        MovingEntity entity2 = new MovingEntity("Zombie", _saveMap, EntityResource.getResource("Zombie"));        
-        entity2.initialize();         
-        entity2.trySpawn(player, 64);        
-                
+        player = _player;             
         // Nacitanie mapy okolo hraca
         _saveMap.loadMapAround(player); 
         //player.setImpassableTile(1);
         
-        Item item = Item.createItem("Healing Potion",EntityResource.getResource("healing1"));
-        Item item2 = Item.createItem("Healing Potion", EntityResource.getResource("healing1"));                
+        Item item = Item.createItem("Healing Potion",EntityResource.getResource("healing1"));                 
         player.addItem(item);
         player.addItem(item);
         player.addItem(item);
@@ -441,14 +527,20 @@ public class GameMenu extends AbstractMenu implements Runnable {
     }
     // </editor-fold>
     
-    // <editor-fold defaultstate="collapsed" desc=" Update metody ">
+    // <editor-fold defaultstate="collapsed" desc=" Update metody ">              
     
-    @Override
-    public void initialize(Container gameContainer, InputHandle input) {
-        super.initialize(gameContainer, input);
-        menuMap.put("gameMenu",this);        
-    }        
+    /**
+     * Metoda ktora zresetuje aktivny save a save mapu v tomto menu
+     */
+    public void resetSave() {
+        save = null;
+        saveMap = null;
+    }
     
+    /**
+     * Metoda ktora reaguje na vstup podla toho co je stlacene. Ked existuje inMenu
+     * tak aktualizujeme iba inMenu.
+     */
     @Override
     public void inputHandling() {
         super.inputHandling();        
@@ -458,28 +550,32 @@ public class GameMenu extends AbstractMenu implements Runnable {
         } else {        
             save.inputHandling();
             
-            if (input.clickedKeys.contains(input.inventory.getKeyCode())) {
-                showInventory(player);
-            }
-            
-            if (input.clickedKeys.contains(input.quest.getKeyCode())) {
-                showJournal();
-            }
-            
-            if (input.clickedKeys.contains(input.character.getKeyCode())) {
-                showInfo(player);
-            }
+            if (MainUtils.DEFAULTMENU) {
+                if (input.clickedKeys.contains(InputHandle.DefinedKey.INVENTORY.getKeyCode())) {
+                    showInventory(player);
+                }
 
-            // Ulozenie hry pri stlaceni ESC
-            if (input.clickedKeys.contains(input.escape.getKeyCode())) {
-                save.saveAndQuit(ImageUtils.makeThumbnailImage(screenImage));            
-                setMenu(AbstractMenu.getMenuByName("mainMenu"));
-                save = null;
-                saveMap = null;
-            } 
+                if (input.clickedKeys.contains(InputHandle.DefinedKey.QUEST.getKeyCode())) {
+                    showJournal();
+                }
+
+                if (input.clickedKeys.contains(InputHandle.DefinedKey.CHARACTER.getKeyCode())) {
+                    showInfo(player);
+                }
+
+                // Ulozenie hry pri stlaceni ESC
+                if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())) {
+                    showEndMenu(player);
+                } 
+            }
         }
     }
         
+    /**
+     * Metoda ktora reaguje na stlacenia mysi. Ked existuje inMenu
+     * tak posielame toto spracovavanie do tohoto inMenu.
+     * @param e MouseEvent ktory spracovava tato metoda
+     */
     @Override
     public void mouseHandling(MouseEvent e) {
         if (inMenu != null) {
@@ -487,13 +583,20 @@ public class GameMenu extends AbstractMenu implements Runnable {
         }
     }
     
+    /**
+     * Synchronizovana metoda updatektora zavola aktualizovanie rodicovskeho menu.
+     * Ked existuje InMenu v tomto menu tak aktualizuje iba toto vnutorne menu.
+     * V druhom pripade aktualizujeme mapu s entitami atd...
+     */
     @Override
     public synchronized void update() {
         super.update();        
          if (inMenu != null) {
             inMenu.update();
         } else {
-            saveMap.update();               
+             if (saveMap != null) {
+                 saveMap.update();      
+             }
         }
         
         hasToRepaint = true;
@@ -515,6 +618,9 @@ public class GameMenu extends AbstractMenu implements Runnable {
 
             if (saveMap != null) {
                 saveMap.paint(dbg);
+                if (inMenu != null) {
+                    inMenu.paintMenu(screenImage.getGraphics());
+                }
             }
 
             //changedGr = false;

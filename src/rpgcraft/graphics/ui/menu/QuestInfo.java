@@ -8,31 +8,48 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import rpgcraft.entities.Entity;
 import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.quests.Quest;
+import rpgcraft.resource.StringResource;
+import rpgcraft.utils.Pair;
 import rpgcraft.utils.TextUtils;
 
 /**
- *
- * @author kirrie
+ * QuestInfo je trieda ktora sa stara o vytvorenie a zobrazenie submenu quest infa.
+ * Trieda dedi od AbstractInMenu cim sme donuteni implementovat zakladne 
+ * abstraktne metody z AbstractInMenu.
  */
 public class QuestInfo extends AbstractInMenu {
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    private static final char LOCALPREFIX = '@';
     private static final int wGap = 5, hGap = 5;   
     
     private int width = 300;
     private int height = 300;
     
     private Quest quest;
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Privatny konstruktor pre vytvorenie infa.
+     */
     public QuestInfo() {
         super(null, null);
     }
     
+    /**
+     * Konstruktor pre vytvorenie QuestInfa. Volame metodu setGraphics pre vytvoreni
+     * obrazku toDraw.
+     * @param source Zdrojove menu z ktoreho bolo vyvolane toto menu
+     * @param quest Quest ktory zobrazujeme v infe
+     * @param x X-ova pozicia infa
+     * @param y Y-ova pozicia infa
+     */
     public QuestInfo(AbstractInMenu source,Quest quest, int x, int y) {
         super(source.getEntity(), source.getInput());
         this.sourceMenu = source;
@@ -42,7 +59,9 @@ public class QuestInfo extends AbstractInMenu {
         setGraphics();        
         this.changedState = true;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Inicializacie ">
     /**
      * Metoda ktora by mala initializovat menu s novymi udajmi
      * ale pre subtypy tato metoda straca zmysel kedze kazde nadtyp menu si vytvara
@@ -53,14 +72,51 @@ public class QuestInfo extends AbstractInMenu {
         this.toDraw = origMenu.getDrawImage();               
         return this;
     }
+    // </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" Update metody ">  
+    /**
+     * Metoda ktora rekalkuluje pozicie infa v paneli. Kedze je v lavom hornom rohu vedla
+     * journal menu tak nemenime pozicie
+     */
     @Override
     public void recalculatePositions() {
         
     }
-
+    
+    /**
+     * Metoda ktora aktualizuje info. Kedze QuestInfo je nacitany jeden quest
+     * a neda sa v tomto menu nic robit tak je metoda prazdna.
+     */    
     @Override
-    protected void setGraphics() {
+    public void update() {
+        
+    }
+    
+    /**
+     * Metoda ktora spravne ukonci menu. 
+     */
+    @Override
+    public void exit() {
+        if (subMenu != null) {
+            subMenu.exit();
+        }
+        this.visible = false;
+        this.activated = false;
+    }
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Settery ">
+    /**
+     * <i>{@inheritDoc }</i>
+     * <p>
+     * Metoda ktora nastavi/vykresli obrazok toDraw ktory je pre kazde menu rovnake (preto
+     * volame metodu super.setGraphics()). Nakonci zavolame metodu setQuestInfo
+     * ktora vykresli info o queste do grafickeho kontextu (obycajne vytvarame druhy obrazok)
+     * </p>
+     */
+    @Override
+    protected final void setGraphics() {
         super.setGraphics();
         Graphics g = toDraw.getGraphics();
         g.setColor(Color.BLACK);
@@ -80,7 +136,7 @@ public class QuestInfo extends AbstractInMenu {
     private void setQuestInfo(Graphics g) {
         int starty = 0;
         int[] txtSize;
-        ArrayList<String> parsedTexts;
+        ArrayList<Pair<String,Integer>> parsedTexts;
         Font font = TextUtils.DEFAULT_FONT;
         g.setColor(Color.BLACK);      
         
@@ -94,24 +150,49 @@ public class QuestInfo extends AbstractInMenu {
         
         // Vykreslenie hlavneho textu questu
         questText = quest.getText();
-        font = TextUtils.DEFAULT_FONT.deriveFont(Font.ITALIC, 13f);
-        txtSize = TextUtils.getTextSize(font, questText);
-        // Rozparsovanie textu aby sa zmestil do infa.        
-        parsedTexts = TextUtils.parseToSize(getWidth() - 2 *wGap, questText, font);
-        starty += hGap + txtSize[1];        
-        g.setFont(font);
-        for (String s : parsedTexts) {
-            g.drawString(s, wGap , starty);
-            starty += txtSize[1];
+        if (questText != null) {
+            if (questText.charAt(0) == LOCALPREFIX) {
+                questText = StringResource.getResource(questText.substring(1));
+            }
+            font = TextUtils.DEFAULT_FONT.deriveFont(Font.ITALIC, 13f);
+            txtSize = TextUtils.getTextSize(font, questText);
+            // Rozparsovanie textu aby sa zmestil do infa.        
+            parsedTexts = TextUtils.parseToSize(getWidth() - 2 *wGap, questText, font);
+            starty += hGap + txtSize[1];        
+            g.setFont(font);
+            for (Pair<String,Integer> pair : parsedTexts) {
+                g.drawString(pair.getFirst(), wGap , starty);
+                starty += txtSize[1];
+            }
         }
         
+        // Vykreslenie textu z aktualneho stavu questu
+        starty += 2*hGap;
+        questText = quest.getStateText();
+        if (questText != null) {
+            if (questText.charAt(0) == LOCALPREFIX) {
+                questText = StringResource.getResource(questText.substring(1));
+            }
+            font = TextUtils.DEFAULT_FONT.deriveFont(Font.BOLD, 13f);
+            txtSize = TextUtils.getTextSize(font, questText);
+            parsedTexts = TextUtils.parseToSize(getWidth() - 2 *wGap, questText, font);
+            starty += hGap + txtSize[1];        
+            g.setFont(font);
+            for (Pair<String,Integer> pair : parsedTexts) {
+                g.drawString(pair.getFirst(), wGap , starty);
+                starty += txtSize[1];
+            }
+        }
     }
+    // </editor-fold>
 
-    @Override
-    public void update() {
-        
-    }
-
+    // <editor-fold defaultstate="collapsed" desc=" Kresliace metody ">
+    /**
+     * Metoda ktora vykresli toto quest info do grafickeho kontextu zadaneho
+     * v parametri <b>g</b>. Pri viditelnom menu vykreslime obrazok toDraw
+     * a podla aktivovanosti prekryvame oznacenou farbou
+     * @param g Graficky kontext do ktoreho vykreslujeme quest info.
+     */
     @Override
     public void paintMenu(Graphics g) {
         if (visible) {
@@ -123,16 +204,9 @@ public class QuestInfo extends AbstractInMenu {
             }
         }
     }
+    // </editor-fold>        
 
-    @Override
-    public void exit() {
-        if (subMenu != null) {
-            subMenu.exit();
-        }
-        this.visible = false;
-        this.activated = false;
-    }
-
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
     /**
      * {@inheritDoc}
      * @return {@inheritDoc}
@@ -151,24 +225,43 @@ public class QuestInfo extends AbstractInMenu {
         return hGap;
     }
     
+    /**
+     * <i>{@inheritDoc }</i>
+     * @return {@inheritDoc }
+     */
     @Override
     public int getWidth() {
         return width;
     }
 
+    /**
+     * <i>{@inheritDoc }</i>
+     * @return {@inheritDoc }
+     */
     @Override
     public int getHeight() {
         return height;
+    
     }
 
+    /**
+     * <i>{@inheritDoc }</i>
+     * @return {@inheritDoc }
+     */
     @Override
     public String getName() {
         return null;
     }
-
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Handler ">
+    /**
+     * Metoda ktora spracovava vstup z klavesnice. V tomto pripade iba reagujeme na
+     * stlacenie esc ktore ukonci menu.
+     */
     @Override
     public void inputHandling() {
-        if (input.clickedKeys.contains(InputHandle.escape.getKeyCode())) { 
+        if (input.clickedKeys.contains(InputHandle.DefinedKey.ESCAPE.getKeyCode())) { 
             if (sourceMenu != null) {
                 exit();
                 sourceMenu.activate();                                
@@ -177,9 +270,14 @@ public class QuestInfo extends AbstractInMenu {
         }
     }
 
+    /**
+     * Metoda ktora spracovava vstup z mysi. V tomto pripade neimplementovane.
+     * @param e 
+     */
     @Override
     public void mouseHandling(MouseEvent e) {
         
     }
+    // </editor-fold>
     
 }

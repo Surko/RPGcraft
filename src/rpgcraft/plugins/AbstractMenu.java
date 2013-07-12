@@ -21,25 +21,30 @@ import rpgcraft.graphics.ui.menu.Menu;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.panels.components.Container;
 import rpgcraft.resource.ImageResource;
+import rpgcraft.resource.SoundResource;
 import rpgcraft.resource.UiResource;
+import rpgcraft.sound.Sound;
 import rpgcraft.utils.DataUtils;
 import rpgcraft.utils.MainUtils;
 import rpgcraft.utils.MathUtils;
+
+
 
 /**
  * Abstraktna trieda MenuOrig ma za ulohu vytvorit spolocny interface pre vsetky
  * triedy, ktore by chceli vytvorit nove menu. Implementuje interface Menu.
  * Trieda je abstraktna, kedze nechcem aby niekto vytvaral 
- * instancie MenuOrig ale iba potomkov.
- * @author Kirrie
+ * instancie MenuOrig ale iba potomkov. Trieda zdruzuje metody na spravne fungovanie
+ * a zobrazenie menu v hlavnom paneli. Hlavnou metodou je initialize, ktora zinicializuje 
+ * prvky v menu podla UiResource ktory mu zadavame.
  */
-
 public abstract class AbstractMenu implements Menu<AbstractMenu> {         
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     protected static HashMap<String, AbstractMenu> menuMap = new HashMap<>();
         
     protected Container gameContainer;
+    protected Sound sound;
     protected GamePane gamePane;
     protected UiResource res;
     protected InputHandle input;
@@ -57,8 +62,33 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Abstraktne metody ">
-    // ABSTRACT CLASSES        
-    public abstract void setWidthHeight(int w, int h);            
+    // ABSTRACT CLASSES  
+    /**
+     * Metoda nastavuje vysku a sirku pre menu
+     * @param w Sirka pre menu
+     * @param h Vyska pre menu
+     */
+    public abstract void setWidthHeight(int w, int h);
+    
+    /**
+     * Metoda ktora vrati meno tohoto menu. Meno ziskava z id resource z ktoreho je menu vytvorene.
+     * @return Meno pre menu.
+     */
+    public abstract String getName(); 
+    /**
+     * Metoda ktora vrati sirku menu. V tomto pripade vrati 0 kedze kazdy potomok
+     * by si mal tuto metodu podedit ale keby nahodou zabudne tak bude nulova velkost.
+     * @return Sirka menu
+     */
+    @Override
+    public abstract int getWidth();
+    /**
+     * Metoda ktora vrati vysku menu. V tomto pripade vrati 0 kedze kazdy potomok
+     * by si mal tuto metodu podedit ale keby nahodou zabudne tak bude nulova velkost.
+     * @return Vyska menu
+     */
+    @Override
+    public abstract int getHeight();
     
     // </editor-fold>
     
@@ -100,7 +130,14 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }   
     }    
 
-    
+    /**
+     * Metoda ktora zinicializuje vytvoreneho potomka AbstractMenu podla UiResource
+     * ktore sme zadali v konstruktore menu. Parameter <b>gameContainer</b> sluzi ako
+     * rodicovsky kontajner pre menu a InputHandle ako reakcie na vstup od uzivatela
+     * na ktore menu reaguje.
+     * @param gameContainer Rodicovsky kontajner pre menu
+     * @param input InputHandle podla ktoreho spracovavame vstup
+     */
     public void initialize(Container gameContainer,InputHandle input) {
         if (res == null) {
             new MultiTypeWrn(null, Color.red, "There is no resource associated with this menu", null).renderSpecific("Menu Error");
@@ -109,16 +146,22 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         this.gameContainer = gameContainer;
         this.gamePane = (GamePane)gameContainer.getComponent();
         this.input = input;
-        this.containers = new ArrayList<>();
+        this.containers = new ArrayList<>();        
         
         //contImage = new BufferedImage(gameContainer.getWidth(), gameContainer.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
         
         //uiContainers = Collections.synchronizedMap(new LinkedHashMap<UiResource,Container>());    
         uiContainers = new ConcurrentHashMap<>();
         
-        initializeMenuResource();
+        initializeMenuResource();        
     }        
          
+    /**
+     * Metoda ktora zinicializuje vsetky komponenty ktore sa maju v menu vyskytovat.
+     * Inicializovanim sa mysli nastavenie skrolovacih komponenty, nastavenie kontajnerov
+     * pre kazdu komponentu a urcenie pozicii. Na ziskanie kontajnerov pouzivame metodu getUI
+     * ktora vytvori vsetky kontajnery od urciteho UiResource.
+     */
     private void initializeMenuResource() {
         /*
          * Ked je originalny resource skrolovaci tak ho priradi do pola so 
@@ -129,27 +172,34 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 scrollingResource = new ArrayList<>();
             }            
             scrollingResource.add(res);
-        }
-                
+        }                
         /*
          * Do pola sa zhromazdia dlzky kontaineru 
          */
-        int[] lengths = MathUtils.getLengths(res, gameContainer);
-        
-        
+        int[] lengths = MathUtils.getLengths(res, gameContainer);               
         // Pridame poziciu resource z ktoreho vytvarame menu (aj ked je tento resource
         // nejaky z java layout. V takom pripade sa skrolovanie neberie v uvahu.
         Container cont = new Container(res, lengths[0], lengths[2],
-                lengths[1], lengths[3], gameContainer); 
-        
+                lengths[1], lengths[3], gameContainer);         
         uiContainers.put(res, cont);                
-                
+          
+        // Nastavenie detskych kontajnerov podla metody getUI 
         cont.setChildContainers(getUI(res));
         
-        initializeImage();                
+        // Inicializovanie obrazku/vsetkych prvkov nachadzajucich sa v menu.
+        //Kedze nebolo este nic zinicializovane tak volame aj metody initializeUI aj initializeGr
+        initializeImage();         
+        // Kontajnery nachadzajuce sa v hlavnom kontajnery.
         containers = gameContainer.getChildContainer();
     }
     
+    /**
+     * Metoda ktora zinicializuje UI tohoto menu. Ked volame metodu prvy krat alebo 
+     * nie je spravne zinicializovana tak volame kompletnu rekalkulaciu a pridanie komponent
+     * do menu pomocou metodu recalculated a reinitialize. Pri zinicializovani
+     * nam staci iba skontrolovat ci sa nejaky kontajner nezmenil a ked ano tak spravit
+     * nanom refresh.
+     */
     protected void initializeUI() {        
         if (uiContainers.isEmpty()) {
             return;
@@ -158,22 +208,27 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         if (!initialized) {
             recalculate(res); 
             // Pridanie Frameru - Mozne nahradit aby sa pridaval iba ked sa stlaci nejake tlacidlo                        
-            reinitialize(getContentGraphics(), res, gameContainer); 
+            reinitialize(getContentGraphics(), res, gameContainer);                           
+            gameContainer.addChildComponents();            
             gamePane.add(MainUtils.FPSCOUNTER, 0);            
+            gamePane.validate();
             initialized = true;
-        } else {        
+        } else {                           
             for (Container contToCalc : gameContainer.getChildContainer()) {
                 recalculate(contToCalc);
-                refreshElements(getContentGraphics(), contToCalc, gamePane);
-            }
-        }
-        gamePane.updateUI();
+                refreshElements(getContentGraphics(), contToCalc, gamePane);                                
+                contToCalc.getComponent().updateUI();
+            }                        
+        }                
         changedUi = false;
     }
     
+    /**
+     * Metoda ktora inicializuje graficke prvky v menu, ako je napriklad zmena menu
+     * obrazku, ktory potom moze byt v podedenych triedach vyuzity.
+     */
     protected void initializeGraphics() {                                
-        changedGr = false;   
-        
+        changedGr = false;           
     }
     
     /**
@@ -195,9 +250,12 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     /**
      * Ked sa zmenil kontainer alebo ked je potreba preinitializovat tak prekresluje nanovo vsetky
-     * komponenty.
-     * @param g
-     * @param resource 
+     * komponenty. Na prekreslovanie je dolezite si najprv tieto komponenty ziskat
+     * a to metodou getComponentFromResource a rekurzivnym volanim tejto metody
+     * pri type komponenty rovnej panelu a listu.
+     * @param g Graficky kontext do ktoreho mozme vykreslit menu
+     * @param resource UiResource z ktoreho vytvarame komponenty ktore sa vyskytuju 
+     * v menu
      */    
     protected void reinitialize(Graphics g, UiResource resource, Container parent) {
         Container cont = uiContainers.get(resource);    
@@ -243,26 +301,38 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
             cont.getComponent().refresh();
         } 
         
-        // Ked je parent nahodou GamePane tak pri kazdej initializacii v AbstractMenu len pridavame
-        // dalsi kontajner => treba sa ich zbavovat po kazdom prehodeni menu => Nastavenie v GamePane#setMenu.
-        parent.addChildComponents();        
+        // Ked je parent nahodou GamePane tak nepridavame komponenty. Pridavanie zrealizujeme az po updateUI
+        // pri navrate z tejto metody.           
+        if (parent != gameContainer) {
+            parent.addChildComponents();  
+        }                
                         
     }    
     
+    /**
+     * Metoda ktora reinicializuje menu/menu resources pomocou metody initializeMenuResource,
+     * ktora je pomimo tejto metody volana pri prvom inicializovani menu.
+     * Po zinicializovani nastavime priznaky zmeny ui a grafiky ktore donutia
+     * pri dalsom update aby boli doplnene komponenty do hlavneho hracieho panelu.
+     */
     public void reinitializeMenu() {        
         initializeMenuResource();
         initialized = false;
         ugChange(true);
     }
     
-    
+    /**
+     * Metoda ktora rekalkuluje pozicie komponent podla novych pozicii hlavneho panelu.
+     */
     public void recalculate() {
         recalculate(res);        
     }
     /**
      * Metoda recalculate prepocitava pozicie resource pre toto menu, kedze 
-     * uzivatel moze zvacsovat okno a bez tejto metody by zostali vnutorne prvky
-     * v originalnych velkostiach.
+     * uzivatel by mohol zvacsit okno a bez tejto metody by zostali vnutorne prvky
+     * v originalnych velkostiach. Parameter resource sluzi ako resource od ktoreho
+     * rekalkulujeme.
+     * @param resource UiResource od ktoreho rekalkulujeme
      */
     protected void recalculate(UiResource resource) {
         int[] lengths = MathUtils.getLengths(resource, uiContainers.get(resource).getParentContainer());
@@ -276,6 +346,13 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
     }
     
+    /**
+     * Metoda recalculate prepocitava pozicie resource pre toto menu, kedze 
+     * uzivatel by mohol zvacsit okno a bez tejto metody by zostali vnutorne prvky
+     * v originalnych velkostiach. Parameter cont sluzi ako Container od ktoreho
+     * rekalkulujeme.
+     * @param cont Kontajner od ktoreho rekalkulujeme
+     */
     protected void recalculate(Container cont) {
         int[] lengths = MathUtils.getLengths(cont.getResource(), cont.getParentContainer());
                 
@@ -287,6 +364,23 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
     }
     
+    /**
+     * Metoda ktora refreshne vsetky komponenty ktore boli zmenene. Vnutornu stavbu komponent
+     * v hlavnom hracom paneli sa da predstavit ako strom ktoreho vrchol je hraci panel.
+     * Pri volani tejto metody chceme vyvolat refresh pomocou definovanych metod v komponente
+     * ako je refresh, no takyto refresh mozme vyvolat iba vtedy ked sa zmenil kontajner
+     * (jeho velkost, sirka,...).
+     * <p>
+     * To ci je kontajner zmeneny kontrolujeme metodou isChanged. Ked dojde k zmene kontajneru
+     * tak nastavujeme zmenu aj k rodicovi tohoto kontajneru. Takyto pristup zarucuje
+     * ze ked volame tuto metodu na root element a nahodou sa zmenil kontajner
+     * tak prechadzame iba tie cesty ktore vedu k zmenenemu kontajneru.
+     * </p>
+     * Ked sa kontajner nezmenil tak skusime iba refresh pozicii.
+     * @param g
+     * @param cont
+     * @param comp 
+     */
     protected void refreshElements(Graphics g, Container cont, JPanel comp) {                
         if ((cont.isChanged())) {             
             cont.setChanged(false);
@@ -309,7 +403,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
                 cont.getComponent().refresh();
             }
         } else {
-            if (cont.getComponent()!= null) {
+            if (cont.getComponent()!= null) {                
                 cont.getComponent().refreshPositions(cont.getWidth(), cont.getHeight(),
                         cont.getParentWidth(), cont.getParentHeight());
             }
@@ -317,6 +411,12 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         
     }
     
+    /**
+     * Metoda ktora aktualizuje toto menu. Aktualizovanie menu sa sklada z posunutia
+     * skrolovacich komponent a inicializacii obrazku menu. Obrazok menu je ako keby vsetko/
+     * vsetky komponenty co sa nachadzaju v menu. Ked sa nezmenil ui alebo graphics tak sa metoda
+     * len tak prejde.
+     */
     @Override
     public void update() {  
        if (scrollingResource != null) {
@@ -327,43 +427,32 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
        this.initializeImage();
     }      
     
-                
+    /**
+     * Metoda ktora pusti zvuk priradeny k tomuto menu
+     */
+    public void startPlaying() {
+        if (sound == null) {
+            sound = new Sound(SoundResource.getResource(res.getSoundId()));
+            sound.play();
+        }
+    }   
+    
+    /**
+     * Metoda ktora zastavi prehravany zvuk
+     */
+    public void stopPlaying() {
+        if (sound != null) {
+            sound.close();
+            sound = null;
+        }
+    }
     // </editor-fold>
     
-    // <editor-fold defaultstate="collapsed" desc=" Gettery ">
-    /**
-     * Metoda ktora vrati meno tohoto menu. Meno ziskava z id resource z ktoreho je menu vytvorene.
-     * @return Meno pre menu.
-     */
-    public String getName() {        
-        return res.getId();    
-    }
-    
-    /**
-     * Metoda ktora vrati sirku menu. V tomto pripade vrati 0 kedze kazdy potomok
-     * by si mal tuto metodu podedit ale keby nahodou zabudne tak bude nulova velkost.
-     * @return Sirka menu
-     */
-    @Override
-    public int getWidth() {
-        return 0;
-    }
-    
-    /**
-     * Metoda ktora vrati vysku menu. V tomto pripade vrati 0 kedze kazdy potomok
-     * by si mal tuto metodu podedit ale keby nahodou zabudne tak bude nulova velkost.
-     * @return Vyska menu
-     */
-    @Override
-    public int getHeight() {
-        return 0;
-    }    
-    
+    // <editor-fold defaultstate="collapsed" desc=" Gettery ">                          
     /**
      * Metoda getUI ziskava informacie o resource a jeho potomkoch a uklada si ich
-     * do HashMapy pre lahsi pristup. Pri skrolovacom resource uklada resource do listu scrollingResource.
-     * 
-     * @param resource 
+     * do HashMapy pre lahsi pristup. Pri skrolovacom resource uklada resource do listu scrollingResource.     
+     * @param resource UiResource z ktoreho vyberame data a vytvarame z nich kontajnery
      */
     private ArrayList<Container> getUI(UiResource resource) {
         if (resource.getType().getElements() != null) {            
@@ -442,6 +531,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return uiContainers.get(resource);
     }
     
+    /**
+     * Metoda ktora vrati Kontajner podla mena zadaneho v parametri <b>name</b>
+     * @param name Meno kontajneru ktory chcem vratit
+     * @return Kontajner s urcitym menom.
+     */
     public Container getContainer(String name) {
         for (Container cont : containers) {
             if (cont.getResource().getId().equals(name)) {
@@ -451,12 +545,30 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         return null;
     }
     
+    /**
+     * Metoda ktora vrati vsetky menu kontajnery ktore su ulozene v premennej containers.
+     * @return List s kontajnermi.
+     */
     public ArrayList<Container> getMenuContainers() {
         return containers;
     }
     
+    /**
+     * Metoda ktora vrati true/false ci ma metoda dany kontajner s UiResource zadany parametrom 
+     * <b>resource</b>
+     * @param resource UiResource kontajneru ktory hladame.
+     * @return True/false ci sme nasli taky kontajner.
+     */
     public boolean hasContainer(UiResource resource) {
         return uiContainers.containsKey(resource);
+    }
+    
+    /**
+     * Metoda ktora vrati UiResource z ktoreho je vytvorene menu
+     * @return UiResource tohoto menu
+     */
+    public UiResource getResource() {
+        return res;
     }
     
     // </editor-fold>
@@ -517,6 +629,11 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         
     }
     
+    /**
+     * Metoda ktora prida menu zadane parametrom <b>menu</b> do hashmapy
+     * menuMap. Ako kluc sluzi meno pridavaneho menu.
+     * @param menu Menu ktore chcem pridat.
+     */
     public static void addMenu(AbstractMenu menu) {
         menuMap.put(menu.getName(), menu);;
     }
@@ -526,8 +643,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     // <editor-fold defaultstate="collapsed" desc=" InputHandling ">
     /**
      * Metoda s interfacu Menu zabezpecujuca uzivatelsky vstup.
-     */
-    
+     */    
     @Override
     public void inputHandling() {
         for (Container cont : uiContainers.values()) {
@@ -568,30 +684,52 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     
     // <editor-fold defaultstate="collapsed" desc=" Komponent metody ">
     
+    /**
+     * Metoda ktora deaktivuje (eventovo) vsetky komponenty v tomto menu
+     */
     public void deactivateAll() {
         for (Container cont : uiContainers.values()) {
             cont.getComponent().deactivate();
         }
     }
     
+    /**
+     * Metoda ktora aktivuje (eventovo) vsetky komponenty v tomto menu.
+     */
     public void activateAll() {
         for (Container cont : uiContainers.values()) {
             cont.getComponent().activate();
         }
     }
     
+    /**
+     * Metoda ktora deaktivuje (eventovo) komponentu/kontajner ktorej UiResource
+     * je rovny parametru <b>res</b>
+     * @param res UiResource ktory musi mat kontajner aby sme ho deaktivovali
+     */
     public void deactivate(UiResource res) {
         if (uiContainers.contains(res)) {
             uiContainers.get(res).getComponent().deactivate();
         }
     }
     
+    /**
+     * Metoda ktora aktivuje (eventovo) komponentu/kontajner ktorej UiResource
+     * je rovny parametru <b>res</b>
+     * @param res UiResource ktory musi mat kontajner aby sme ho aktivovali
+     */
     public void activate(UiResource res) {
         if (uiContainers.contains(res)) {
             uiContainers.get(res).getComponent().activate();
         }
     }
     
+    /**
+     * Metoda ktora prida kontajner do hashmapy kontajnerov pre toto menu uiContainers.
+     * Ked vsunieme kontajner do mapy tak nastavime priznaky changedUi a changedGr na true,
+     * co donutie prekreslit,preinicializovat kontajnery.
+     * @param cont 
+     */
     public void addContainer(Container cont) {
         if (!uiContainers.containsKey(cont.getResource())) {
             uiContainers.put(cont.getResource(), cont);            
@@ -600,6 +738,12 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
     }
     
+    /**
+     * Metoda ktora vymaze kontajner ktoreho UiResource musi byt rovny parametru
+     * <b>res</b>. Po vymazani musime prekreslit,preinicializovat kontajnery nastavenim
+     * priznakov changedUi a changedGr na true.
+     * @param res UiResource ktory musi mat kontajner
+     */
     public void removeContainer(UiResource res) {
         Container cont = uiContainers.get(res);
         if (cont != null) {
@@ -610,6 +754,12 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
         }
     }
     
+    /**
+     * Metoda ktora docasne vymaze kontajner ktoreho UiResource sa rovna <b>res</b>.
+     * Docasne znamena ze ho vymazavame iba z rodicovskeho kontajneru ale v hashmape uiContainers
+     * sa bude stale nachadzat => pri dalsej reinicializacii sa kontajner v menu znova objavi.
+     * @param res UiResource ktory musi mat kontajner aby sme ho docasne vymazali.
+     */
     public void removeContainerTemp(UiResource res) {
         Container cont = uiContainers.get(res);
         if (cont != null) {
@@ -622,7 +772,7 @@ public abstract class AbstractMenu implements Menu<AbstractMenu> {
     /**
      * Metoda ma za ulohu vymazat vsetky kontajnery a stym aj vsetky komponenty v tomto menu.
      * Parameter sluzi ako prepinac ci sa ma vymazat aj kontajner ktory tvori zaklad pre menu.
-     * @param menu True/False podla toho ci sa vymaze aj menu kontajner
+     * @param menu True/False podla toho ci sa vymaze aj menu kontajner (kontajner ktory tvori zaklad menu)
      */
     public void removeAllContainers(boolean menu) {
         if (menu) {

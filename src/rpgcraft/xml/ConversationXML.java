@@ -5,8 +5,7 @@
 package rpgcraft.xml;
 
 /**
- *
- * @author kirrie
+ * Interface ktory zdruzuje nazvy tagov v konverzacnch xml-kach
  */
 public class ConversationXML {
     public static final String ROOT = "conversations";

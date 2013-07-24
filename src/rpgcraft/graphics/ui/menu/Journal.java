@@ -28,14 +28,34 @@ import rpgcraft.utils.TextUtils;
  */
 public class Journal extends AbstractInMenu {  
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Id zurnalu
+     */
     public static final String JOURNALID = "_journal";
+    /**
+     * Meno tohoto menu
+     */
     private static final String JOURNAL = StringResource.getResource(JOURNALID);
-        
+       
+    /**
+     * Sirka, vyska a odsadenie zurnalu.
+     */
     private static final int jrnWidth = 200, jrnHeight = 400, wGap = 5, hGap = 5;
+    /**
+     * Sirka a vyska okna priamo s ulohami
+     */
     private static final int questsWidth = jrnWidth - 40, questsHeight = jrnHeight - 40;
+    /**
+     * Vyska jednej ulohy
+     */
     private static final int questHeight = 40;
+    /**
+     * Pocet uloh na zobrazenie ziskane z celkovej vysky a jednej vysky
+     */
     private static final int questsToShow = questsHeight / questHeight;
-    
+    /**
+     * Obrazok s ulohami
+     */
     private Image questBox;
     /**
      * Oznaceny quest v menu
@@ -45,7 +65,13 @@ public class Journal extends AbstractInMenu {
      * x, y pozicie, kde sa bude vykreslovat QuestInfo.
      */
     private int selectPosX, selectPosY;
+    /**
+     * List s ulohami
+     */
     private ArrayList<Quest> quests;
+    /**
+     * Instancia zurnalu
+     */
     private static Journal instance;
     // </editor-fold>
     

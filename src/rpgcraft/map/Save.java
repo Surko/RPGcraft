@@ -40,6 +40,9 @@ import rpgcraft.utils.MainUtils;
 public class Save {
 
     // <editor-fold defaultstate="collapsed" desc=" Pomocne enumy a triedy ">
+    /**
+     * Mena a indexy ulozene v enume pri ziskanie dat zo savov.
+     */
     public enum RecordIndexes {
         
         ID(0),
@@ -60,16 +63,40 @@ public class Save {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Save
+     */
     private static final Logger LOG = Logger.getLogger(Save.class.getName());
     
+    /**
+     * Menu v ktorom je nacitany vytvoreny Save
+     */
     protected GameMenu menu;
+    /**
+     * Panel v ktorom je nacitany vytvoreny Save
+     */
     protected GamePane game;
+    /**
+     * Aktivny vstup v Save
+     */
     protected InputHandle input;
+    /**
+     * Meno pozicie
+     */
     protected String saveName;
     
+    /**
+     * InputStream z ktoreho nacitavame Save
+     */
     private ObjectInputStream inputStream;
+    /**
+     * OutputStream do ktoreho ukladame Save
+     */
     private ObjectOutputStream outputStream;
     
+    /**
+     * Stav Savu v ktorom sa odohrava hra
+     */
     private SaveMap state;
     // </editor-fold>
     

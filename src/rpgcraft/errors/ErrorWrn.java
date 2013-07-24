@@ -20,14 +20,25 @@ import rpgcraft.utils.TextUtils;
  */
 public class ErrorWrn{
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Error okna
+     */
     protected static final Logger LOG = Logger.getLogger(ErrorWrn.class.getName());
-    // Dodatocny textna vypis
+    /**
+     * Dodatocny textna vypis
+     */
     protected String msg;
-    // Farba vynimky
+    /**
+     * Farba vynimky
+     */
     protected Color cl;
-    // Vynimka ktoru chceme vypisat
+    /**
+     * Vynimka ktoru chceme vypisat
+     */
     protected Exception e;
-    // Chybove okno s hlaskami.
+    /**
+     * Chybove okno s hlaskami.
+     */
     private static JPanel errorPanel;
     // </editor-fold>
     

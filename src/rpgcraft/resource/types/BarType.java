@@ -17,8 +17,13 @@ import rpgcraft.utils.DataUtils.DataValues;
  */
 public class BarType extends AbstractType {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text ktorym parsujeme data podla ktorych rozhodneme co budeme zobrazovat v bare
+     */
     private static final String DENUMERATOR = "/";
-    // Min a max data  
+    /**
+     * Min a max data  
+     */
     protected DataValues maxData, minData;
     //</editor-fold>
     

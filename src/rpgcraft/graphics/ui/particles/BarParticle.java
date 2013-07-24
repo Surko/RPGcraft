@@ -17,12 +17,23 @@ import rpgcraft.graphics.Colors;
  */
 public class BarParticle extends Particle {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Defaultne sirky a vysky castice
+     */
     private static final int DEFWIDTH = 24, DEFHEIGHT = 6;
+    /**
+     * Hodnota na zobrazenie baru
+     */
     protected Double value = 0d;
     
-    private int barWidth;
-    private int barHeight;
+    /**
+     * Sirka a vyska baru
+     */
+    private int barWidth,barHeight;
     
+    /**
+     * Farba baru
+     */
     private Color color;  
     // </editor-fold>
       

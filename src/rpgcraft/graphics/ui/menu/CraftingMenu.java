@@ -31,11 +31,29 @@ import rpgcraft.utils.TextUtils;
 public class CraftingMenu extends AbstractInMenu {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Meno tohoto menu
+     */
     private static final String CRAFTING = StringResource.getResource("_crafting");
+    /**
+     * Typy receptov ake menu moze pouzit
+     */
     private static final Type[] types = new Type[] {Type.SHAPED, Type.SHAPELESS};
+    /**
+     * Default sirky a vysky s odstupmi
+     */
     private static final int cftWidth = 200, cftHeight = 200, wGap = 5, hGap = 5;
+    /**
+     * Hrubka ciary
+     */
     private static final int lineThickness = 1;
+    /**
+     * Odstup medzi dvoma tabulkami
+     */
     private static final int gridGap = 1;
+    /**
+     * Dlzka jednej tabulky
+     */
     private static final int gridLength = 34;
     
     /**

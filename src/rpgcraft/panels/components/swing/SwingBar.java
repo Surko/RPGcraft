@@ -26,11 +26,23 @@ import rpgcraft.utils.DataUtils;
  */
 public class SwingBar extends SwingComponent {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Bar
+     */
     private static final Logger LOG = Logger.getLogger(SwingBar.class.getName()); 
     
+    /**
+     * Preferovane velkosti baru ked nie su ziadne urcene
+     */
     private Dimension prefferedDim = new Dimension(100,20);
     
+    /**
+     * Typ tohoto baru
+     */
     BarType barType;
+    /**
+     * Farba vyplne v baru
+     */
     Color backColor;
     // </editor-fold>
     

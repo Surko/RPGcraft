@@ -61,12 +61,27 @@ public class DataUtils {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre DataUtility
+     */
     private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());    
     
+    /**
+     * Service na spustanie vlakien
+     */
     private volatile static ExecutorService es = Executors.newCachedThreadPool();
+    /**
+     * Hlbka pri parsovani dat
+     */
     private volatile static int depth; 
+    /**
+     * Pocitac cykleni
+     */
     private volatile static int cycleCounter;
     
+    /**
+     * HashMapa s ulozenymi premennymi v hre
+     */
     public static ConcurrentHashMap<String, Object> variables = new ConcurrentHashMap<>();
     // </editor-fold>
     

@@ -17,6 +17,9 @@ import rpgcraft.plugins.GeneratorPlugin;
  */
 public class DefaultGenerator implements GeneratorPlugin {
     
+    /**
+     * Konstanta odkial berieme nebo
+     */
     private static final int SKY = 64;
     
     /**

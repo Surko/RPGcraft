@@ -36,11 +36,25 @@ public class ListenerFactory {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());    
+    /**
+     * Logger pre tvorenie Listenerov
+     */
+    private static final Logger LOG = Logger.getLogger(ListenerFactory.class.getName());   
+    /**
+     * Nacitane listener pluginy
+     */
     private static ArrayList<Listener> plugListeners = new ArrayList<>();
+    /**
+     * Text ktorym parsujeme riadky skriptu
+     */
     private static final String DELIM = "[\n]";
-    
+    /**
+     * Maximalny pocet listenerov, kedy vymazeme celu hashmapu
+     */
     public static final int maxListeners = 100;    
+    /**
+     * HashMapa s ulozenmi listenermi kde kluce tvoria nazvy skriptov
+     */
     public static HashMap<String, Listener> listeners = new HashMap<>();        
     // </editor-fold>
     

@@ -36,8 +36,17 @@ import rpgcraft.resource.StringResource;
 public final class DefaultRender extends RenderPlugin {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Meno tohoo renderovacieho pluginu
+     */
     private static final String NAME = "default";    
+    /**
+     * Font pre vykreslovanie textu
+     */
     private static final Font coordinatesFont = new Font("Helvetica", Font.BOLD, 12);
+    /**
+     * Instancia DefaultRenderu.
+     */
     private static DefaultRender instance;        
     
     /**
@@ -47,7 +56,7 @@ public final class DefaultRender extends RenderPlugin {
      * 2 - dalsie mozne renderovanie na doplnenie.
      */
     private static final int RENDER_MODE = 1;
-    /* 
+    /** 
      * mod pre vykreslenia svetla
      * 0 - Jednoduche vykreslenie len okolo hraca pomocou radiant brush
      * 
@@ -72,22 +81,21 @@ public final class DefaultRender extends RenderPlugin {
     /**
      * Translacne body. Kazdym prechodom paint metod sa tieto hodnoty prenastavia a znova vynuluju
      */
-    private int lastX = 0;
-    private int lastY = 0;  
+    private int lastX = 0,lastY = 0;  
     
     /**
      * Skalovacie parametre pre zvacsenie okna
      */
-    private double scaleParamX = 1;
-    private double scaleParamY = 1;
+    private double scaleParamX = 1, scaleParamY = 1;
         
     /**
      * x-ova a y-ova pozicia okna kam sa kresli 
      */
-    private int screenX;
-    private int screenY;
-    private int lightingMapX, lightingMapY;
-    
+    private int screenX, screenY;
+    /**
+     * x-ova a y-ova pozicia svetelnej mapy
+     */
+    private int lightingMapX, lightingMapY;    
     /**
      * Sirka a vyska priestoru do ktoreho kreslime
      */

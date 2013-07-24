@@ -34,6 +34,9 @@ public class MainUtils {
         }
     };
     
+    /**
+     * Filter suborov na zlozky
+     */
     public static final FileFilter dirFilter = new FileFilter() {
         @Override
         public boolean accept(File file) {
@@ -41,6 +44,9 @@ public class MainUtils {
         }
     };
     
+    /**
+     * Xml filter suborov
+     */
     public static final FileFilter xmlFilter = new FileFilter() {
 
         @Override
@@ -51,28 +57,71 @@ public class MainUtils {
     };
     
     // FramePanel pre frame pocitadlo
-    // Bool hodnota ci bol updatovani context    
+    /**
+     * Bool hodnota ci bol updatovani context    
+     */
     public static boolean rendered = false;
     
+    /**
+     * Pocitadlo ako FramePanel
+     */
     public static final FramePanel FPSCOUNTER;        
+    /**
+     * Pocet tiknuti
+     */
     public static volatile int TICK = 0;
+    /**
+     * Cas kedy zacalo pocitanie
+     */
     public static volatile long START_TIME;
+    /**
+     * Druhotne pocitadlo
+     */
     public static long SECONDTIMER;
+    /**
+     * Ci je hra stopnuta
+     */
     public static boolean stopped;
     
+    /**
+     * Ci sme v DEBUG mode
+     */
     public static volatile boolean DEBUG = false;
+    /**
+     * Ci pouzivame zakladne menu
+     */
     public static volatile boolean DEFAULTMENU = true;
     
     //FPS junk
+    /**
+     * Pocet framov na zobrazenie
+     */
     public static int fShow;
+    /**
+     * Ci zobrazujeme FPS pocitadlo
+     */
     public static final boolean SHOWFPS = true;
+    /**
+     * Haprovanie frame pocitadla
+     */
     public static final long fpsProhibitor = 5;
+    /**
+     * Aktualny pocet framov
+     */
     public static volatile int framing; 
+    /**
+     * FPS casovac
+     */
     public static volatile long fpsTimer;     
     public static volatile int debugint;
     
+    /**
+     * Objekt na ziskavanie random hodnot
+     */
     public static volatile Random random = new Random();
-    // Pocitadlo objektov
+    /**
+     * Pocitadlo objektov
+     */
     public static long objectId;
     
     // </editor-fold>

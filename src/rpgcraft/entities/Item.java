@@ -102,24 +102,34 @@ public abstract class Item extends StaticEntity {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Seed predmetu
+     */
     private long seed;
     
-    // Sprity pre item
+    /**
+     * Sprity pre item
+     */
     protected ArrayList<Sprite> itemSprites;
         
-    // Pocet itemov v stacku
+    /**
+     * Pocet itemov v stacku
+     */
     protected int count;
     
     // vlastnosti itemu - vacsinou z resource. Mozne zmenit.
+    /**
+     * Typ predmetu (MISC, ARMOR, .... )
+     */
     protected ItemType itemType;
-    protected boolean equipable;
-    protected boolean dropable;
-    protected boolean usable;
-    protected boolean activable;
-    protected boolean equipped;
-    protected boolean placeable;        
-    
-    protected boolean levelable = false;    
+    /**
+     * Vlastnosti predmetu ci je ho mozne obliect, hodit na zem, .... Nastavene z resource automaticky
+     */
+    protected boolean equipable,dropable,usable,activable,placeable,levelable = false;    
+    /**
+     * Ci je predmet obleceny
+     */
+    protected boolean equipped;            
 
     // </editor-fold>
     

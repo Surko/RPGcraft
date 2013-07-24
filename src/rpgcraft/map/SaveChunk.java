@@ -24,13 +24,22 @@ import rpgcraft.map.chunks.Chunk;
 public class SaveChunk implements Externalizable {
 
     // <editor-fold defaultstate="collapsed" desc=" Premenne + Pomocne triedy" >
-    // Serializacne premenne, UID a verzia pre buducnost pri zmene archivov.
+    /**
+     * Serializacne premenne, UID a verzia pre buducnost pri zmene archivov.
+     */
     private static final long serialVersionUID = 912804676578087866L;
+    /**
+     * Verzia serializacie
+     */
     private static final int serializationVersion = 1;       
     
-    // Entity ktore sa budu ukladat alebo nacitavat.
+    /**
+     * Entity ktore sa budu ukladat alebo nacitavat.
+     */
     private ArrayList<Entity> entities;
-    // Chunk s mapou ktory sa bude ukladat alebo nacitavat.
+    /**
+     * Chunk s mapou ktory sa bude ukladat alebo nacitavat.
+     */
     private Chunk chunk;
     
     /**
@@ -55,9 +64,7 @@ public class SaveChunk implements Externalizable {
         }
         
     }
-    
-    
-    
+            
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">

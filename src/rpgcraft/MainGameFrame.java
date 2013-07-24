@@ -32,27 +32,42 @@ import rpgcraft.utils.MainUtils;
  * metodou addComponentListener. <br>
  * Po initializacii zavolame metodu startGame na hraci panel ktora vytvori Thread a spusti
  * instanciu s hrou. 
- * @see GamePane
- * {@literal }
+ * <pre><p>
  * 20.7 1st revision
  * 1.8 2nd revision
  * 20.8 3rd revision
  * 31.8 4rd revision
  * xx.1 - 18.3 5rd revision
  * 19.3 - xx.6 last revision
+ * </p></pre>
+ * @see GamePane 
  * @author Kirrie
  */
 public class MainGameFrame {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text s neodchytitelnou vynimkou
+     */
     private final static String UNCAUGHT = "Missing Locales = Uncaught Exception!";
+    /**
+     * Text s nazvom okna
+     */
     private static final String RPGCRAFT = "RPGcraft!";
+    /**
+     * Logger pre celu hru
+     */
     private final static Logger LOG = Logger.getLogger(MainGameFrame.class.getPackage().getName());       
-    // Definovane velkosti okna
-    public static final int Fwidth = 800;
-    public static final int Fheight = 600;        
-    // okno v ktorom bude panel s hrou
+    /**
+     * Definovane velkosti okna
+     */
+    public static final int Fwidth = 800, Fheight = 600;        
+    /**
+     * okno v ktorom bude panel s hrou
+     */
     private static JFrame mFrame;
-    // Panel s hrou
+    /**
+     * Panel s hrou
+     */
     public static GamePane game;        
     // </editor-fold>
     

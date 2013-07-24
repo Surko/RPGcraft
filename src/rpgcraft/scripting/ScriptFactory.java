@@ -30,16 +30,37 @@ import rpgcraft.resource.StringResource;
  */
 public class ScriptFactory {
     // <editor-fold defaultstate="collapsed" desc=" Premnne ">
+    /**
+     * Logger pre Skriptovanie
+     */
     private static final Logger LOG = Logger.getLogger(ScriptFactory.class.getName());
     
+    /**
+     * Nacitane pluginy s kniznicami pre spustanie lua skriptov
+     */
     private static ArrayList<ScriptLibraryPlugin> libs;    
     
+    /**
+     * Instancia Skript factory na spustanie skriptov
+     */
     private static ScriptFactory instance;
     
+    /**
+     * ScriptEngineManager ktory ziskavame z lua prostredia
+     */
     private ScriptEngineManager sem;
+    /**
+     * Engine ziskany zo ScriptEngineManageru
+     */
     private ScriptEngine e ;
+    /**
+     * Factory pre tento engine
+     */
     private ScriptEngineFactory f;
     
+    /**
+     * Globalne vlastnosti/premenne aktualneho lua prostredia ulozenych v LuaTable
+     */
     private LuaTable _G;
     // </editor-fold>
     

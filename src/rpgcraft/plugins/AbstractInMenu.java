@@ -30,37 +30,63 @@ import rpgcraft.handlers.InputHandle;
 public abstract class AbstractInMenu<T extends AbstractInMenu> implements Menu<AbstractInMenu> {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Menu list so vsetkymi definovanymi menu.
+    /**
+     * Menu list so vsetkymi definovanymi menu.
+     */
     protected static HashMap<String, AbstractInMenu> menuList = new HashMap<>();
     
-    // Entita pre ktoru toto menu vytvarame.
+    /**
+     * Entita pre ktoru toto menu vytvarame.
+     */
     protected Entity entity;
-    // Input podla ktoreho spracovavame vstup
+    /**
+     * Input podla ktoreho spracovavame vstup
+     */
     protected InputHandle input;
-    // GamePane v ktorom vykreslujeme toto menu
+    /**
+     * GamePane v ktorom vykreslujeme toto menu
+     */
     protected GamePane game;
-    // Rodicovske AbstractInMenu v ktorom sa nachadza. Ked je null tak je menu najvyssie postaveny rodic.
+    /**
+     * Rodicovske AbstractInMenu v ktorom sa nachadza. Ked je null tak je menu najvyssie postaveny rodic.
+     */
     protected AbstractInMenu sourceMenu;
     
-    // Obrazok s prichystanym menu na vykreslenie
+    /**
+     * Obrazok s prichystanym menu na vykreslenie
+     */
     protected Image toDraw;
-    // Kazde menu moze mat svoje subMenu.
+    /**
+     * Kazde menu moze mat svoje subMenu.
+     */
     protected AbstractInMenu subMenu;
     
-    // Vyska a sirka menu. Obycajne sa vyuzivaju konstantne definovane dimenzie. Ale ked su tieto hodnoty nenulove tak sa pouziju.
+    /**
+     * Vyska a sirka menu. Obycajne sa vyuzivaju konstantne definovane dimenzie. Ale ked su tieto hodnoty nenulove tak sa pouziju.
+     */
     protected int w = -1, h = -1; 
-    // Viditelnost menu
+    /**
+     * Viditelnost menu
+     */
     protected boolean visible;
     
-    // x-ova a y-ova pozicia menu v AbstractMenu
+    /**
+     * x-ova a y-ova pozicia menu v AbstractMenu
+     */
     protected int xPos, yPos;
     
-    // Ci sa zmenilo nieco v menu
+    /**
+     * Ci sa zmenilo nieco v menu
+     */
     protected boolean changedState;
-    // Ci je menu aktivovane. Aktivovane menu je bledsie ako tie neaktivne.
+    /**
+     * Ci je menu aktivovane. Aktivovane menu je bledsie ako tie neaktivne.
+     */
     protected boolean activated;    
     
-    // Hlavne menu do ktoreho pripada vnutorne menu
+    /**
+     * Hlavne menu do ktoreho pripada vnutorne menu
+     */
     protected AbstractMenu menu;
     
     // </editor-fold>

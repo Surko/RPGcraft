@@ -33,15 +33,42 @@ import rpgcraft.utils.TextUtils;
 public class SwingText extends SwingComponent{
 
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Text.
+     */
     private static final Logger LOG = Logger.getLogger(SwingText.class.getName());
+    /**
+     * Odsadenie textu
+     */
     private static final int GAP = 1;
     
+    /**
+     * Text v texte
+     */
     protected String title;
+    /**
+     * Rozparosvany text v textu
+     */
     protected ArrayList<Pair<String, Integer>> parsedTitle;
+    /**
+     * Velkost textu v komponente
+     */
     protected int tw = 0,th = 0;
+    /**
+     * Startovacia pozicia vykreslovania textu v komponente
+     */
     protected int sx = 0, sy = 0;
+    /**
+     * Farba textu
+     */
     protected Color textColor;
+    /**
+     * Farba pozadia
+     */
     protected Color backColor;
+    /**
+     * Typ textu
+     */
     protected TextType txType;    
     // </editor-fold>    
     

@@ -21,13 +21,31 @@ import rpgcraft.utils.TextUtils;
  * @author Kirrie
  */
 public abstract class SwingCustomButton extends SwingComponent {
-    // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre button
+     */
     private static final Logger LOG = Logger.getLogger(SwingCustomButton.class.getName());
+    /**
+     * Preferovane velkosti ked nie su ziadne urcene
+     */
     public static final Dimension prefferedDim = new Dimension(300,20);
     
+    /**
+     * Nazov v tlacidle
+     */
     protected String title;     
+    /**
+     * Dlzka a sirka textu
+     */
     protected int tw = -1,th = -1;
+    /**
+     * Ci je tlacidlo aktualne stlacene
+     */
     protected boolean hit = false; 
+    /**
+     * Typ tlacidla 
+     */
     protected ButtonType btnType;
     // </editor-fold>
    

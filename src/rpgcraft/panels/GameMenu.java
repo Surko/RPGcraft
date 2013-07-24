@@ -45,6 +45,10 @@ public class GameMenu extends AbstractMenu implements Runnable {
 
     // <editor-fold defaultstate="collapsed" desc=" Pomocne triedy/interfacy ">
     
+    /**
+     * Mozne mody prekreslovania obsahu v tomto menu. Zavisi od toho v akom bloku to prekreslujeme
+     * a ci multivlaknovo alebo pri updatoch
+     */
     public interface PaintingTypes {
         public static final int PAINTING_INSIDE_REPAINT = 0;
         public static final int PAINTING_INSIDE_UPDATE = 1;

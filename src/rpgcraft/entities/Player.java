@@ -35,17 +35,26 @@ import rpgcraft.utils.DataUtils;
  */
 public class Player extends MovingEntity {     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * UID hraca.
+     */
     private static final long serialVersionUID = 912804676578087866L;
     
-    // Premenna akumulovanej sily pri utoku na dlazdicu.
+    /**
+     * Premenna akumulovanej sily pri utoku na dlazdicu.
+     */
     private double acumTilePower;
     
-    // Pocitadlo zabiti
+    /**
+     * Pocitadlo zabiti jednotlivych priser. Zatial nepouzite ale mozno vytvorit ulohu, ktora
+     * bude premennu uplatnovat.
+     */
     private HashMap<String,Integer> killCounter;
     
-    // Premenne tykajuce sa questov.
-    private HashMap<String,Quest> activeQuests;
-    private HashMap<String,Quest> completedQuests;
+    /**
+     * Premenne tykajuce sa questov.
+     */
+    private HashMap<String,Quest> activeQuests, completedQuests;
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
@@ -426,6 +435,7 @@ public class Player extends MovingEntity {
     protected double tryHurt(Entity e, double modifier) {
         double hurtValue = super.tryHurt(e, modifier);
         if (e.isDestroyed()) {
+            experiencePoints+=e.getExperiencePoints();
             Integer killCount = this.killCounter.get(e.getId());
             if (killCount == null) {
                 this.killCounter.put(e.getId(), 1);

@@ -13,7 +13,13 @@ import rpgcraft.resource.TileResource;
  * Nacitane dlazdice si uchovavame v hashmape loadedTiles.
  */
 public class LoadedTiles {
+    /**
+     * Hashmapa s nacitanymi dlazdicami
+     */
     private static HashMap<Integer, Tile> loadedTiles;
+    /**
+     * Instancia LoadedTiles
+     */
     private static LoadedTiles instance;        
     
     /**

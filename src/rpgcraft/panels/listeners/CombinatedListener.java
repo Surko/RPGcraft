@@ -13,7 +13,9 @@ import rpgcraft.plugins.Listener;
  */
 public class CombinatedListener extends Listener {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // pole s listenermi ktore sa vykonavaju sekvencne pri volani tohoto kombinovaneho listeneru.
+    /**
+     * Ppole s listenermi ktore sa vykonavaju sekvencne pri volani tohoto kombinovaneho listeneru.
+     */
     Listener[] listeners;
     // </editor-fold>
     

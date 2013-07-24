@@ -16,12 +16,18 @@ import java.util.HashMap;
  * spolu s metodami na vyber jednotlivych obrazkov zo sheetu.
  */
 public class SpriteSheet {
-        // Sirka a vyska SpriteSheet
+        /**
+         * Sirka a vyska SpriteSheet
+         */
 	private int width, height;
-        // Obrazok SpriteSheet
+        /**
+         * Obrazok SpriteSheet
+         */
         private BufferedImage image;
         
-        // Vypis vsetkych SpriteSheet v Hashmap s klucom nazov suboru.
+        /**
+         * vypis vsetkych SpriteSheet v Hashmap s klucom nazov suboru
+         */
         private static HashMap<String,SpriteSheet> sheets = new HashMap<>(); 
 
         /**

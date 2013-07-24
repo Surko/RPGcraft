@@ -17,6 +17,9 @@ import java.util.ArrayList;
  */
 public abstract class DataPlugin {
     
+    /**
+     * List s nacitanymi data pluginmi
+     */
     private static ArrayList<DataPlugin> dataPlugins;
     
     /**

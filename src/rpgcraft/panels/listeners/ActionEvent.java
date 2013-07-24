@@ -19,15 +19,25 @@ public class ActionEvent extends java.awt.event.ActionEvent{
 
     private static HashMap<Long, ActionEvent> threadActionEvents = new HashMap<>();
     
-    // Pocet klikov
+    /**
+     * Pocet klikov
+     */
     private int clicks;
-    // Parameter predany
+    /**
+     * Parameter predany
+     */
     private Object param;
-    // Akcia na vykonanie
+    /**
+     * Akcia na vykonanie
+     */
     private Action action;
-    // Navratova hodnota
+    /**
+     * Navratova hodnota
+     */
     private Object returnValue;
-    // O kolko preskocime pri kombinovanom listenery
+    /**
+     * O kolko preskocime pri kombinovanom listenery
+     */
     private int jumpValue = 1;
     // </editor-fold>
     

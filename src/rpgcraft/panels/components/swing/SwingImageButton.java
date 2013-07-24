@@ -22,9 +22,21 @@ import rpgcraft.panels.components.Container;
  */
 public class SwingImageButton extends SwingCustomButton {  
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Obrazok v tlacidle
+     */
     protected Image img; 
+    /**
+     * Farba pozadia
+     */
     protected Color backColor;
+    /**
+     * Kontrast tlacidla
+     */
     private float contrast;
+    /**
+     * Objekt s ImageOperation na kperacie ktore vykoname pri stlaceniach
+     */
     protected ImageOperation io;
     // </editor-fold>
     

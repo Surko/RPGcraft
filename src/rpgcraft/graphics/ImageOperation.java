@@ -25,16 +25,32 @@ import rpgcraft.resource.StringResource;
  */
 public class ImageOperation { 
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre ImageOperation
+     */
     private static final Logger LOG = Logger.getLogger(ImageOperation.class.getName());
     
-    // Vseobecne : hocijaky obrazok ktory dedi od Image
+    /**
+     * Vseobecne : hocijaky obrazok ktory dedi od Image
+     */
     private Image origImage; 
     
-    // destImage : Prekonvertovany obrazok origImage
-    // showImage : Vysledky obrazok po operaciach
+    /**
+     * destImage : Prekonvertovany obrazok origImage <br>
+     * showImage : Vysledky obrazok po operaciach
+     */
     private BufferedImage destImage,showImage; 
+    /**
+     * Staticka premenna na vykonanie operacii
+     */
     private static ImageOperation io;
+    /**
+     * Index
+     */
     private static int index;    
+    /**
+     * RescaleOp pre skalovanie obrazku
+     */
     private RescaleOp rescale; 
     // </editor-fold>   
     

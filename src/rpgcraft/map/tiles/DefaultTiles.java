@@ -14,13 +14,19 @@ import rpgcraft.resource.TileResource;
  */
 public class DefaultTiles {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Hashmapa s defaultnymi dlazdicami
+     */
     private static HashMap<Integer, Tile> defaultTiles;
+    /**
+     * Instancia default dlazdic
+     */
     private static DefaultTiles instance;
     
-    public static final int GRASS_ID = 1;
-    public static final int BLANK_ID = 0;
-    public static final int ROCK_ID = 2;
-    public static final int RIBBON_ID = 255;
+    /**
+     * Defaultne id blokov
+     */
+    public static final int GRASS_ID = 1,BLANK_ID = 0,ROCK_ID = 2,RIBBON_ID = 255;
     // </editor-fold>           
     
     /**

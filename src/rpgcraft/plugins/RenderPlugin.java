@@ -36,6 +36,9 @@ public abstract class RenderPlugin {
 
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     
+    /**
+     * Indexy s menami vdaka ktorym mozme ziskat data o renderovacih pluginoch.
+     */
     public enum RenderIndexes {
         ID(0),
         NAME(0),

@@ -28,14 +28,19 @@ import rpgcraft.resource.ImageResource;
  */
 public class InputDialog extends SwingImagePanel{
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Default dimenzie dialogu
+     */
     public static final Dimension DIM = new Dimension(200, 150);
+    /**
+     * Default dimenzie tlacidiel
+     */
     public static final Dimension BTN_DIM = new Dimension(30, 20);
     
-    // Mozne nazvy tlacidiel
-    public static final String DONE = "Done";
-    public static final String YES = "Yes";
-    public static final String NO = "No";
-    public static final String CANCEL = "Cancel";
+    /**
+     * Mozne nazvy tlacidiel
+     */
+    public static final String DONE = "Done",YES = "Yes",NO = "No",CANCEL = "Cancel";
     
     /**
      * Typ vstupneho dialogu.
@@ -58,22 +63,48 @@ public class InputDialog extends SwingImagePanel{
         
     }
     
-    // Instancia
+    /**
+     * Instancia
+     */
     private static volatile InputDialog instance;
             
-    // Komponenty v dialogu
+    /**
+     * Text komponenta v dialogu
+     */
     private SwingText msgText;
+    /**
+     * Input Text komponenta v dialogu
+     */
     private SwingInputText inputText;
+    /**
+     * Tlacidlove  komponenty v dialogu
+     */
     private MsgBtns posBut,negBut,cancelBut;
     
+    /**
+     * Obrazok s dialogom
+     */
     private static Image msgImg;    
+    /**
+     * Ci je dialog akurat vyuzivany
+     */
     public static volatile boolean inUse;
     
-    // Typ dialogu
+    /**
+     * Typ dialogu
+     */
     private Type dialType = Type.DONE;
+    /**
+     * Ako dlho vydrzi dialog
+     */
     private long lifeSpan = 0L;    
+    /**
+     * Kedy bol vytvoreny dialog
+     */
     private long creationTime = 0L;
-    // Odpoved pri interakcii s menu
+    /**
+     * Odpoved pri interakcii s dialogom
+     */
     private int answer = -1;        
     // </editor-fold>
     

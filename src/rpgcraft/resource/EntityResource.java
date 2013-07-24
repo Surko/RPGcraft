@@ -171,7 +171,7 @@ public class EntityResource extends AbstractResource<EntityResource> {
     
     /**
      * Metoda ktora vrati, ci je entitu mozne despawnut z planu.
-     * @return 
+     * @return Ci je entitu mozne despawnut
      */
     public boolean isDespawnable() {
         return despawnable;

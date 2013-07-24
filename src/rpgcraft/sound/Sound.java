@@ -24,13 +24,21 @@ import rpgcraft.resource.StringResource;
  * je nastavene spustanie zvukov pomocou Clip a AudioStreamu.
  */
 public class Sound {
-    // Klip ktory prehravame
+    /**
+     * Klip ktory prehravame
+     */
     private Clip clip;
-    // Meno zvuku ktory chcem prehrat
+    /**
+     * Meno zvuku ktory chcem prehrat
+     */
     private ArrayList<String> soundNames;
-    // Aktualne prehravany zvuk
+    /**
+     * Aktualne prehravany zvuk
+     */
     private String soundName;
-    // Boolean ci sa hudba opakuje, nahodne vybera a ci je ukoncena
+    /**
+     * Boolean ci sa hudba opakuje, nahodne vybera a ci je ukoncena
+     */
     private boolean repeat, shuffle, done;
     
     /**

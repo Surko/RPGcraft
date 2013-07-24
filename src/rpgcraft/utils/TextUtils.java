@@ -23,9 +23,17 @@ import rpgcraft.resource.types.ListType;
  */
 public class TextUtils { 
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text podla ktoreho parsujeme text
+     */
     public static final String DELIM = "[ ]+";
+    /**
+     * Zakladny font v hre
+     */
     public static final Font DEFAULT_FONT = Font.decode("Dialog-plain-12");
-    // Renderovaci kontext pre ziskanie dlzok textu
+    /**
+     * Renderovaci kontext pre ziskanie dlzok textu
+     */
     public static FontRenderContext ctx;
     // </editor-fold>        
     
@@ -127,7 +135,6 @@ public class TextUtils {
      * @param size Dlzka do akej parsujeme text
      * @param text Text ktory parsujeme
      * @param font Font ktory ma text
-     * @param maxW Maximalna dlzka textu
      * @return List s rozparsovanymi textmi
      */
     public static ArrayList<Pair<String,Integer>> parseToSize(int size, String text, Font font) {        
@@ -141,7 +148,6 @@ public class TextUtils {
      * @param size Dlzka podla ktorej parsujeme texty
      * @param text Text na parsovanie
      * @param font Font ktory ma text
-     * @param maxW Maximalna dlzka textu
      * @return List s rozparsovanymi textmi.
      */
     public static ArrayList<Pair<String,Integer>> parseToSize(ArrayList<Pair<String,Integer>> lines, int size,

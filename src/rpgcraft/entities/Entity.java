@@ -52,10 +52,17 @@ import rpgcraft.utils.Pair;
  */
 public abstract class Entity implements Externalizable {  
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Staticke konstantne premenne
-    protected static final int STATMULT = 5;
-    protected static final int BASESTAT = 5;
+    /**
+     * Staticke konstantne premenne
+     */
+    protected static final int STATMULT = 5, BASESTAT = 5;
+    /**
+     * UID entity pri serializacii
+     */
     private static final long serialVersionUID = 912804676578087866L;
+    /**
+     * Logger pre entitu
+     */
     private static final Logger LOG = Logger.getLogger(Entity.class.getName());        
     
     /**
@@ -90,115 +97,216 @@ public abstract class Entity implements Externalizable {
         MOVING
     }
     
+    /**
+     * Inteligencia entity
+     */
     protected Ai ai;
     
-    // Premenna pre vypocty atributov entit.    
+    /**
+     * Premenna pre vypocty atributov entit.    
+     */
     protected Random random = new Random(); 
+    /**
+     * Nahodne urcena hodnota vyuzita pri utokoch a obranach
+     */
     protected double randomValue;
     
     // Premenne zahrnajuce inventar
-    // Inventar ulozene v Liste predmetov
+    /**
+     * Inventar ulozene v Liste predmetov
+     */
     protected ArrayList<Item> inventory = new ArrayList<>();   
-    // Hashmapa s namapovanym oblecenim
+    /**
+     * Hashmapa s namapovanym oblecenim
+     */
     protected HashMap<ArmorType, Armor> gear;
     //          
     
     // Aktualny Chunk pre Entitu
     protected Chunk actualChunk;
     
-    // Meno entity
+    /**
+     * Meno entity
+     */
     protected String name;
-    // Resource entity z ktorej entita cerpa
+    /**
+     * Resource entity z ktorej entita cerpa
+     */
     protected EntityResource res;
-    // Univerzalne id z hash.
+    /**
+     * Univerzalne id z hash.
+     */
     protected long uniId;
     
-    // Premenna pre neskorsie pouzitie. Keby mali sprite vacsie hodnoty nez 24 => postavy cez viacero
-    // dlazdic.    
+    /**
+     * Premenna pre neskorsie pouzitie. Keby mali sprite vacsie hodnoty nez 24 => postavy cez viacero
+     * dlazdic.    
+     */
     protected int spriteRadius;
-    // Typ aktualneho sprite 
+    /**
+     * Typ aktualneho sprite 
+     */
     protected Sprite.Type spriteType;
-    // Terajsi Sprite
+    /**
+     * Terajsi Sprite
+     */
     protected Sprite currentSprite;
-    // Id entity    
+    /**
+     * Id entity    
+     */
     protected String id;
-    // Stav entity
+    /**
+     * Stav entity
+     */
     private boolean saveInProgress;
-    // Aktualny sprite z Mapy spritov 
+    /**
+     * Aktualny sprite z Mapy spritov 
+     */
     protected int sprNum;
-    // Velkost odsunutia
+    /**
+     * Velkost odsunutia
+     */
     protected int knockback;
-    // Bool ci je entita posunutelna
+    /**
+     * Bool ci je entita posunutelna
+     */
     protected boolean pushable;
-    // Mapa prisluchajuca k entite
+    /**
+     * Mapa prisluchajuca k entite
+     */
     protected SaveMap map;
-    // Level na ktorej sa nachadza entita s x-ovou a y-ovou poziciou vo svete.
+    /**
+     * Level na ktorej sa nachadza entita s x-ovou a y-ovou poziciou vo svete.
+     */
     protected int level,xPix, yPix, x, y;
     //protected EntityPosition position;
-    // Aktivny predmet entity ktory drzi akurat v rukach.
+    /**
+     * Aktivny predmet entity ktory drzi akurat v rukach.
+     */
     protected Item activeItem = null;
-    // Bool ci je entita aktivna
+    /**
+     * Bool ci je entita aktivna
+     */
     protected boolean active;
-    // Bool ci je entita znicena
+    /**
+     * Bool ci je entita znicena
+     */
     protected boolean destroyed;        
-    // Vzdialenost odkial pocuje ina entita aktualnu entitu
+    /**
+     * Vzdialenost odkial pocuje ina entita aktualnu entitu
+     */
     protected int sound;
-    // Entita na ktoru je zamerany utok
+    /**
+     * Entita na ktoru je zamerany utok
+     */
     protected Entity targetEntity;
-    // List s nepriechodnymi dlazdicami
+    /**
+     * List s nepriechodnymi dlazdicami
+     */
     protected ArrayList<Integer> impassableTiles = new ArrayList<>();
-    // List s priatelskymi grupami pre kazdeho jednotlivca (bude nahradena listom pre kazdu entitu)
+    /**
+     * List s priatelskymi grupami pre kazdeho jednotlivca (bude nahradena listom pre kazdu entitu)
+     */
     protected ArrayList<Integer> allyGroups = new ArrayList<>();
     
-    // Odhodenie entity do x,y smeru od nejakych vonkajsich vplyvov (NPC, predmety, atd...)
+    /**
+     * Odhodenie entity do x,y smeru od nejakych vonkajsich vplyvov (NPC, predmety, atd...)
+     */
     protected int yKnock, xKnock;
     
-    // Premenna indikujuca stav ci sa maju nacitat Chunky okolo entity. Moznost MP.
+    /**
+     * Premenna indikujuca stav ci sa maju nacitat Chunky okolo entity. Moznost MP.
+     */
     protected boolean reloadChunks = false;
     
     // Atributy v hashmapach
+    /**
+     * Double atributy v hashmape urcene podla typu Stat
+     */
     protected HashMap<Stat,Double> doubleStats;
+    /**
+     * Int atributy v hashmape urcene podla typu Stat
+     */
     protected HashMap<Stat,Integer> intStats;
     
-    // aktivne effekty na entite. Kluc je kedy sa efekt spusta, obsah su efekty pre kluc.    
+    /**
+     * Efekty ktore vlastni entita. Kluc je kedy sa efekt spusta, obsah su efekty pre kluc.    
+     */
     protected HashMap<EffectEvent, ArrayList<Effect>> activeEffects;         
     
-    // Atributy zivota
-    protected double health;    
-    protected double healthRegen;
-    protected double maxHealth;    
+    /**
+     * Atributy zivota
+     */
+    protected double health,healthRegen,maxHealth;    
     //    
-    // Agresivita entity - vzdialenost pri ktorej sa entita zacne spravat agresivne
+    /**
+     * Agresivita entity - vzdialenost pri ktorej sa entita zacne spravat agresivne
+     */
     protected int aggresivity;
-    // Grupa entity
+    /**
+     * Grupa entity
+     */
     protected int group;    
-    // Sanca na prerusenie - aku sancu ma entita ze prerusi cudzi utok
+    /**
+     * Sanca na prerusenie - aku sancu ma entita ze prerusi cudzi utok
+     */
     protected double interruptionChance;
-    // Koncetracia - kolko sa odcitava od nepriatelovej interruptionChance
+    /**
+     * Koncetracia - kolko sa odcitava od nepriatelovej interruptionChance
+     */
     protected double concentration;
         
-    //Atributy utoku, obrany, vzdialenosti utoku a obrany a sily utoku
-    protected double attack;
-    protected double defenseA;
-    protected double defenseP;
-    protected double acumDefense;
-    protected double acumPower;
-    protected double attackPower;
-    protected double defensePower;
+    /**
+     * Atributy utoku, obrany, vzdialenosti utoku a obrany a sily utoku
+     */
+    protected double attack,defenseA,defenseP;
+    /**
+     * Naakumulovane sily utoku a obrany
+     */
+    protected double acumDefense,acumPower;
+    /**
+     * Utocna a obranna sila
+     */
+    protected double attackPower, defensePower;
+    /**
+     * Maximalna utocna aj obranna sila
+     */
     protected Double maxPower;
+    /**
+     * Vzdialenost utoku
+     */
     protected int attackRadius;
+    /**
+     * Rychlost utoku
+     */
     protected int attackRating;
+    /**
+     * Rychlost obrany
+     */
     protected int defenseRating;
+    /**
+     * Velkost poskodenia
+     */
     protected double damage;     
     
-    // Premenne urcujuce ci sa entita moze hybat a ci nanu mozme utocit
-    protected boolean moveable;
-    protected boolean attackable;
+    /**
+     * Premenne urcujuce ci sa entita moze hybat a ci nanu mozme utocit
+     */
+    protected boolean moveable, attackable;
     
-    // Premenna vytvarajuca particle pre nabijanie sily utoku ci obrany
+    /**
+     * Pocet skusenostnych bodov
+     */
+    protected long experiencePoints;
+    
+    /**
+     * Premenna vytvarajuca particle pre nabijanie sily utoku ci obrany
+     */
     protected BarParticle poweringBar;   
     
-    // Premenna urcujuca typ entity v ramci materialu z coho je entita vytvorena.
+    /**
+     * Premenna urcujuca typ entity v ramci materialu z coho je entita vytvorena.
+     */
     protected int levelType;
     
     // Premenne tykajuce sa casu. 
@@ -873,6 +981,14 @@ public abstract class Entity implements Externalizable {
      */
     public Item getActiveItem() {        
         return activeItem;
+    }
+    
+    /**
+     * Metoda ktora vrati pocet skusenostnych bodov
+     * @return Pocet skusenostnych bodov
+     */
+    public long getExperiencePoints() {
+        return experiencePoints;
     }
     
     /**
@@ -1754,8 +1870,7 @@ public abstract class Entity implements Externalizable {
     }
     
     /**
-     * Metoda sa pokusi o vytvorenie entity v okoli zadanych pozicii vo vzdialenosti scatter.
-     * @param e Entita okolo ktorej vytvarame novu entitu
+     * Metoda sa pokusi o vytvorenie entity v okoli zadanych pozicii vo vzdialenosti scatter.    
      * @param z Poschodie v ktorom vytvarame
      * @param x X-ova pozicia 
      * @param y Y-ova pozicia

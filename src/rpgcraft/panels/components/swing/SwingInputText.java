@@ -32,13 +32,34 @@ import rpgcraft.utils.TextUtils;
  */
 public class SwingInputText extends SwingComponent {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre input text
+     */
     private static final Logger LOG = Logger.getLogger(SwingInputText.class.getName());
+    /**
+     * Odsadenie textu
+     */
     private static final int GAP = 1;
     
+    /**
+     * Text v texte :D
+     */
     private String title;
+    /**
+     * Textovy typ
+     */
     private TextType txType;
+    /**
+     * Farba textu a pozadia
+     */
     private Color textColor,backColor;
+    /**
+     * Rozparsovany text v texte.
+     */
     protected ArrayList<Pair<String,Integer>> parsedTitle;
+    /**
+     * Velkost textu v komponente
+     */
     protected int tw = 0,th = 0;
     // </editor-fold>
     

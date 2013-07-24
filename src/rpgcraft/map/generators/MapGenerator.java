@@ -22,15 +22,23 @@ import rpgcraft.resource.StringResource;
 
 public class MapGenerator {        
     
-    // List s generatormi podla ktorych vytvarame mapu.
+    /**
+     * List s generatormi podla ktorych vytvarame mapu.
+     */
     public static ArrayList<GeneratorPlugin> generators;
     
-    // X-ove a Y-ove pozicie chunku
+    /**
+     * X-ove a Y-ove pozicie chunku
+     */
     private int x, y;
-    // Hlbka so sirkou mapy aku vytvarame.
+    /**
+     * Hlbka so sirkou mapy aku vytvarame.
+     */
     private int depth, size;
                 
-    // Samotna mapa ulozena v 3D poli.
+    /**
+     * Samotna mapa ulozena v 3D poli.
+     */
     private int[][][] mapArray,metaArray;
     
     /**

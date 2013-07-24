@@ -22,6 +22,9 @@ import rpgcraft.utils.ScriptUtils;
  */
 public class DataListener extends Listener {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Listener
+     */
     private static final Logger LOG = Logger.getLogger(DataListener.class.getName());
         
     /**
@@ -48,6 +51,9 @@ public class DataListener extends Listener {
         DEBUG
     }
     
+    /**
+     * Operacia na vykonanie
+     */
     Operations op;
     // </editor-fold>
     

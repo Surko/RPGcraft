@@ -30,20 +30,55 @@ import rpgcraft.utils.MathUtils;
  */
 public class SwingImagePanel extends SwingComponent {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Panel
+     */
     private static final Logger LOG = Logger.getLogger(SwingImagePanel.class.getName());
+    /**
+     * Odsadenie pri kresleni farieb. Spodna farba sa vykresli po celej velkosti. Vrchna
+     * je odsadena
+     */
     protected static final int wGap = 5, hGap = 5;
+    /**
+     * Obrazok v pozadi panelu
+     */
     protected Image backImage;
+    /**
+     * Farba pozadia v pozadi
+     */
     protected Color backColor;
+    /**
+     * Farba pozadia v popredi
+     */
     protected Color topColor;
+    /**
+     * Pozicie obrazku v komponente
+     */
     protected int[] rpos;
+    /**
+     * Typ panelu
+     */
     protected PanelType pType;
+    /**
+     * Ci je panel povazovany za hraci => je v nom vykreslovana hra.
+     */
     protected boolean gamePanel;
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Konstruktory ">
+    /**
+     * Prazdny konstruktor ktory vytvori instanciu SwingImagePanel.
+     */
     protected SwingImagePanel() {
     }
     
+    /**
+     * Konstruktor ktory vytvori novu instanciu SwingImagePanel z kontajneru <b>cont</b>
+     * ktory sa nachadza v menu <b>menu</b>. V paneli urcime obrazok aj farby v pozadi aj v popredi.
+     * Taktiez urcime ci je panel hraci.
+     * @param container Kontajner v ktorom sa nachadza komponenta
+     * @param menu Abstraktne menu v ktorom mame tuto komponentu
+     */
     public SwingImagePanel(Container container, AbstractMenu menu) {
         super(container, menu);
         if (container != null) {

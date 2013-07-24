@@ -23,26 +23,81 @@ import rpgcraft.resource.TileResource;
  */
 public class Tile {    
     // <editor-fold defaultstate="collapsed" desc=" Premenne "
+    /**
+     * HashMapa so vsetkymi dlazdicami
+     */
     public static HashMap<Integer,Tile> tiles;
+    /**
+     * Text s id nepriechodnej dlazdice
+     */
     private static final String IMPASS = "_cross";
+    /**
+     * Text na parsovanie dlazdice z textu
+     */
     private static final String DELIM = ":";
        
+    /**
+     * Obrazok dlazdice ako hu vnimame z vrchu
+     */
     private Image upperImage;
     
+    /**
+     * Ci sa da plavat cez dlazdicu
+     */
     protected boolean swimable;
+    /**
+     * Ci je dlazdicu mozne znicit
+     */
     protected boolean destroyable;
     
+    /**
+     * HashMapa so Spritami
+     */
     protected HashMap<Integer,Sprite> _sprites;
+    /**
+     * Id dlazdice
+     */
     protected Integer id;
+    /**
+     * Meno dlazdice
+     */
     protected String name;       
+    /**
+     * Sheet v ktorom je obrazok dlazdice
+     */
     protected SpriteSheet sheet;
+    /**
+     * Ako dokaze dlazdica ublizit hracovi alebo inej entite
+     */
     protected int damage;
+    /**
+     * Zivot dlazdice
+     */
     protected int health;
-    protected int tileStrength, itemType;        
+    /**
+     * Sila dlazdice ktoru musime vykonat na ustedrenie poskodenia
+     */
+    protected int tileStrength;
+    /**
+     * Typ predmetu ktory musime pouzit na ustedrenie poskodenia
+     */
+    protected int itemType;        
     
+    /**
+     * Cislo aktualnej sprite ktoru vykreslujeme
+     */
     protected int sprNum;
+    /**
+     * Cas kedy sme naposledy zmenili sprite dlazdice
+     */
     protected long waypointTime;
+    /**
+     * Aktualny cas dlazdice
+     */
     protected long currentTime;
+    /**
+     * Maximalny cas zobrazenia dlazdice a nasledneho prehodenia na dalsi sprite
+     */
     protected long maxTime;
     // </editor-fold>
     

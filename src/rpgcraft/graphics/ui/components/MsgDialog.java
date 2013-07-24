@@ -23,14 +23,32 @@ import rpgcraft.panels.components.swing.SwingText;
  */
 public final class MsgDialog extends SwingImagePanel {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre dialog.
+     */
     public static final Dimension DIM = new Dimension(200, 150);
     
+    /**
+     * Instancia dialogu
+     */
     private static MsgDialog instance;
+    /**
+     * Ci je dialog akurat vyuzivany
+     */
     public static volatile boolean inUse;
     
+    /**
+     * Komponenta s textom
+     */
     private SwingText msgText;
     
+    /**
+     * Dlzka zivota dialogu
+     */
     private long lifeSpan;
+    /**
+     * Kedy bol dialog vytvoreny
+     */
     private long creationTime;
     // </editor-fold>
     

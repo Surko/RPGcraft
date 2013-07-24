@@ -14,9 +14,18 @@ import rpgcraft.map.tiles.DefaultTiles;
  */
 public class ChunkContent {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Prazdna vrstva ktora sa bude vykreslovat pri prekroceni vyskovej hranice
+     */
     private static final int[][] BLANKLAYER = new int[Chunk.getSize()][Chunk.getDepth()];
     
+    /**
+     * Pole s id dlazdic a meta dat.
+     */
     private int[][][] chunkArray, metaData;
+    /**
+     * Velkost obsahu width * height * depth
+     */
     private final int size;
     // </editor-fold>
     

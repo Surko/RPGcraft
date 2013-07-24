@@ -51,19 +51,33 @@ public class Sprite {
         
     }
     
-    // Obrazok pre Sprite a pre Sprite ktory moze byt nanom
+    /**
+     * Obrazok pre Sprite a pre Sprite ktory moze byt nanom
+     */
     private Image sprite;
-    // Typ Sprite vybraty z enum Type v tejto triede
+    /**
+     * Typ Sprite vybraty z enum Type v tejto triede
+     */
     private Type type;   
-    // Trvacnost jednej Sprite
+    /**
+     * Trvacnost jednej Sprite
+     */
     private int duration;
-    // x-ova pozicia v SpriteSheet
+    /**
+     * x-ova pozicia v SpriteSheet
+     */
     private int x = 0;
-    // y-ova pozicia v SpriteSheet
+    /**
+     * y-ova pozicia v SpriteSheet
+     */
     private int y = 0;
-    // sirka Sprite
+    /**
+     * Sirka Sprite
+     */
     private int w = 0;
-    // vyska Sprite
+    /**
+     * Vyska Sprite
+     */
     private int h = 0;
     
     /**

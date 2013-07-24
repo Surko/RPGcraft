@@ -24,6 +24,9 @@ public class LoadCreateListener extends Listener {
         CREATE
     }
     
+    /**
+     * Operacia na vykonanie
+     */
     Operations op;
     // </editor-fold>
     

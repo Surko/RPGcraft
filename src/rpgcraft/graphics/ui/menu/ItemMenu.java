@@ -23,18 +23,37 @@ import rpgcraft.handlers.InputHandle;
  */
 public class ItemMenu extends AbstractInMenu {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Vyska jedneho predmetu v boxe
+     */
     private static final int hItemBox = 20;
+    /**
+     * Odsadenie od okrajov
+     */
     private static final int wGap = 5, hGap = 5;                  
     
+    /**
+     * Predmet pre ktory zobrazujeme menu
+     */
     private Item item;
+    /**
+     * Index oznaceneho predmetu
+     */
     private int selection;
     
+    /**
+     * X-ova a y-ova pozicia oznaceneho predmetu
+     */
     private int selectedPosX,selectedPosY;
     
-    private int width = 100;
-    private int height = 200;
+    /**
+     * Sirka a vyska menu
+     */
+    private int width = 100,height = 200;
     
-    // Moznosti ktore sa daju robit s predmetom
+    /**
+     * Moznosti ktore sa daju robit s predmetom (EQUIP, ACTIVA, DROP, ...)
+     */
     private ArrayList<Command> choices;
     //</editor-fold>
     

@@ -43,7 +43,6 @@ import rpgcraft.panels.GameMenu;
 import rpgcraft.plugins.RenderPlugin;
 import rpgcraft.resource.StringResource;
 import rpgcraft.utils.DataUtils;
-import rpgcraft.utils.GameUtils;
 import rpgcraft.utils.GameUtils.Spawn;
 import rpgcraft.utils.MainUtils;
 
@@ -71,77 +70,187 @@ public class SaveMap implements Runnable {
     /* 
      * Pre zistenie kam ma zaradit mapu budem pouzivat bitove operacie posunu doprava o 4,
      * 0x0 - 15x15 budu v rovnakom priestore na disku pod menom region0x0
-     */                              
+     */             
+    
+    /**
+     * Logger pre Mapu
+     */
     private final Logger LOG = Logger.getLogger(getClass().getName());       
     
+    /**
+     * Nazov ulozeneej pozicie
+     */
     protected String saveName;
     
+    /**
+     * Fronta s nacitanymi chunkami
+     */
     protected Deque<Chunk> chunkQueue = new LinkedList<> ();
+    /**
+     * Fronta s casticami na vymazanie
+     */
     private Deque<Particle> partRemove = new ArrayDeque<>();
+    /**
+     * Fronta s entitami na vymazanie
+     */
     private Deque<Entity> entityRemove = new ArrayDeque<>();
     
+    /**
+     * Pocet chunkov po x-ovej alebo y-ovej suradnici
+     */
     private int numberOfChunks;
+    /**
+     * 2D pole s chunkami na vykreslenie. Ich pocet je numberOfChunk*numberOfChunks
+     */
     private Chunk[][] chunksToRender;    
     
+    /**
+     * Renderovaci plugin ktorym vykreslujeme svet
+     */
     private RenderPlugin render;
     
-    // Ako casto sa vytvaraju entity. Cislo znamena priemerne (v sekundach) ako casto sa vytvori nova entita
+    /**
+     * Ako casto sa vytvaraju entity. Cislo znamena priemerne (v sekundach) ako casto sa vytvori nova entita
+     */
     protected int spawnRate = 50;   
+    /**
+     * Maximalny pocet spawnov
+     */
     protected int maxSpawns = 5;
     
+    /**
+     * Aktualny cas v hre
+     */
     protected short dayTime;    
+    /**
+     * DayLighting instancia pre zobrazenie svetla
+     */
     protected DayLighting dayLight;
+    /**
+     * Posledna aktualizovana sekunda
+     */
     protected long lastSecond;
+    /**
+     * Aktualna hodina v hre (6:00)
+     */
     protected int gameTime = 6;
     
+    /**
+     * X-ova pozicia ktoru mozno vyuzit na nieco
+     */
     protected int x;
+    /**
+     * Y-ova pozicia ktoru mozno vyuzit na nieco
+     */
     protected int y;
     
+    /**
+     * Panel v ktorom je mapa
+     */
     private final GamePane game;  
+    /**
+     * menu v ktorom je mapa
+     */
     private final GameMenu menu;
+    /**
+     * Vstup od uzivatela
+     */
     private final InputHandle input;
+    /**
+     * Ci sa dlazdiciam urcuju id sami od seba
+     */
     public static final boolean defineTileself = true;
+    /**
+     * Pocet chunkov ulozenych vo fronte s chunkami
+     */
     public static final int chunkSize = 25;            
     
+    /**
+     * Aktualny hrac
+     */
     public Player player;   
+    /**
+     * Originalny hrac
+     */
     public MovingEntity origPlayer;
     
+    /**
+     * Farba FPS
+     */
     private Color fpsColor = Colors.getColor(Colors.fpsColor);
-        
+       
+    // Stavy hry
     private boolean lightState = true;
     private boolean chunkState = true;
     private boolean playerState = true;
     private boolean paused = false;
     private boolean running = true;
     
+    /**
+     * InputStream na nacitanie vlastnosti hry ako chunky a entity,...
+     */
     private ObjectInputStream inputStream;
+    /**
+     * OutputStream pre zapisanie vlastnosti ako chunky a entity,...
+     */
     private ObjectOutputStream outputStream;
     
+    /**
+     * Aktivne efekty v mape
+     */
     protected ArrayList<Effect> onSelfEffects;
+    /**
+     * List s blizkymi entitami od hraca
+     */
     protected volatile ArrayList<Entity> nearEntities = new ArrayList<>();
+    /**
+     * List s entitami v chunkoch
+     */
     protected volatile ArrayList<Entity> entitiesList = new ArrayList<>();
     // Entity na poziciach protected volatile HashMap<EntityPosition, ArrayList<Entity>> entities;
+    /**
+     * List s aktivnymi casticami
+     */
     protected volatile ArrayList<Particle> particles = new ArrayList<>();
     
     //protected volatile HashMap<Integer,Entity> tileEntities = new HashMap<>();
     
+    /**
+     * Graphics2D objekt
+     */
     private Graphics2D g2d;
     
+    /**
+     * Aktualne podlazdie
+     */
     private int _lcurrent;
+    /**
+     * Aktualna x-ova pozicia
+     */
     private int _xcurrent;
+    /**
+     * Aktualna y-ova pozicia
+     */
     private int _ycurrent;
-                               
-    private int width;
-    private int height;
+                 
+    /**
+     * Sirka a vyska okna
+     */
+    private int width,height;
+    /**
+     * X-ova a Y-ove koordinaty obrazovky dlzky screenLength
+     */
     public int xCoordinate,yCoordinate;
     
-    
+    /**
+     * Dlzka okna
+     */
     private int screenLength;    
     
-    private boolean stat = false;  
-    private boolean particle = true;
-    private boolean scaleable = false;
-    private boolean lighting = false;
+    /**
+     * Premenne urcujuce co sa moze aktualizovat a vykreslovat
+     */
+    private boolean stat = false,particle = true,scaleable = false,lighting = false;
         
     private static final int delayThread = 2;
     private static int jammedMenu = 0;

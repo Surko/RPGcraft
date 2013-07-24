@@ -18,9 +18,13 @@ import rpgcraft.entities.MovingEntity;
 public class DefaultAi extends Ai{   
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Meno pre Ai
+    /**
+     * Meno pre Ai
+     */
     private static final String NAME = "default";
-    // instancia default ai sluzi ako singleton
+    /**
+     * instancia default ai sluzi ako singleton
+     */
     private static DefaultAi instance;    
         
     // </editor-fold>

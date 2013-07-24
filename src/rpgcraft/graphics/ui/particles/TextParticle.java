@@ -17,8 +17,17 @@ import java.awt.image.BufferedImage;
  */
 public class TextParticle extends Particle{
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Zadana dlzka zivota na 2 sekundy
+     */
     private static final int LIFE = 2;
+    /**
+     * Text na zobrazenie
+     */
     private String msg;
+    /**
+     * Font s ktorym vykreslujeme textovu casticu
+     */
     private Font font = new Font("Tahoma", Font.PLAIN, 15);
     // </editor-fold>
     

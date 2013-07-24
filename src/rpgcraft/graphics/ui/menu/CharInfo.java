@@ -30,18 +30,38 @@ import rpgcraft.utils.TextUtils;
 public class CharInfo extends AbstractInMenu<CharInfo> {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Meno tohoto menu
+     */
     private static final String CHARINFOID = "_charinfo";
+    /**
+     * Testovaci text pre zistenie velkosti
+     */
     private static final String TEST = "Testing";
-    private static final String SECOND = StringResource.getResource("seconds");
-    private static final String EFFECTS = StringResource.getResource("effects");
-    private static final String HEALTH = StringResource.getResource("health"),
-            STAMINA = StringResource.getResource("stamina"); 
-    private static final String CHARINFO = StringResource.getResource(CHARINFOID); 
+    /**
+     * Texty z ResourceBundle
+     */
+    private static final String SECOND = StringResource.getResource("seconds"),
+            EFFECTS = StringResource.getResource("effects"),HEALTH = StringResource.getResource("health"),
+            STAMINA = StringResource.getResource("stamina"),
+            CHARINFO = StringResource.getResource(CHARINFOID); 
+    /**
+     * Texty na rozparsovanie textu
+     */
     private static final String DELIM = " : ", STATDELIM = "/";
     
+    /**
+     * Odstup menu od okrajov
+     */
     private static final int wGap = 5, hGap = 5;    
+    /**
+     * Sirka a vyska menu
+     */
     private static final int infoWidth = 300, infoHeight = 400;
     
+    /**
+     * Hlavne staty ktore chceme v menu zobrazit
+     */
     private static final StatResource.Stat[] mainStats = new StatResource.Stat[] {        
         StatResource.Stat.STRENGTH,        
         StatResource.Stat.AGILITY,        
@@ -53,6 +73,9 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
         StatResource.Stat.ENDURANCEPER,
     };
     
+    /**
+     * Staty so zivotom ktore chceme zobrazit
+     */
     private static final StatResource.Stat[] healthStats = new StatResource.Stat[] {        
         StatResource.Stat.HEALTHBONUS,        
         StatResource.Stat.HEALTHMAXPER,        
@@ -64,6 +87,9 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
         StatResource.Stat.STAMINAREGENPER
     };
     
+    /**
+     * Staty s utokom ktore chceme zobrazit
+     */
     private static final StatResource.Stat[] atkStats = new StatResource.Stat[] { 
         StatResource.Stat.ATKRADIUS,
         StatResource.Stat.ATKRADIUSPER,
@@ -78,11 +104,29 @@ public class CharInfo extends AbstractInMenu<CharInfo> {
         StatResource.Stat.DAMAGEPER       
     };
     
+    /**
+     * Aktualna sirka vyska menu
+     */
     protected int width = infoWidth, height = infoHeight;
+    /**
+     * Premenna s fontom
+     */
     protected Font font,boldTitleFont,italicFont, boldNormalFont;
+    /**
+     * Premenna s vyskou fontu
+     */
     private int[] txtSize, boldSize, italicSize, boldNormalSize;
+    /**
+     * Premenna urcujuca ako daleko pri skrolovani menu sa nachadzame
+     */
     private int modifCount = 1;
+    /**
+     * Premenna urcujuca zaciatok vykreslovania menu
+     */
     private int itemInfoStartY = 0, starty;
+    /**
+     * Obrazok s menu
+     */
     private BufferedImage fullCharInfoImage, charInfoImage;
     
     // </editor-fold>

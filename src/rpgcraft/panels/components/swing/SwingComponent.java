@@ -33,32 +33,54 @@ import rpgcraft.utils.MathUtils;
  */
 public abstract class SwingComponent extends JPanel implements Component {  
     // <editor-fold defaultstate="collapsed" desc=" Logger ">
-    // Logger
+    /**
+     * Logger pre Komponnetu
+     */
     private static final Logger LOG = Logger.getLogger(SwingComponent.class.getName());
     
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
     
-    // Kontajner komponenty
+    /**
+     * Kontajner komponenty
+     */
     protected Container componentContainer;
-    // Menu kde sa komponenta nachadza
+    /**
+     * Menu kde sa komponenta nachadza
+     */
     protected AbstractMenu menu;
-    // Boolean ci sa zmenila komponenta
+    /**
+     * Boolean ci sa zmenila komponenta
+     */
     protected boolean changed;
-    // Typ pre komponentu
+    /**
+     * Typ pre komponentu
+     */
     protected AbstractType type;   
-    // Boolean ci je oznacena komponenta
+    /**
+     * Boolean ci je oznacena komponenta
+     */
     protected boolean isSelected;
-    // Mouse listenery
+    /**
+     * Mouse listenery
+     */
     protected ArrayList _mlisteners;
-    // Key listenery
+    /**
+     * Key listenery
+     */
     protected ArrayList<Action> _klisteners;
-    // Ci je komponenta bez dat a nevyuzitelna.
+    /**
+     * Ci je komponenta bez dat a nevyuzitelna.
+     */
     protected boolean isNoData = false;
-    // Ci je komponenta aktivna pre eventy
+    /**
+     * Ci je komponenta aktivna pre eventy
+     */
     protected boolean active = false;
-    // Sirky a vysky komponenty
+    /**
+     * Sirky a vysky komponenty
+     */
     protected int w, h;
     
     // </editor-fold>

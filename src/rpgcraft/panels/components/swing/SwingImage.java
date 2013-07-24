@@ -24,9 +24,18 @@ import rpgcraft.utils.ImageUtils;
  */
 public class SwingImage extends SwingComponent {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Obrazok
+     */
     private static final Logger LOG = Logger.getLogger(SwingImage.class.getName());
     
+    /**
+     * Vrchna a spodna farba pozadia
+     */
     protected Color topColor, backColor;
+    /**
+     * Obrazok ktory vykreslujeme
+     */
     protected Image backImage;   
     // </editor-fold>
     

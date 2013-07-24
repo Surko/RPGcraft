@@ -40,33 +40,59 @@ public class Action implements Runnable {
         // </editor-fold>
         
         // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-        // Typ kliknutia (na list elementov, atd...)
+        /**
+         * Typ kliknutia (na list elementov, atd...)
+         */
         Object eventType;
         //            
-        // Event podla ktoreho sa vykona akcia
+        /**
+         * Event podla ktoreho sa vykona akcia
+         */
         ActionEvent event;
-        // Typ akcie (mys, klavesnica)
+        /**
+         * Typ akcie (mys, klavesnica)
+         */
         Type type = Type.MOUSE;
-        // Textove pole s akciou co sa ma vykonat. Treba nejaky parser, ktory vytvori akciu.
+        /**
+         * Textove pole s akciou co sa ma vykonat. Treba nejaky parser, ktory vytvori akciu.
+         */
         String sAction;
-        // Pocet klikov aby sa vykonala akcia.
+        /**
+         * Pocet klikov aby sa vykonala akcia.
+         */
         int clicks = 0;
-        // Ci je akcia lua skript
+        /**
+         * Ci je akcia lua skript
+         */
         boolean lua;        
-        // Ci je akcia necinna
+        /**
+         * Ci je akcia necinna
+         */
         boolean done;
-        // Ci sa akcia akurat vykonava
+        /**
+         * Ci sa akcia akurat vykonava
+         */
         volatile boolean active;
-        // Terajsi pocet tiknuti od zaciatku, pocet tiknuti na prespanie.
+        /**
+         * Terajsi pocet tiknuti od zaciatku, pocet tiknuti na prespanie.
+         */
         int currentTick,sleepingTicks;
-        // Cas kedy sa akcia uspala, terajsi cas, a kolko sekund ma akcia spat
+        /**
+         * Cas kedy sa akcia uspala, terajsi cas, a kolko sekund ma akcia spat
+         */
         long markTime, currentTime, sleepingTime;
-        // Ulozeny listener v akcii. Rychlejsi pristup k vykonaniu operacie kedze nemusi byt parsovane sAction aby sme dostali listener.
+        /**
+         * Ulozeny listener v akcii. Rychlejsi pristup k vykonaniu operacie kedze nemusi byt parsovane sAction aby sme dostali listener.
+         */
         Listener lAction;
-        // Transparentna akcia => akcia preteka komponentami az do rodicovskeho komponentu, memorizable akcia => akcia je zapamatena v listeneroch ked to je listener
+        /**
+         * Transparentna akcia => akcia preteka komponentami az do rodicovskeho komponentu, memorizable akcia => akcia je zapamatena v listeneroch ked to je listener
+         */         
         boolean trans = false,memorizable = false;
         //
-        // Klavesa ktora musi byt stlacena na spustenie
+        /**
+         * Klavesa ktora musi byt stlacena na spustenie
+         */
         int keyCode;
         
         // </editor-fold>

@@ -25,24 +25,35 @@ import rpgcraft.panels.listeners.ListenerFactory;
  */
 public class GameLibrary extends ScriptLibraryPlugin {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Kniznicu
+     */
     private static final Logger LOG = Logger.getLogger(GameLibrary.class.getName());
     
-    // Meno pre kniznicu
+    /**
+     * Meno pre kniznicu
+     */
     public static final String LIB_NAME = "game";
     
-    // Mena pre jedno argumentove funkcie
+    /**
+     * Mena pre jedno argumentove funkcie
+     */
     public static final String[] ONEARG_NAMES = new String[] {
         "log",
         "value",
         "callListener"
     };
     
-    // Mena pre dvoj argumentove funkcie
+    /**
+     * Mena pre dvoj argumentove funkcie
+     */
     public static final String[] TWOARG_NAMES = new String[] {
         "setValue"
     };
     
-    // Instancia GameLibrary pre navrat z metody getInstance
+    /**
+     * Instancia GameLibrary pre navrat z metody getInstance
+     */
     private static GameLibrary instance;
     // </editor-fold>
     

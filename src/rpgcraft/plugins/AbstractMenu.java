@@ -41,22 +41,66 @@ import rpgcraft.utils.MathUtils;
 public abstract class AbstractMenu implements Menu<AbstractMenu> {         
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Hashmapa s ulozenmi menu
+     */
     protected static HashMap<String, AbstractMenu> menuMap = new HashMap<>();
         
+    /**
+     * Hlavny hraci kontajner v ktorom je menu
+     */
     protected Container gameContainer;
+    /**
+     * Hudba ktora sa spusti pri menu
+     */
     protected Sound sound;
+    /**
+     * Panel hry
+     */
     protected GamePane gamePane;
+    /**
+     * Resource z ktoreho vytvarame menu
+     */
     protected UiResource res;
+    /**
+     * Vstup uzivatela
+     */
     protected InputHandle input;
+    /**
+     * Constraints pre Swing
+     */
     protected GridBagConstraints c;
+    /**
+     * Resource ktore sa budu skrolovat
+     */
     protected ArrayList<UiResource> scrollingResource;
+    /**
+     * Kontajnery v menu
+     */
     protected ArrayList<Container> containers;
-    // Neutriedena Mapa zadana pomocou linkedHashMap.
+    /**
+     * Neutriedena Mapa zadana pomocou linkedHashMap.
+     */
     protected ConcurrentHashMap<UiResource, Container> uiContainers;
+    /**
+     * Ci sa zmenilo UI
+     */
     protected boolean changedUi;
+    /**
+     * Ci sa zmenila graficka stranka
+     */
     protected boolean changedGr;
+    /**
+     * Obrazok kontajneru
+     */
     protected Image contImage;
+    /**
+     * Ci sa musi preinicializovat
+     */
     protected boolean changedInit;
+    /**
+     * Ci je menu zinicializovane
+     */
     protected boolean initialized;
     
     // </editor-fold>

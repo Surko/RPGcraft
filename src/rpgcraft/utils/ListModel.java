@@ -16,9 +16,13 @@ import java.util.Iterator;
  */
 public class ListModel {    
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // List s datami (2D pole)
+    /**
+     * List s datami (2D pole)
+     */
     private ArrayList<Object[]> data;
-    // Kurzor priradeny k list modelu
+    /**
+     * Kurzor priradeny k list modelu
+     */
     private Cursor c;
     // </editor-fold>
     

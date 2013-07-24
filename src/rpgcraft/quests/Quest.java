@@ -30,14 +30,33 @@ import rpgcraft.utils.DataUtils;
  */
 public class Quest implements Externalizable {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Resource z ktoreho je vytvorena uloha
+     */
     private QuestsResource questRes;    
+    /**
+     * Stav ulohy
+     */
     private int questState;
+    /**
+     * List s akciami na vykonanie pri update ulohy
+     */
     private volatile ArrayList<Action> actions;
+    /**
+     * Hrac ktory plni ulohy
+     */
     private Player player;
+    /**
+     * Ci je uloha skompletizovana
+     */
     private boolean completed;
-    // Premenna ci uz uloha vykonala zacinajuce akcie
+    /**
+     * Premenna ci uz uloha vykonala zacinajuce akcie
+     */
     private boolean started;
-    // ActionEvent volany s questom
+    /**
+     * ActionEvent volany s questom
+     */
     private ActionEvent questEvent = new ActionEvent(AbstractMenu.getMenuByName("gameMenu"), 0, 0, null, null);
     // </editor-fold>
     

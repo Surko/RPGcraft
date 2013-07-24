@@ -18,13 +18,21 @@ import rpgcraft.resource.UiResource;
  */
 public abstract class AbstractType implements Cloneable {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Constraints
+    /**
+     * Constraints
+     */
     protected Object gc;
-    // Typy ui
+    /**
+     * Typy ui
+     */
     protected UiResource.UiType uitype;
-    // Typy layoutu
+    /**
+     * Typy layoutu
+     */
     protected UiResource.LayoutType layoutType;
-    // Farby pozadia komponenty
+    /**
+     * Farby pozadia komponenty
+     */
     protected Color bColor,tColor;
     // </editor-fold>
 

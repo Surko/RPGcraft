@@ -8,9 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
-import rpgcraft.entities.Armor.ArmorType;
 import rpgcraft.entities.Misc.MiscType;
-import rpgcraft.entities.Weapon.WeaponType;
 import rpgcraft.resource.EntityResource;
 
 /**
@@ -25,7 +23,9 @@ import rpgcraft.resource.EntityResource;
  */
 public class CombinatedItem extends Item{
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Typy predmetov
+    /**
+     * Typy predmetov
+     */
     private ArrayList<ItemType> types;
     
     // </editor-fold>

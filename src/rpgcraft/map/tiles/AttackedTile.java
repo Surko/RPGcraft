@@ -14,8 +14,21 @@ import rpgcraft.map.chunks.Chunk;
  */
 public class AttackedTile {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    int x,y,level,tileId;
+    /**
+     * X-ova, Y-ova a Z-ova pozicia dlazdice
+     */
+    int x,y,level;
+    /**
+     * Id dlazdice
+     */
+    int tileId;
+    /**
+     * Zivot dlazdice po ktorom sa povazuje dlazdica za znicenu
+     */
     double health;
+    /**
+     * Chunk v ktorom je dlazdica
+     */
     Chunk chunk;
     // </editor-fold>
 

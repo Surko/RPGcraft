@@ -43,12 +43,37 @@ import rpgcraft.utils.MathUtils;
 public class SwingImageList extends SwingImagePanel {
      
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Model pre list
+     */
     ListModel model;
+    /**
+     * Ci sa zmenil list a musime ho updatovat
+     */
     boolean changedList;
+    /**
+     * Kontajnery v liste <=> prvky listu
+     */
     ArrayList<Container> containers;    
+    /**
+     * Sirka a vyska listu
+     */
     int w,h;
-    int selected = -1, jump = 0;
+    /**
+     * Index oznaceneho prvku v liste.
+     */
+    int selected = -1;
+    /**
+     * Skrolovacia premenna 
+     */
+    int jump = 0;
+    /**
+     * Pocet riadkov, stlpcov a velkost tabulky
+     */
     int rows,cols,table;
+    /**
+     * Typ listu
+     */
     ListType lType;
     // </editor-fold>
     

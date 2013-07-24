@@ -13,11 +13,17 @@ package rpgcraft.utils;
  */
 public abstract class Cursor {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Data v riadkoch
+    /**
+     * Data v riadkoch
+     */
     protected Object[] rowData;
-    // Mena stlpcov
+    /**
+     * Mena stlpcov
+     */
     protected String[] columns;
-    // Aktualna pozicia kurzoru
+    /**
+     * Aktualna pozicia kurzoru
+     */
     protected int position;
     // </editor-fold>
     

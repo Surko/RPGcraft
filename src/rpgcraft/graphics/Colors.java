@@ -16,11 +16,16 @@ import rpgcraft.resource.StringResource;
  * novej instancie. Vsetky farby su pridane do mapy statickym initializatorom.
  * @author Kirrie
  */
-public class Colors {    
+public class Colors {
+    /**
+     * Ulozene farby v hashmape s klucom odpovedajucim textu
+     */
     private static HashMap<String,Color> colors = new HashMap<>();
     
-    private static final String RGBSTPOINT = "#";
-    private static final String RGBDELIM = ",";
+    /**
+     * Premenne na rozparsovanie farby z textu. Napriklad #120,120,120 alebo missColor.
+     */
+    private static final String RGBSTPOINT = "#", RGBDELIM = ",";
     
     /**
      * Modra farba indikujuca Error suvisiaci s chybajucim suborom.
@@ -42,6 +47,9 @@ public class Colors {
      * Nepriehladna cierna farba
      */
     public static final String fullBlack = "fullBlack";
+    /**
+     * Farba zobrata z Color.Black
+     */
     public static final String Black = "Black";
     /**
      * Transparentna farba vytvarajuca efekt vychadzajuceho slnka

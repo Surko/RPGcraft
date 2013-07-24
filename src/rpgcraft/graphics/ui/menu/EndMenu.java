@@ -28,25 +28,61 @@ import rpgcraft.utils.TextUtils;
  */
 public final class EndMenu extends AbstractInMenu<EndMenu>{
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Testovaci text pre urcenie fontov
+     */
     private static final String TEST = "Testing";
+    /**
+     * ID tohoto menu
+     */
     private static final String ENDID = "_endid";  
     
+    /**
+     * Mena pre tlacidla v menu
+     */
     private static final String[] btnNames = new String[] {
         StringResource.getResource("backToGame"),
         StringResource.getResource("saveAndExit"),
         StringResource.getResource("exit")
     };
     
+    /**
+     * Sirka a vyska menu tlacidiel
+     */
     private static final int btnWidth = 200, btnHeight = 50;
+    /**
+     * Odsadenie menu od okraju
+     */
     private static final int wGap = 5, hGap = 5;
+    /**
+     * Sirka a vyska tohoto menu
+     */
     private static final int endWidth = 500, endHeight = 400;
     
+    /**
+     * Aktualna sirka a vyska menu
+     */
     protected int width = endWidth, height = endHeight;
+    /**
+     * Bonus k sirke a vyske
+     */
     protected int wBonus = 0, hBonus = 0;
+    /**
+     * Font textov
+     */
     protected Font font,boldTitleFont,italicFont, boldNormalFont;
+    /**
+     * Sirky a vysky textu pre rozny  font
+     */
     private int[] txtSize, boldSize, italicSize, boldNormalSize;
     
+    /**
+     * Obrazok s menu
+     */
     private BufferedImage endImage;
+    /**
+     * Obrazky tlacidiel v poli
+     */
     private BufferedImage[] endBtnImages;    
     // </editor-fold>
     

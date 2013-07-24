@@ -30,6 +30,9 @@ public class MenuListener extends Listener {
         CREATEMENU
     }
 
+    /**
+     * Operacia na vykonanie
+     */
     Operations op;
     // </editor-fold>
     

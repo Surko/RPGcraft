@@ -32,6 +32,9 @@ import rpgcraft.utils.DataUtils;
 public class Effect implements Externalizable {
     
     // <editor-fold defaultstate="collapsed" desc=" Enumy ">
+    /**
+     * Enum s udalostou ktory spusta efekt
+     */
     public enum EffectEvent {
         ONUSE,
         ONEQUIP,
@@ -40,6 +43,9 @@ public class Effect implements Externalizable {
         ONSELF
     }        
     
+    /**
+     * Enum s typom efektov
+     */
     public enum EffectType {
         HEALING,
         HEALOVER,
@@ -57,16 +63,46 @@ public class Effect implements Externalizable {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-        
+    
+    /**
+     * Resource pre tento efekt
+     */
     private EffectResource res;
+    /**
+     * Effekt udalost ktora spusta Efekt
+     */
     private EffectEvent event;
+    /**
+     * Typ efektu co sa vykona pri update
+     */
     private EffectType type;
+    /**
+     * Akcie ktore sa vykonaju pri update efektu
+     */
     private ArrayList<Action> actions;
+    /**
+     * Id originalnej a destinalnej entity
+     */
     private long originLong = 0, destLong = 0;
+    /**
+     * Originalna entita z ktorej vykonavame efekt
+     */
     private Entity originEntity;
-    private Entity destEntity;    
+    /**
+     * Entita na ktoru efekt uplatnujeme
+     */
+    private Entity destEntity;   
+    /**
+     * Maximalna a aktualna dlzka zivota
+     */
     private int maxSpan, lifeSpan;
+    /**
+     * Ci bol efekt ukonceny
+     */
     private boolean quit;
+    /**
+     * Ci sa akurat uz takyto efekt na entite uplatnuje.
+     */
     private boolean isSelf;
     
     // </editor-fold>

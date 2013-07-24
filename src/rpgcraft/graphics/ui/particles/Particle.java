@@ -13,20 +13,32 @@ import java.awt.Image;
  */
 public abstract class Particle {    
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // X a Y- ove pozicie vzhladom od hracovej entity
+    /**
+     * X a Y- ove pozicie vzhladom od hracovej entity
+     */
     protected int x, y;
-    // Obrazok castice na vykreslenie
+    /**
+     * Obrazok castice na vykreslenie
+     */
     protected Image toDraw;
     
-    // Dlzka zivota castice
+    /**
+     * Dlzka zivota castice
+     */
     protected int span;
     
-    // Sirka, vyska castice
+    /**
+     * Sirka, vyska castice
+     */
     protected int width, height;
     
-    // Ci sa ma castica vymazat
+    /**
+     * Ci sa ma castica vymazat
+     */
     protected boolean removed;   
-    // Ci je castica aktivovana
+    /**
+     * Ci je castica aktivovana
+     */
     protected boolean activation;
     // </editor-fold>        
     

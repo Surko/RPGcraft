@@ -61,8 +61,17 @@ public class TileItem extends Item {
     // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text s predponou pri urcovani ci je predmet dlazdicoveho typu
+     */
     private static final String TILESTRING = "tile:";        
+    /**
+     * Obrazok s dlazdicou
+     */
     private Image itemImg;
+    /**
+     * Dlazdica ktora zodpoveda predmetu
+     */
     private Tile tile;
     // </editor-fold>
     

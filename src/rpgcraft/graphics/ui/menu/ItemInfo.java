@@ -13,6 +13,7 @@ import rpgcraft.graphics.Colors;
 import rpgcraft.handlers.InputHandle;
 import rpgcraft.plugins.AbstractInMenu;
 import rpgcraft.resource.StatResource.Stat;
+import rpgcraft.resource.StringResource;
 import rpgcraft.utils.Pair;
 import rpgcraft.utils.TextUtils;
 
@@ -25,14 +26,25 @@ import rpgcraft.utils.TextUtils;
  */
 public class ItemInfo extends AbstractInMenu {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Odsadenie od okrajov menu
+    /**
+     * Odsadenie od okrajov menu
+     */
     private static final int wGap = 5, hGap = 5;
-    // Textove hodnoty vyuzite v menu
+    /**
+     * Textove hodnoty vyuzite v menu
+     */
     private static final String TEST = "Testing";
-    private static final String DUR = "Durability";
-    private static final String DELIM = " : ";
-    private static final String STATDELIM = " / ";
-    // Hlavne staty ktore sa budu vykreslovat do menu. Viac v StatResource.
+    /**
+     * Text s durability na zobrazenie
+     */
+    private static final String DUR = StringResource.getResource("durability");
+    /**
+     * Texty na rozparsovanie statov
+     */
+    private static final String DELIM = " : ",STATDELIM = " / ";
+    /**
+     * Hlavne staty ktore sa budu vykreslovat do menu. Viac v StatResource.
+     */
     private Stat[] mainStats = new Stat[] {        
         Stat.STRENGTH,        
         Stat.AGILITY,        
@@ -44,7 +56,9 @@ public class ItemInfo extends AbstractInMenu {
         Stat.ENDURANCEPER,
     };
     
-    // Health staty ktore sa budu vykreslovat do menu
+    /**
+     * Health staty ktore sa budu vykreslovat do menu
+     */
     private Stat[] healthStats = new Stat[] {        
         Stat.HEALTHBONUS,        
         Stat.HEALTHMAXPER,        
@@ -56,7 +70,9 @@ public class ItemInfo extends AbstractInMenu {
         Stat.STAMINAREGENPER
     };
     
-    // Utocne staty ktore sa budu vykreslovat do menu
+    /**
+     * Utocne staty ktore sa budu vykreslovat do menu
+     */
     private Stat[] atkStats = new Stat[] { 
         Stat.ATKRADIUS,
         Stat.ATKRADIUSPER,
@@ -70,22 +86,38 @@ public class ItemInfo extends AbstractInMenu {
         Stat.DAMAGEPER       
     };
     
-    // Fonty pouzite v menu
+    /**
+     * Fonty pouzite v menu
+     */
     private Font font,boldTitleFont,italicFont, boldNormalFont;
-    // Vysky pre kazdy font. Aby sme predchadzali pri kazdom vykreslovani textu preinicializovaniu
+    /**
+     * Vysky pre kazdy font. Aby sme predchadzali pri kazdom vykreslovani textu preinicializovaniu
+     */
     private int[] txtSize, boldSize, italicSize, boldNormalSize;
-    // Vyska a sirka pre menu
+    /**
+     * Vyska a sirka pre menu
+     */
     private int width = 300, height = 400;
-    // Predmet pre ktory vytvarame menu
+    /**
+     * Predmet pre ktory vytvarame menu
+     */
     private Item item;
     
-    // Modifikator ako velky je cely obrazok v ktorom su vykreslene staty. (modifCount * height)
+    /**
+     * Modifikator ako velky je cely obrazok v ktorom su vykreslene staty. (modifCount * height)
+     */
     private int modifCount = 1;
-    // Startovacia pozicia v obrazku odkial kreslime a lokalna startovacia pozicia alebo tiez maximalna vyska ktoru sme dosiahli pri kresleni statov do obrazku.
+    /**
+     * Startovacia pozicia v obrazku odkial kreslime a lokalna startovacia pozicia alebo tiez maximalna vyska ktoru sme dosiahli pri kresleni statov do obrazku.
+     */
     private int itemInfoStartY = 0, starty;    
-    // Plny obrazok so vsetkymi statmi.
+    /**
+     * Plny obrazok so vsetkymi statmi.
+     */
     private BufferedImage fullItemInfoImage;
-    // Skresany obrazok aby vyhovoval dlzke a vyske
+    /**
+     * Skresany obrazok aby vyhovoval dlzke a vyske
+     */
     private BufferedImage itemInfoImage;
     
     // </editor-fold>

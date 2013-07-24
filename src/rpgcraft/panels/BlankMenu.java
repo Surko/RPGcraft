@@ -18,7 +18,9 @@ import rpgcraft.plugins.AbstractMenu;
  */
 public class BlankMenu extends AbstractMenu {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Meno menu
+    /**
+     * Meno menu
+     */
     private static final String BLANK = "blankMenu";
     
     // </editor-fold>

@@ -16,6 +16,9 @@ import rpgcraft.resource.UiResource;
  */
 public class PanelType extends AbstractType {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Elemente v paneli
+     */
     private ArrayList<UiResource> elements;
     // </editor-fold>
     

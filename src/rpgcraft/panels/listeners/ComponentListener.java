@@ -24,8 +24,14 @@ import rpgcraft.utils.DataUtils;
 public class ComponentListener extends Listener {
     
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Listener
+     */
     private static final Logger LOG = Logger.getLogger(ComponentListener.class.getName());
     
+    /**
+     * Nazov pre hlavny kontajner pri urcovani na akej komponente chceme vykonat akciu
+     */
     public static final String MAINCONTAINER = "MAINCONTAINER";   
     
     /**
@@ -59,6 +65,9 @@ public class ComponentListener extends Listener {
         DEACTIVATE
     }
     
+    /**
+     * Operacia na vykonanie
+     */
     Operations op;
 
     // </editor-fold>

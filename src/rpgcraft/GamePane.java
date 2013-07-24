@@ -85,34 +85,53 @@ import rpgcraft.xml.XmlReader.XmlSavePriority;
 public class GamePane extends SwingImagePanel implements Runnable {
     
     // <editor-fold defaultstate="collapsed" desc="Premenne">
-    // Logger na odlogovanie hry
+    /**
+     * Logger na odlogovanie hry
+     */
     private static final Logger LOG = Logger.getLogger(GamePane.class.getName());
-    // Thread v ktorom bezi hlavna hra, dalsi Thread sa stara o UI prvky atd.
+    /**
+     * Thread v ktorom bezi hlavna hra, dalsi Thread sa stara o UI prvky atd.
+     */
     private Thread t;
-    // JFrame alias hlavny frame s panelom v ktorom je hra
+    /**
+     * JFrame alias hlavny frame s panelom v ktorom je hra
+     */
     private JFrame mFrame;        
-    //Bool hodnota ci bolo initializovane GUI s loggerom 
+    /** 
+     * Bool hodnota ci bolo initializovane GUI s loggerom 
+     */
     private boolean initialized = false;
-    // Bool hodnota ci boli initializovane xml subory s entitami a dlazdicami
+    /**
+     * Bool hodnota ci boli initializovane xml subory s entitami a dlazdicami
+     */
     private boolean xmlInitialized = false;   
-    // Bool hodnota ci boli initializovane pluginy
+    /**
+     * Bool hodnota ci boli initializovane pluginy
+     */
     private boolean pluginsInitialized = false;
-    // Bool hodnota ci boli zmenene velkosti.
+    /**
+     * Bool hodnota ci boli zmenene velkosti.
+     */
     private boolean changedSize = false;
     /**
      * Premenne urcujuce stav hry
      */
     private volatile static boolean running = true,gameOver = false;    
-    //
     
     
-    // Premenne na cakanie vlakna
+    
+    /**
+     * Premenna vyuzita pri cakani na vlakno
+     */
     private long startTime, elapsedTime, waitTime;
-    // Sirka a Vyska Panelu s hrou
-    private int pWidth;
-    private int pHeight;                      
+    /**
+     * Sirka a Vyska Panelu s hrou
+     */
+    private int pWidth, pHeight;                      
   
-    // Definovany vstup pre hraca
+    /**
+     * Definovany vstup pre hraca
+     */
     public InputHandle input;                
     
     // </editor-fold>

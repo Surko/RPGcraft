@@ -34,8 +34,17 @@ import rpgcraft.resource.UiResource;
  */
 public class ImageUtils {
     // Uchovavanie docasnych obrazko.
+    /**
+     * Hashmapa s ulozenymi docasnymi obrazkami
+     */
     private static HashMap<String, Image> images = new HashMap<>(); 
+    /**
+     * Logger pre Utilitu
+     */
     private static final Logger LOG = Logger.getLogger(ImageUtils.class.getName());
+    /**
+     * Velkost thumb obrazku
+     */
     private static final int[] THUMBSIZE = new int[] {128,128};
     
     /**

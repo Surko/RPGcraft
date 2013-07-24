@@ -17,8 +17,17 @@ import rpgcraft.utils.TextUtils;
  */
 public class TextType extends AbstractType {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text v textu
+     */
     String txText;
+    /**
+     * Font v textu
+     */
     Font txtFont; // Skutocny font
+    /**
+     * Farba textu
+     */
     String txColor;
     // </editor-fold>
     

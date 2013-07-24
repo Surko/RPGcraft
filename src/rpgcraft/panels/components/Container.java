@@ -49,19 +49,58 @@ import rpgcraft.utils.MainUtils;
 public class Container {
 
         // <editor-fold defaultstate="collapsed" desc=" Premenne ">    
+        
         public static Container mainContainer;
     
+        /**
+         * Minimalne a maximalne dlzky kontajneru
+         */
         private Dimension minDimension,prefDimension;
+        /**
+         * X-ova a Y-ova pozicia kontajneru v rodicovskom kontajneri.
+         */
         private int x,y;
+        /**
+         * True/false podla toho ci dlzky urcujeme automaticky
+         */
         private boolean autow,autoh;
+        /**
+         * Obrazok s ulozenou komponentou. Nepouzite! kedze vyuzivame SwingKomponenty.
+         * Mozne doplnit o nami vykreslene komponenty
+         */
         private BufferedImage resImage;
+        /**
+         * Resource ktory zodpoveda kontajneru
+         */
         private UiResource resource;
+        /**
+         * Komponenta ulozena v kontajneri
+         */
         private Component c;
+        /**
+         * Rodicovsky kontajner
+         */
         private Container parent;
+        /**
+         * True/false ci je kontajner na vrchu. Nepouzite! kedze vyuzivame SwingKomponenty.
+         * Mozne doplnit.
+         */
         private boolean top;
+        /**
+         * Detske kontajnery v tomto kontajneri
+         */
         private ArrayList<Container> childContainers;
+        /**
+         * True/false ci sa kontajner s komponentou zmenil
+         */
         private boolean changed;
+        /**
+         * True/false ci je kontajner s komponentou viditelny.
+         */
         private boolean visible;
+        /**
+         * Metoda ktora vrati kontajnery ktore nemaju este urcene pozicie.
+         */
         private ArrayList<Container> positionslessCont;
         // </editor-fold>
 

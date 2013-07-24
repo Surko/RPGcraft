@@ -26,11 +26,22 @@ import rpgcraft.resource.StatResource;
  */
 public abstract class ItemGeneratorPlugin {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Nacitane generatory predmetov
+     */
     private static HashMap<String, ItemGeneratorPlugin> itemGenerators = new HashMap<>();    
+    /**
+     * Seed pre generovanie predmetu
+     */
     private long seed;
+    /**
+     * Objekt na ziskanie nahodnych cisiel
+     */
     private Random randomizer;
     
-    // Konecny item 
+    /**
+     * Konecny item 
+     */
     private Item resultItem;    
     
     // </editor-fold>

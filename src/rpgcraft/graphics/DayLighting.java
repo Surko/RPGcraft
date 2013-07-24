@@ -12,16 +12,22 @@ import java.awt.Color;
  */
 public class DayLighting {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">    
-    private static final float MORNING = 0.5f;
-    private static final float LUNCH = 1f;
-    private static final float EVENING = 0.5f;
-    private static final float NIGHT = 0.0f;
+    /**
+     * Gradienty pre rozne useky dna
+     */
+    private static final float MORNING = 0.5f,LUNCH = 1f,EVENING = 0.5f, NIGHT = 0.0f;
     
-    // Pole Farieb pouzite pre svetlo
+    /**
+     * Pole Farieb pouzite pre svetlo
+     */
     private Color[] colors;
-    // Pole pokial siaha gradient pre jednotlive farby. Percentualne rozdelenie
+    /**
+     * Pole pokial siaha gradient pre jednotlive farby. Percentualne rozdelenie
+     */
     private float[] fractions;
-    // Modifikator ako daleko dosiahne svetlo
+    /**
+     * Modifikator ako daleko dosiahne svetlo
+     */
     private int radBuff = 0;
     // </editor-fold>
             

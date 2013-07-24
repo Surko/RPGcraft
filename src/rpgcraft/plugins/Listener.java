@@ -43,19 +43,26 @@ public abstract class Listener implements ActionListener {
     
     protected static final String INTVAR = "INTVAR";
     protected static final String STRINGVAR = "STRINGVAR";
-    
-    
+        
     private static final char PARAMDELIM = ',';
     private static final char STARTDEPTH = '(', ENDDEPTH = ')';
     
-    // Rozparsovane a dosadene parametre podla behu listeneru. Pri kazdom behu moze dat listener ine objekty.
+    /**
+     * Rozparsovane a dosadene parametre podla behu listeneru. Pri kazdom behu moze dat listener ine objekty.
+     */
     public Object[] parsedObjects;
-    // Akcia ktorej patri listener a ktory hu zavolal.
+    /**
+     * Akcia ktorej patri listener a ktory hu zavolal.
+     */
     public Action action;
     
-    // Rozparsovane parametre
+    /**
+     * Rozparsovane parametre
+     */
     public String[] params;
-    // Rozparsovane typy parametrov. Mozne typy su zadane vyssie ako finalne konstanty
+    /**
+     * Rozparsovane typy parametrov. Mozne typy su zadane vyssie ako finalne konstanty
+     */
     public String[] types;
     
     // </editor-fold>

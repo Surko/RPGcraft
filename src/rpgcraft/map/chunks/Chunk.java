@@ -19,15 +19,39 @@ import rpgcraft.map.tiles.DefaultTiles;
  */
 public class Chunk implements Externalizable {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * UID pre serializaciu
+     */
     private static final long serialVersionUID = 912804676578087866L;
+    /**
+     * Sirka a vyska chunku v podobe dlazdic
+     */
     private static final int CHUNK_SIZE = 16;
+    /**
+     * Hlbka chunku
+     */
     private static final int DEPTH = 128;
 
+    /**
+     * Konstanta na predelovanie bitovymi operaciami.
+     */
     public static final int CHUNKMOD = CHUNK_SIZE - 1;
 
+    /**
+     * Obsah chunku
+     */
     private ChunkContent blocks;
+    /**
+     * X-ova pozicia chunku vo svete
+     */
     private int x;
+    /**
+     * Y-ova pozicia chunku vo svete
+     */
     private int y;
+    /**
+     * Ci je chunk nacitany z disku
+     */
     private boolean loaded = false;
 
     // </editor-fold>

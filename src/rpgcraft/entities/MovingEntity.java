@@ -36,49 +36,90 @@ import rpgcraft.resource.TileResource;
  */
 public class MovingEntity extends Entity {    
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Konstantna dlzka segmentu kam utocime
+    /**
+     * Konstantna dlzka segmentu kam utocime
+     */
     protected static final int SEGMENTLENGTH = 32;   
-    // Konstanta urcujuca maximalny pocet pokusov na vytvorenie entity
+    /**
+     * Konstanta urcujuca maximalny pocet pokusov na vytvorenie entity
+     */
     protected static final int MAXSPAWN = 10;   
         
-    // Premenne tykajuce sa dlzky kam dociahne svetlo.
+    /**
+     * Premenne tykajuce sa dlzky kam dociahne svetlo.
+     */
     protected int lightRadius;    
 
-    // Premenne tykajuce sa pozicii
+    /**
+     * Premenne originalnych pozicii
+     */
     protected int originX, originY;
+    /**
+     * Premenne s hodnotou kam sa entita pohybuje
+     */
     protected int xGo, yGo;        
     
-    // Premenne tykajuce sa ovladania
+    /**
+     * Premenne tykajuce sa ovladania
+     */
     protected InputHandle input;    
     
     // Premenne tykajuce sa priznakov utoku
+    /**
+     * Ci je utok zakazany
+     */
     public boolean disabled = false;
+    /**
+     * Ci je poskodenie zakazane
+     */
     public boolean damageDisabled = false;
+    /**
+     * Ci zacal utok
+     */
     private boolean attackStarted = false;    
     
     // Premenne tykajuce sa co entita robi
-    protected boolean swimable;
-    protected boolean swimming;
+    /**
+     * Ci entita moze a ci plava. Nepouzite zatial.
+     */
+    protected boolean swimable, swimming;
+    /**
+     * Ci sa entita pohybuje.
+     */
     protected int walking;        
     
-    // Premenne tykajuce sa staminy a doplnenia staminy
-    protected double staminaRegen;
-    protected double staminaDischarger;
-    protected double stamina;
-    protected double maxStamina;                
+    /**
+     * Premenne tykajuce sa staminy a doplnenia staminy
+     */
+    protected double staminaRegen,staminaDischarger,stamina,maxStamina;                
        
     // Premenne tykajuce sa pohybu
+    /**
+     * Plna rychlost entity
+     */
     protected double fullSpeed;
+    /**
+     * Zdrzanie v x-ovom smere a y-ovom smere
+     */
     protected double xDelay, yDelay;
-    protected Double doublexGo = 0d;
-    protected Double doubleyGo = 0d;
+    /**
+     * Posun entity v double hodnotach.
+     */
+    protected Double doublexGo = 0d, doubleyGo = 0d;
 
-    // Premenne tykajuce sa utoku
+    /**
+     * Premenna urcujuca na ktoru dlazdicu utocime
+     */
     protected AttackedTile targetedTile;
     
-    // Premenne tykajuce sa statov.
-    protected int skillPoints, statPoints;    
+    /**
+     * Premenne tykajuce sa statov.
+     */
+    protected int skillPoints, statPoints;   
     
+    /**
+     * Sprity pre pohyblivu entitu
+     */
     protected HashMap<Sprite.Type, ArrayList<Sprite>> movingEntitySprites;       
     
     // </editor-fold>
@@ -484,7 +525,7 @@ public class MovingEntity extends Entity {
      */
     public double getMaxStamina() {
         return maxStamina;
-    }
+    }        
     
     /**
      * Metoda ktora vrati aktualny obrazok entity na zobrazenie. Metoda testuje

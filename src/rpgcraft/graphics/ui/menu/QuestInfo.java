@@ -25,12 +25,23 @@ import rpgcraft.utils.TextUtils;
  */
 public class QuestInfo extends AbstractInMenu {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Predpona pri parsovani ulohy
+     */
     private static final char LOCALPREFIX = '@';
+    /**
+     * Odsadenie ulohoveho okna
+     */
     private static final int wGap = 5, hGap = 5;   
     
-    private int width = 300;
-    private int height = 300;
+    /**
+     * Sirka a vyska menu
+     */
+    private int width = 300,height = 300;
     
+    /**
+     * Uloha ktoru zobrazujeme
+     */
     private Quest quest;
     // </editor-fold>
     

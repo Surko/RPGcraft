@@ -16,9 +16,13 @@ import rpgcraft.entities.MovingEntity;
  */
 public abstract class Ai {          
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Nahodny generator cisel pri pohybu entit. 
+    /**
+     * Nahodny generator cisel pri pohybu entit. 
+     */
     public static final Random random = new Random();    
-    // List s nacitanymi inteligenciami z disku
+    /**
+     * List s nacitanymi inteligenciami z disku
+     */
     protected static HashMap<String, Ai> aiList = new HashMap();
     
     // </editor-fold>

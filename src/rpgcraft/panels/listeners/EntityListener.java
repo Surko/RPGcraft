@@ -25,6 +25,9 @@ import rpgcraft.resource.StringResource;
  */
 public class EntityListener extends Listener {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre Listener
+     */
     private static final Logger LOG = Logger.getLogger(GameListener.class.getName());
         
     /**
@@ -54,6 +57,9 @@ public class EntityListener extends Listener {
         
     }
     
+    /**
+     * Operacia na vykonanie
+     */
     Operations op;
     // </editor-fold>
     

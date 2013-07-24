@@ -11,10 +11,14 @@ package rpgcraft.entities;
  * @author kirrie
  */
 public class EntityPosition {
-    // X-ova pozicia 
-    int x;
-    // Y-ova pozicia
-    int y;
+    /**
+     * X-ova pozicia entity
+     */
+    private int x;
+    /**
+     * Y-ova pozicia entity
+     */
+    private int y;
 
     /**
      * Konstruktor pre vytvorenie paru s poziciami kde sa nachadza entita.

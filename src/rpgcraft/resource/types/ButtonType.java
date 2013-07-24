@@ -18,8 +18,17 @@ import rpgcraft.utils.TextUtils;
  */
 public class ButtonType extends AbstractType {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text tlacidla
+     */
     String btnText;
+    /**
+     * Font tlacidla
+     */
     Font btnFont;
+    /**
+     * Farba tlacidla
+     */
     String btnColor;
     //</editor-fold>
         

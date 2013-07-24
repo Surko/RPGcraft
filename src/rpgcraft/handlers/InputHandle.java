@@ -25,15 +25,20 @@ import java.util.HashMap;
  */
 public class InputHandle implements KeyListener { 
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
-    // Hashmapa s dvojicou klavesovy kod a char znak
+    /**
+     * Hashmapa s dvojicou klavesovy kod a char znak
+     */
     private static HashMap<Integer, Character> charKeys = new HashMap();
     
-    // Ovladanie hry definovane triedou
+    /**
+     * Ovladanie hry definovane triedou
+     */
     private static InputHandle input;    
     
-    // Stlacene a drzane klavesy
-    public ArrayList<Integer> clickedKeys;
-    public ArrayList<Integer> runningKeys;
+    /**
+     * Stlacene a drzane klavesy
+     */
+    public ArrayList<Integer> clickedKeys,runningKeys;
     
     // </editor-fold>
     

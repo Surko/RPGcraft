@@ -4,7 +4,6 @@
  */
 package rpgcraft.resource;
 
-import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -12,16 +11,13 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.xml.bind.annotation.XmlAccessOrder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rpgcraft.errors.MissingFile;
-import rpgcraft.graphics.Colors;
 import rpgcraft.graphics.ImageOperation;
 import rpgcraft.manager.PathManager;
 import rpgcraft.xml.ImagesXML;
-import rpgcraft.xml.XmlReader;
 
 /**
  * ImageResource ktore dedi od AbstraktnehoResource je trieda ktora umoznuje

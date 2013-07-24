@@ -25,7 +25,13 @@ import rpgcraft.resource.StringResource;
  */
 public class DefaultDataPlugin extends DataPlugin {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Logger pre DefaultDataPluggin
+     */
     private static final Logger LOG = Logger.getLogger(DefaultDataPlugin.class.getName());
+    /**
+     * Instancia pluginu
+     */
     private static DefaultDataPlugin instance;
     /**
      * Mozne data ktore mozme ziskat do listu listov

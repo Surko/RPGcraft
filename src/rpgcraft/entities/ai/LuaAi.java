@@ -21,8 +21,17 @@ import rpgcraft.utils.ScriptUtils;
  * @author kirrie
  */
 public class LuaAi extends Ai{
+    /**
+     * Logger pre Lua inteligenciu
+     */
     private static final Logger LOG = Logger.getLogger(LuaAi.class.getName());
+    /**
+     * Funkcia na vykonanie v podobe textu
+     */
     private String sFunction;
+    /**
+     * Nacitana funkcia v objekte LuaFunction
+     */
     private LuaFunction luaFunction;
     
     /**

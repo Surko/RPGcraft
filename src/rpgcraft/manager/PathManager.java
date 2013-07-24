@@ -23,46 +23,79 @@ import java.io.File;
  */
 public final class PathManager {
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text s cestou k savom
+     */
     public static final String MAPS = File.separator + "maps";   
     
+    /**
+     * Nazov zlozky s ai pluginmi
+     */
     public static final String AIPLUG = "ai-plugins";
+    /**
+     * Nazov zlozky s map generatormi
+     */
     public static final String MAPLUG = "map-plugins";
+    /**
+     * Nazov zlozky so script pluginmi
+     */
     public static final String SCRIPTPLUG = "script-plugins";
+    /**
+     * Nazov zlozky s inmenu pluginmi
+     */
     public static final String INMENUPLUG = "inmenu-plugins";
+    /**
+     * Nazov zlozky s menu pluginmi
+     */
     public static final String MENUPLUG = "menu-plugins";
+    /**
+     * Nazov zlozky s data pluginmi
+     */
     public static final String DATAPLUG = "data-plugins";
+    /**
+     * Nazov zlozky s generatormi predmetov
+     */
     public static final String ITEMGENPLUG = "itemgen-plugins";
-    public static final String LISTPLUG = "listener-plugins";
+    /**
+     * Nazov zlozky s listener pluginmi
+     */
+    public static final String LISTPLUG = "listener-plugins";    
     
-    public static final String RENDER = "render";   
-    private static final String SAVE = "saves";    
-    private static final String SCRIPT = "scripts";
-    private static final String PLUGINS = "plugins";        
-    private static final String XML = "xml";
-    private static final String IMAGE = "images";
-    private static final String UI = "ui";
-    private static final String SHEET = "sheets";
-    private static final String LOCAL = "locales";
-    private static final String SOUNDS = "sounds";
+    /**
+     * Meno adresare s danou polozkou
+     */
+    public static final String RENDER = "render",SAVE = "saves", SCRIPT = "scripts";
+    /**
+     * Meno adresare s danou polozkou
+     */
+    public static final String PLUGINS = "plugins",XML = "xml",IMAGE = "images";
+    /**
+     * Meno adresare s danou polozkou
+     */
+    public static final String UI = "ui",SHEET = "sheets",LOCAL = "locales",SOUNDS = "sounds";
     
+    /**
+     * Instancia manazeru
+     */
     private static PathManager instance;
+    /**
+     * Argumenty pri spusteni aplikacie
+     */
     private static String[] args;
     
+    // Priznaky pre rozne OS
     private static final byte LINUX = 0;
     private static final byte WINDOWS = 1;
     private static final byte MAC = 2;
     
-    private File renderPath;
-    private File rootPath;
-    private File worldPath;    
-    private File scriptPath;
-    private File pluginPath;
-    private File xmlPath;
-    private File imagePath;
-    private File uiPath;
-    private File sheetPath;
-    private File localizationPath;
-    private File soundPath;
+    /**
+     * Cesta k danej polozke
+     */
+    private File renderPath,rootPath,worldPath,scriptPath,pluginPath;
+    /**
+     * Cesta k danej polozke
+     */
+    private File xmlPath,imagePath,uiPath,sheetPath,localizationPath,soundPath;
     
     // </editor-fold>
     

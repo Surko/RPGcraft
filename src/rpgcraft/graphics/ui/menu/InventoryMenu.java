@@ -29,11 +29,29 @@ import rpgcraft.utils.TextUtils;
 public class InventoryMenu extends AbstractInMenu {
 
     // <editor-fold defaultstate="collapsed" desc=" Konstanty ">
+    /**
+     * Id inventaru
+     */
     public static final String INVENTORYID = "_inventory";
+    /**
+     * Meno tohoto menu
+     */
     private static final String INVENTORY = StringResource.getResource(INVENTORYID);    
+    /**
+     * Sirka, vyska a odsadenie od okrajov
+     */
     private static final int invWidth = 200, invHeight = 400, wGap = 5, hGap = 5;
+    /**
+     * Vyska a sirka predmetov
+     */
     private static final int itemsWidth = 160, itemsHeight = 360;
+    /**
+     * Vyska jedneho predmetu
+     */
     private static final int itemHeight = 40;
+    /**
+     * Pocet predmetov na zobrazenie
+     */
     private static final int itemsToShow = 5;
     // </editor-fold>
     

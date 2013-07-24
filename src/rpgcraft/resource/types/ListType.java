@@ -19,9 +19,18 @@ import rpgcraft.utils.TextUtils;
  */
 public class ListType extends PanelType{
     // <editor-fold defaultstate="collapsed" desc=" Premenne ">
+    /**
+     * Text ktorym parsujeme data v liste
+     */
     public static final String DENUMERATOR = ":";
         
+    /**
+     * Defaultny typ zistenia vlastnosti listu
+     */
     public static final int DEFAULTTYPE = -1;
+    /**
+     * Automaticky typ zistenia vlastnosti textu
+     */
     public static final int AUTOTYPE = -2;
     
     public interface RowLayout {
@@ -36,10 +45,25 @@ public class ListType extends PanelType{
         AUTO
     }
     
+    /**
+     * Max riadkov
+     */
     protected int rowsMax;
+    /**
+     * Max stlpcov
+     */
     protected int colsMax;
+    /**
+     * Rozlozenie tohoto listu. Ziskane z enumu
+     */
     protected int rowLayout = -2;
+    /**
+     * Data v liste urcene textom
+     */
     protected String sData;
+    /**
+     * Elementy listu (UiResource).
+     */
     protected ArrayList<UiResource> elements;
     //</editor-fold>
     
